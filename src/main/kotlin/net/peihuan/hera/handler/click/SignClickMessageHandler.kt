@@ -14,7 +14,7 @@ class SignClickMessageHandler(val signService: SignService) : AbstractMenuAndMes
     }
 
     override fun showMsg(): String {
-        return "➜ 戳我进行签到~"
+        return "use less"
     }
 
     override fun reply(): String {
@@ -23,6 +23,10 @@ class SignClickMessageHandler(val signService: SignService) : AbstractMenuAndMes
 
     override fun canHandleMenuClick(key: String): Boolean {
         return key == "sign"
+    }
+
+    override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
+        return buildText(signService.sign(wxMpXmlMessage.fromUser), wxMpXmlMessage)
     }
 
     override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {

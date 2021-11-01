@@ -1,9 +1,11 @@
 package net.peihuan.hera
 
+import me.chanjar.weixin.common.api.WxConsts
 import me.chanjar.weixin.mp.api.WxMpService
 import net.peihuan.hera.persistent.service.ConfigPOService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import java.io.File
 
 
 class ConfigPOServiceTest :HeraApplicationTests() {
@@ -15,7 +17,7 @@ class ConfigPOServiceTest :HeraApplicationTests() {
 
     @Test
     fun test() {
-        // val mediaImgUpload = wxMpService.materialService.mediaUpload(WxConsts.MaterialType.IMAGE, File("/Users/peihuan/Downloads/000000000.jpeg"))
+        val mediaImgUpload = wxMpService.materialService.mediaUpload(WxConsts.MaterialType.IMAGE, File("/Users/peihuan/Downloads/000000000.jpeg"))
         val materialFileBatchGet = wxMpService.materialService.materialCount()
 
         println()

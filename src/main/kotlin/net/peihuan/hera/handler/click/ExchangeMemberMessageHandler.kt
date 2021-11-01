@@ -4,16 +4,17 @@ import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 import net.peihuan.hera.config.ZyProperties
-import net.peihuan.hera.constants.HUAN_WECHAT_MEDIA_ID
 import net.peihuan.hera.util.ZyUtil
 import net.peihuan.hera.util.buildALabel
 import net.peihuan.hera.util.buildKfImage
 import net.peihuan.hera.util.buildKfText
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
 class ExchangeMemberMessageHandler(val wxMpService: WxMpService,
-                                   val zyProperties: ZyProperties) : AbstractMenuAndMessageHandler() {
+                                   val zyProperties: ZyProperties,
+                                   @Value("\${media_id.wechat}") val wechatMediaId: String) : AbstractMenuAndMessageHandler() {
 
     companion object {
         const val receivedMessage = "兑换会员"
@@ -45,7 +46,7 @@ class ExchangeMemberMessageHandler(val wxMpService: WxMpService,
 
         val productUrl = ZyUtil.buildAllProductUrl(wxMpXmlMessage.fromUser, zyProperties.appid)
 
-        val aLabel = buildALabel(productUrl, "➜ 戳我六十余种超低会员，应有尽有！")
+        val aLabel = buildALabel(productUrl, "➜ 戳我 六十余种超低会员，应有尽有！")
         val content = """
                 小主，可以兑换这里的所有会员哦
                 
@@ -57,7 +58,7 @@ class ExchangeMemberMessageHandler(val wxMpService: WxMpService,
             """.trimIndent()
 
         wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
-        wxMpService.kefuService.sendKefuMessage(buildKfImage(wxMpXmlMessage, HUAN_WECHAT_MEDIA_ID));
+        wxMpService.kefuService.sendKefuMessage(buildKfImage(wxMpXmlMessage, wechatMediaId));
     }
 
 
