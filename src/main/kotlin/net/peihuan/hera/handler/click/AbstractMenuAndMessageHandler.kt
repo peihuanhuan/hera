@@ -14,13 +14,12 @@ abstract class AbstractMenuAndMessageHandler :AbstractMenuHandler() {
         return showMsg()
     }
 
-
     override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
         return buildText(buildMsgMenuUrl(reply(), showMsg()), wxMpXmlMessage)
     }
 
 
-    fun canHandleMessage(key: String): Boolean {
+    fun canHandleMessage(key: String?): Boolean {
         return key == reply()
     }
 

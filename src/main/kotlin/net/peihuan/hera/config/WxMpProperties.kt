@@ -6,7 +6,9 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 @ConfigurationProperties(prefix = "wx.mp")
 data class WxMpProperties(
-        val configs: List<MpConfig>
+        val configs: List<MpConfig>,
+        // val orderStatusTemplateid: String,
+        // val leaveMessageTemplateid: String
 )
 
 

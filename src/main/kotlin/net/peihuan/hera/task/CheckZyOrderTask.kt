@@ -8,6 +8,7 @@ import net.peihuan.hera.feign.dto.ZyOrder
 import net.peihuan.hera.feign.service.ZyService
 import net.peihuan.hera.persistent.po.ZyOrderPO
 import net.peihuan.hera.persistent.service.ZyOrderPOService
+import net.peihuan.hera.service.NotifyService
 import net.peihuan.hera.service.UserPointsService
 import net.peihuan.hera.util.ZyUtil
 import net.peihuan.hera.util.buildKfText
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component
 class CheckZyOrderTask(val zyService: ZyService,
                        val wxMpService: WxMpService,
                        val userPointsService: UserPointsService,
+                       val notifyService: NotifyService,
                        val zyOrderPOService: ZyOrderPOService) {
 
     private val log = KotlinLogging.logger {}
@@ -64,6 +66,7 @@ class CheckZyOrderTask(val zyService: ZyService,
                 小主，您的订单【${it.name}】已完成，赠送您 $points 积分哦~
             """.trimIndent()
             wxMpService.kefuService.sendKefuMessage(buildKfText(it.openid ?: "", content))
+            notifyService.notifyOrderStatus(it)
         }
     }
 

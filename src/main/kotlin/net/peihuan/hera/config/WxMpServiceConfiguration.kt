@@ -23,12 +23,10 @@ class WxMpServiceConfiguration(
         val wxMysqlOps = WxMysqlOps(configService, lockPOService)
         val configStorages = properties.configs.map { mpConfig ->
             val configStorage = WxMpMysqlConfigImpl(wxMysqlOps, mpConfig.appId)
-//            val configStorage = WxMpDefaultConfigImpl()
             configStorage.appId = mpConfig.appId.trim()
             configStorage.secret = mpConfig.secret.trim()
             configStorage.token = mpConfig.token.trim()
             configStorage.aesKey = mpConfig.aesKey.trim()
-            // configStorage.accessToken =
             return@map configStorage
         }
 
