@@ -15,5 +15,5 @@ data class SubscribePO(
         var qrSceneStr: String? = null,
         var status: Int? = null,
         val createTime: Date ? = null,
-        val updateTime: Date ? = null,
+        var updateTime: Date ? = null,
 )

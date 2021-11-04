@@ -20,6 +20,7 @@ class SubscribePOService : ServiceImpl<SubscribeMapper, SubscribePO>() {
     fun unSubscribeRecord(openid: String) {
         val userSubscribe = getUserSubscribe(openid) ?: return
         userSubscribe.status = StatusEnum.OFF.code
+        userSubscribe.updateTime = null
         updateById(userSubscribe)
     }
 
