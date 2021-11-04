@@ -92,6 +92,7 @@ class UserService(private val userPOService: UserPOService,
                 privilege = mpUser.privileges.toJson(),
                 remark = mpUser.remark,
                 groupid = mpUser.groupId,
+                updateTime = null,
         )
         // TODO: 保存头像
         // todo 处理标签

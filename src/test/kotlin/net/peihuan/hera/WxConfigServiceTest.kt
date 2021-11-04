@@ -13,14 +13,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
 
 
-class WxConfigServiceTest :HeraApplicationTests() {
+class WxConfigServiceTest : HeraApplicationTests() {
 
     private val log = KotlinLogging.logger {}
 
     @Autowired
     lateinit var configPOService: ConfigPOService
+
     @Autowired
     lateinit var wxMpService: WxMpService
+
     @Autowired
     lateinit var notifyService: NotifyService
 
@@ -47,5 +49,12 @@ class WxConfigServiceTest :HeraApplicationTests() {
         notifyService.notifyLeaveMessage("11", "aaaaaaaaaaaaaaaaaaaaaaaaaaabbbbddasdasd")
 
         println()
+    }
+
+    @Test
+    fun createQrcode() {
+        val qrCodeCreateLastTicket = wxMpService.qrcodeService.qrCodeCreateLastTicket("ceshi")
+        val file = wxMpService.qrcodeService.qrCodePicture(qrCodeCreateLastTicket)
+
     }
 }
