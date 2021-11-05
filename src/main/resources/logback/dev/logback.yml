@@ -1,4 +1,4 @@
-log_home: /Users/peihuan/tmp/logs
+log_home: /var/log/hera
 log_name: hera
 
 max_file_size: 5MB

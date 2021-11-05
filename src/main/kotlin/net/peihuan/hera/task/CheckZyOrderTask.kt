@@ -2,6 +2,7 @@ package net.peihuan.hera.task
 
 import me.chanjar.weixin.mp.api.WxMpService
 import mu.KotlinLogging
+import net.peihuan.hera.config.WxMpProperties
 import net.peihuan.hera.constants.YYYY_MM_DD
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.feign.dto.ZyOrder
@@ -11,7 +12,6 @@ import net.peihuan.hera.persistent.service.ZyOrderPOService
 import net.peihuan.hera.service.NotifyService
 import net.peihuan.hera.service.UserPointsService
 import net.peihuan.hera.util.ZyUtil
-import net.peihuan.hera.util.buildKfText
 import net.peihuan.hera.util.toJson
 import org.joda.time.DateTime
 import org.springframework.beans.BeanUtils
@@ -24,6 +24,7 @@ class CheckZyOrderTask(val zyService: ZyService,
                        val wxMpService: WxMpService,
                        val userPointsService: UserPointsService,
                        val notifyService: NotifyService,
+                       val wxMpProperties: WxMpProperties,
                        val zyOrderPOService: ZyOrderPOService) {
 
     private val log = KotlinLogging.logger {}
@@ -62,12 +63,16 @@ class CheckZyOrderTask(val zyService: ZyService,
         newOrderPOs.forEach {
             val points = (it.incomeMoney ?: 1).coerceAtMost(1000)
             userPointsService.addUserPoints(it.openid ?: "null", points, "订单返现【${it.name}】")
-            val content = """
-                小主，您的订单【${it.name}】已完成，赠送您 $points 积分哦~
-            """.trimIndent()
-            wxMpService.kefuService.sendKefuMessage(buildKfText(it.openid ?: "", content))
-            notifyService.notifyOrderStatus(it)
+            // val content = """
+            //     小主，您的订单【${it.name}】已完成，赠送您 $points 积分哦~
+            // """.trimIndent()
+            notifyService.notifyOrderStatusToUser(it, points)
+            // wxMpService.kefuService.sendKefuMessage(buildKfText(it.openid ?: "", content))
+            notifyService.notifyOrderStatusToAdmin(it)
         }
+
+        wxMpService.userTagService.batchTagging(wxMpProperties.tags.hasZyMemberOrder, newOrderPOs.map { it.openid }.toTypedArray())
+        // todo userTagPO;
     }
 
     private fun queryZyOrders(from: DateTime, to: DateTime): List<ZyOrder> {

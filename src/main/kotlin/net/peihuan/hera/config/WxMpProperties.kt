@@ -7,10 +7,14 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties(prefix = "wx.mp")
 data class WxMpProperties(
         val configs: List<MpConfig>,
-        // val orderStatusTemplateid: String,
+        val tags: Tags,
+        val orderStatusTemplateid: String,
         // val leaveMessageTemplateid: String
 )
 
+data class Tags(
+        val hasZyMemberOrder: Long,
+)
 
 data class MpConfig(
         /**

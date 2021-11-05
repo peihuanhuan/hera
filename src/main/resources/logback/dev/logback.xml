@@ -10,25 +10,73 @@
         </encoder>
     </appender>
 
-    <appender name="rollingFile"
+    <appender name="rollingInfoFile"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${log_home}/${log_name}.log</file>
+        <file>${log_home}/info.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${log_home}/${log_name}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <fileNamePattern>${log_home}/info.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
             <maxHistory>30</maxHistory>
             <cleanHistoryOnStart>true</cleanHistoryOnStart>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>${max_file_size}</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>ACCEPT</onMismatch>
+        </filter>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}:%line - %msg%n</pattern>
         </encoder>
     </appender>
 
+    <appender name="rollingWarnFile"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log_home}/warn.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_home}/warn.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${max_file_size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}:%line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="rollingErrorFile"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log_home}/error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_home}/error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${max_file_size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}:%line - %msg%n</pattern>
+        </encoder>
+    </appender>
 
     <root level="info">
         <appender-ref ref="console"/>
-        <appender-ref ref="rollingFile"/>
+        <appender-ref ref="rollingInfoFile"/>
+        <appender-ref ref="rollingWarnFile"/>
+        <appender-ref ref="rollingErrorFile"/>
     </root>
 </configuration>

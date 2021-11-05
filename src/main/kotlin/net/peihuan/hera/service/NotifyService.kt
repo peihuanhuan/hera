@@ -1,6 +1,8 @@
 package net.peihuan.hera.service
 
 import me.chanjar.weixin.mp.api.WxMpService
+import me.chanjar.weixin.mp.bean.template.WxMpTemplateData
+import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage
 import mu.KotlinLogging
 import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
@@ -19,11 +21,28 @@ class NotifyService(private val wxMpService: WxMpService,
 
     private val log = KotlinLogging.logger {}
 
-    val token = "a7643cc0de74425e8d8ce69e885100bb"
+    val pushPlustoken = "a7643cc0de74425e8d8ce69e885100bb"
 
-    fun notifyOrderStatus(order: ZyOrderPO) {
+    fun notifyOrderStatusToUser(order: ZyOrderPO, presentPoints: Int) {
+        val templateMessage = WxMpTemplateMessage.builder()
+                .toUser(order.openid)
+                .templateId(wxMpProperties.orderStatusTemplateid)
+                .build()
+
+        templateMessage
+                .addData(WxMpTemplateData("first", "您的订单已完成"))
+                .addData(WxMpTemplateData("keyword1", order.outTradeNo))
+                .addData(WxMpTemplateData("keyword2", order.actualOrderAmountStr))
+                .addData(WxMpTemplateData("keyword3", order.name))
+                .addData(WxMpTemplateData("keyword4", order.pay_at))
+                .addData(WxMpTemplateData("remark", "小主，您的订单已完成，赠送您 $presentPoints 积分，可兑换其它会员", "#F54B27"))
+
+        wxMpService.templateMsgService.sendTemplateMsg(templateMessage)
+    }
+
+    fun notifyOrderStatusToAdmin(order: ZyOrderPO) {
         val request = PushPlusService.SendRequest(
-                token = token,
+                token = pushPlustoken,
                 title = "${order.name} 已完成",
                 channel = "webhook",
                 webhook = "pushplus",
@@ -36,9 +55,9 @@ class NotifyService(private val wxMpService: WxMpService,
         log.info { send }
     }
 
-    fun notifyLeaveMessage(openid: String, content: String) {
+    fun notifyLeaveMessage(openid: String, content: String?) {
         val request = PushPlusService.SendRequest(
-                token = token,
+                token = pushPlustoken,
                 title = "有新的聊天，请及时回复：$content",
                 channel = "webhook",
                 webhook = "pushplus",

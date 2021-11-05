@@ -4,6 +4,8 @@ import me.chanjar.weixin.common.api.WxConsts
 import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.kefu.request.WxMpKfAccountRequest
 import mu.KotlinLogging
+import net.peihuan.hera.config.HeraProperties
+import net.peihuan.hera.config.WxMpProperties
 import net.peihuan.hera.persistent.po.ZyOrderPO
 import net.peihuan.hera.persistent.service.ConfigPOService
 import net.peihuan.hera.service.NotifyService
@@ -22,6 +24,12 @@ class WxConfigServiceTest : HeraApplicationTests() {
 
     @Autowired
     lateinit var wxMpService: WxMpService
+
+    @Autowired
+    lateinit var heraProperties: HeraProperties
+
+    @Autowired
+    lateinit var wxMpProperties: WxMpProperties
 
     @Autowired
     lateinit var notifyService: NotifyService
@@ -45,7 +53,14 @@ class WxConfigServiceTest : HeraApplicationTests() {
 
     @Test
     fun notifyTest() {
-        notifyService.notifyOrderStatus(ZyOrderPO())
+
+        val order = ZyOrderPO()
+        order.openid = heraProperties.adminOpenid
+        order.name = "商品名称"
+        order.outTradeNo = "111111"
+        order.pay_at = "今天"
+        order.actualOrderAmountStr = "100"
+        notifyService.notifyOrderStatusToUser(order ,100)
         notifyService.notifyLeaveMessage("11", "aaaaaaaaaaaaaaaaaaaaaaaaaaabbbbddasdasd")
 
         println()

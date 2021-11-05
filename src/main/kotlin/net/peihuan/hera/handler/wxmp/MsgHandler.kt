@@ -24,7 +24,8 @@ class MsgHandler(val messageHandlers: List<AbstractMenuAndMessageHandler>,
                         context: Map<String, Any>, weixinService: WxMpService,
                         sessionManager: WxSessionManager): WxMpXmlOutMessage? {
         if (wxMessage.msgType != WxConsts.XmlMsgType.TEXT) {
-            return null
+            notifyService.notifyLeaveMessage(wxMessage.fromUser, wxMessage.content)
+            return buildSendToKf(wxMessage, heraProperties.adminOpenid)
         }
 
         //当用户输入关键词如“你好”，“客服”等，并且有客服在线时，把消息转发给在线客服

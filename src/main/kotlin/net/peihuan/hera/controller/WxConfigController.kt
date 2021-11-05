@@ -10,12 +10,18 @@ class WxConfigController(val wxService: WxMpService) {
 
 
     @PostMapping("/create/qrcode")
-    fun menuCreate(@PathVariable appid: String, @RequestParam sceneStr: String): JsonResult {
+    fun createQrcode(@PathVariable appid: String, @RequestParam sceneStr: String): JsonResult {
         val qrCodeTicket = wxService.qrcodeService.qrCodeCreateLastTicket(sceneStr)
         return JsonResult.success()
                 .add("appid", appid)
                 .add("sceneStr", sceneStr)
                 .add("qrCodeTicket", qrCodeTicket)
+    }
+
+
+    @GetMapping("tags")
+    fun getTags(@PathVariable appid: String): JsonResult {
+        return JsonResult.success(wxService.userTagService.tagGet())
     }
 
 }
