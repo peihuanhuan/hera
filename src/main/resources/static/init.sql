@@ -2,6 +2,16 @@ create
 database hero;
 
 
+CREATE TABLE `user_tag` (
+                        `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                        `openid` varchar(64) NOT NULL,
+                        `tagid` int(11) NOT NULL,
+                        `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                        `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                        `deleted` smallint(6) NOT NULL DEFAULT '0' COMMENT '逻辑删除',
+                        PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='用户标签';
+
 
 INSERT INTO `config` (`appid`, `key`, `desc`, `value`, `expire_at`, `deleted`, `create_time`, `update_time`)
 VALUES ('', 'subscribe_reply_content', '关注后的回复内容',

@@ -11,6 +11,7 @@ import net.peihuan.hera.persistent.po.ZyOrderPO
 import net.peihuan.hera.persistent.service.ZyOrderPOService
 import net.peihuan.hera.service.NotifyService
 import net.peihuan.hera.service.UserPointsService
+import net.peihuan.hera.service.UserService
 import net.peihuan.hera.util.ZyUtil
 import net.peihuan.hera.util.toJson
 import org.joda.time.DateTime
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component
 class CheckZyOrderTask(val zyService: ZyService,
                        val wxMpService: WxMpService,
                        val userPointsService: UserPointsService,
+                       val userService: UserService,
                        val notifyService: NotifyService,
                        val wxMpProperties: WxMpProperties,
                        val zyOrderPOService: ZyOrderPOService) {
@@ -61,18 +63,19 @@ class CheckZyOrderTask(val zyService: ZyService,
         }
 
         newOrderPOs.forEach {
-            val points = (it.incomeMoney ?: 1).coerceAtMost(1000)
-            userPointsService.addUserPoints(it.openid ?: "null", points, "订单返现【${it.name}】")
-            // val content = """
-            //     小主，您的订单【${it.name}】已完成，赠送您 $points 积分哦~
-            // """.trimIndent()
-            notifyService.notifyOrderStatusToUser(it, points)
-            // wxMpService.kefuService.sendKefuMessage(buildKfText(it.openid ?: "", content))
+            val presentPoints = (it.incomeMoney ?: 1).coerceAtMost(1000)
+            userPointsService.addUserPoints(it.openid ?: "null", presentPoints, "订单返现【${it.name}】")
+            notifyService.notifyOrderStatusToUser(it, presentPoints)
             notifyService.notifyOrderStatusToAdmin(it)
         }
 
-        wxMpService.userTagService.batchTagging(wxMpProperties.tags.hasZyMemberOrder, newOrderPOs.map { it.openid }.toTypedArray())
-        // todo userTagPO;
+        if (newOrderPOs.isNotEmpty()) {
+            wxMpService.userTagService.batchTagging(wxMpProperties.tags.hasZyMemberOrder, newOrderPOs.map { it.openid }.toTypedArray())
+        }
+
+        newOrderPOs.forEach {
+            userService.addUserTag(it.openid ?: "not found", wxMpProperties.tags.hasZyMemberOrder)
+        }
     }
 
     private fun queryZyOrders(from: DateTime, to: DateTime): List<ZyOrder> {

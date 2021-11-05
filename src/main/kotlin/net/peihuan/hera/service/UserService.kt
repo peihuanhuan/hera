@@ -16,16 +16,22 @@ import net.peihuan.hera.handler.click.member.TencentMessageHandler
 import net.peihuan.hera.handler.click.waimai.ElmeWmHandler
 import net.peihuan.hera.handler.click.waimai.MeituanWmHandler
 import net.peihuan.hera.persistent.po.SubscribePO
-import net.peihuan.hera.persistent.po.UserPO
 import net.peihuan.hera.persistent.service.SubscribePOService
 import net.peihuan.hera.persistent.service.UserPOService
-import net.peihuan.hera.util.*
+import net.peihuan.hera.persistent.service.UserTagPOService
+import net.peihuan.hera.service.convert.UserConvertService
+import net.peihuan.hera.util.MIN_POINTS_CAN_EXCHANGE_MEMBER
+import net.peihuan.hera.util.buildKfText
+import net.peihuan.hera.util.buildMsgMenuUrl
+import net.peihuan.hera.util.completeMsgMenu
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class UserService(private val userPOService: UserPOService,
                   private val wxMpService: WxMpService,
+                  private val userTagPOService: UserTagPOService,
+                  private val userConvertService: UserConvertService,
                   private val configService: ConfigService,
                   private val userPointsService: UserPointsService,
                   private val cacheManage: CacheManage,
@@ -35,7 +41,7 @@ class UserService(private val userPOService: UserPOService,
     fun userSubscribeEvent(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
         val userWxInfo: WxMpUser = wxMpService.userService.userInfo(wxMpXmlMessage.fromUser, null)
         val dbUser = userPOService.getByOpenid(userWxInfo.openId)
-        val newUser = buildUser(userWxInfo)
+        val newUser = userConvertService.convertToUserPO(userWxInfo)
         if (dbUser != null) {
             newUser.id = dbUser.id
         }
@@ -76,27 +82,7 @@ class UserService(private val userPOService: UserPOService,
         userPointsService.addUserPoints(wxMpXmlMessage.fromUser, configPoints.toInt(), "首次关注赠送积分")
     }
 
-    fun buildUser(mpUser: WxMpUser): UserPO {
-        // todo 多公众号
-        val appid = WxMpConfigStorageHolder.get()
-        return UserPO(
-                nickname = mpUser.nickname,
-                appid = appid,
-                openid = mpUser.openId,
-                unionid = mpUser.unionId,
-                sex = mpUser.sex,
-                province = mpUser.province,
-                city = mpUser.city,
-                country = mpUser.country,
-                headimgurl = mpUser.headImgUrl,
-                privilege = mpUser.privileges.toJson(),
-                remark = mpUser.remark,
-                groupid = mpUser.groupId,
-                updateTime = null,
-        )
-        // TODO: 保存头像
-        // todo 处理标签
-    }
+
 
     fun addSubscribeRecord(mpUser: WxMpUser) {
         val subscribePO = SubscribePO(
@@ -114,4 +100,10 @@ class UserService(private val userPOService: UserPOService,
     fun userUnSubscribeEvent(openid: String) {
         subscribePOService.unSubscribeRecord(openid)
     }
+
+
+    fun addUserTag(openid: String, tagid: Long) {
+        userTagPOService.addUserTag(openid, tagid)
+    }
+
 }

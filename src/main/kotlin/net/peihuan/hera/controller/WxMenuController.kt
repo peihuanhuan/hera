@@ -14,7 +14,7 @@ import org.springframework.web.context.request.ServletRequestAttributes
 import java.net.URL
 
 @RestController
-@RequestMapping("/wx/menu/{appid}")
+@RequestMapping("/wx/{appid}/menu/")
 class WxMenuController(val wxService: WxMpService) {
 
     /**
