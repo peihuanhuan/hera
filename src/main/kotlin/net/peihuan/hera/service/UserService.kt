@@ -5,6 +5,7 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 import me.chanjar.weixin.mp.bean.result.WxMpUser
 import me.chanjar.weixin.mp.util.WxMpConfigStorageHolder
+import net.peihuan.hera.config.ZyProperties
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.constants.StatusEnum
 import net.peihuan.hera.constants.SubscribeSceneEnum
@@ -35,6 +36,8 @@ class UserService(private val userPOService: UserPOService,
                   private val configService: ConfigService,
                   private val userPointsService: UserPointsService,
                   private val cacheManage: CacheManage,
+                  private val zyProperties: ZyProperties,
+                  private val scanService: ScanService,
                   private val subscribePOService: SubscribePOService) {
 
     @Transactional
@@ -49,7 +52,8 @@ class UserService(private val userPOService: UserPOService,
         addSubscribeRecord(userWxInfo)
         var replyContent = configService.getConfigWithCommon(WxMpConfigStorageHolder.get(), BizConfigEnum.SUBSCRIBE_REPLY_CONTENT)
                 ?: "感谢关注"
-        replyContent = replyContent.completeMsgMenu(MeituanWmHandler.reply,
+        replyContent = replyContent.completeMsgMenu(
+                MeituanWmHandler.reply,
                 ElmeWmHandler.reply,
                 AllProductMessageHandler.reply,
                 SignClickMessageHandler.reply,
@@ -61,8 +65,17 @@ class UserService(private val userPOService: UserPOService,
             firstSubscribe(wxMpXmlMessage)
         }
 
+        handleQrscene(wxMpXmlMessage)
 
         return null
+    }
+
+    private fun handleQrscene(wxMpXmlMessage: WxMpXmlMessage) {
+        if (wxMpXmlMessage.event != "subscribe") {
+            return
+        }
+        val qrscene = wxMpXmlMessage.eventKey.removePrefix("qrscene_")
+        scanService.handleQrsceneScan(wxMpXmlMessage, qrscene)
     }
 
     private fun firstSubscribe(wxMpXmlMessage: WxMpXmlMessage) {

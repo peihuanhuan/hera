@@ -11,6 +11,7 @@ enum class BizConfigEnum(val key: String, val desc: String) {
     ELME("elme", "饿了么红包推荐语"),
 
     MEMBER("member", "多个会员推荐语"),
-    HUAFEI("huafei", "话费推荐语")
+    HUAFEI("huafei", "话费推荐语"),
+    DIANFEI("dianfei", "电费推荐语"),
     ;
 }
