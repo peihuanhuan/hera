@@ -9,6 +9,11 @@ import org.springframework.stereotype.Service
 
 @Service
 class SubscribePOService : ServiceImpl<SubscribeMapper, SubscribePO>() {
+
+    fun getSubscribeOpenids() : List<String> {
+        return getBaseMapper().findSubscribeOpenids()
+    }
+
     fun getUserSubscribe(openid: String): SubscribePO? {
         return getOne(KtQueryWrapper(SubscribePO::class.java)
                 .eq(SubscribePO::openid, openid)
