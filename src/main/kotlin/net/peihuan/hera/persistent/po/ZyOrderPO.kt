@@ -12,6 +12,7 @@ class ZyOrderPO{
         var id: Long? = null
         var account: String? = null
         var openid: String? = null
+        var source: Int? = null
         @TableField("actual_order_amount_str")
         var actualOrderAmountStr: String? = null
         @TableField("admin_uid")

@@ -3,6 +3,7 @@ package net.peihuan.hera.task
 import me.chanjar.weixin.mp.api.WxMpService
 import mu.KotlinLogging
 import net.peihuan.hera.config.WxMpProperties
+import net.peihuan.hera.constants.OrderSourceEnum
 import net.peihuan.hera.constants.YYYY_MM_DD
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.feign.dto.ZyOrder
@@ -53,8 +54,10 @@ class CheckZyOrderTask(val zyService: ZyService,
             BeanUtils.copyProperties(it, po)
             po.outTradeNo = it.out_trade_no
             po.incomeMoney = it.income_money
-            po.openid = ZyUtil.getChannelOpenid(it.channel ?: "")
-            po
+            val channel = ZyUtil.getChannel(it.channel ?: "")
+            po.openid = channel.openid
+            po.source = channel.source.code
+            return@map po
         }
 
         if (newOrderPOs.isNotEmpty()) {
@@ -63,9 +66,13 @@ class CheckZyOrderTask(val zyService: ZyService,
         }
 
         newOrderPOs.forEach {
-            val presentPoints = (it.incomeMoney ?: 1).coerceAtMost(1000)
-            userPointsService.addUserPoints(it.openid ?: "null", presentPoints, "订单返现【${it.name}】")
-            notifyService.notifyOrderStatusToUser(it, presentPoints)
+            if (it.source == OrderSourceEnum.BUY.code) {
+                val presentPoints = (it.incomeMoney ?: 1).coerceAtMost(1000)
+                userPointsService.addUserPoints(it.openid ?: "null", presentPoints, "订单返现【${it.name}】")
+                notifyService.notifyOrderStatusToUser(it, presentPoints)
+            } else {
+                notifyService.notifyOrderStatusToUser(it)
+            }
             notifyService.notifyOrderStatusToAdmin(it)
         }
 
