@@ -1,6 +1,7 @@
 package net.peihuan.hera.task
 
 import me.chanjar.weixin.mp.api.WxMpService
+import me.chanjar.weixin.mp.util.WxMpConfigStorageHolder
 import mu.KotlinLogging
 import net.peihuan.hera.config.WxMpProperties
 import net.peihuan.hera.constants.OrderSourceEnum
@@ -8,8 +9,10 @@ import net.peihuan.hera.constants.YYYY_MM_DD
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.feign.dto.ZyOrder
 import net.peihuan.hera.feign.service.ZyService
+import net.peihuan.hera.persistent.po.ChannelPO
 import net.peihuan.hera.persistent.po.ZyOrderPO
 import net.peihuan.hera.persistent.service.ZyOrderPOService
+import net.peihuan.hera.service.ChannelService
 import net.peihuan.hera.service.NotifyService
 import net.peihuan.hera.service.UserPointsService
 import net.peihuan.hera.service.UserService
@@ -26,6 +29,7 @@ class CheckZyOrderTask(val zyService: ZyService,
                        val wxMpService: WxMpService,
                        val userPointsService: UserPointsService,
                        val userService: UserService,
+                       val channelService: ChannelService,
                        val notifyService: NotifyService,
                        val wxMpProperties: WxMpProperties,
                        val zyOrderPOService: ZyOrderPOService) {
@@ -54,9 +58,9 @@ class CheckZyOrderTask(val zyService: ZyService,
             BeanUtils.copyProperties(it, po)
             po.outTradeNo = it.out_trade_no
             po.incomeMoney = it.income_money
-            val channel = ZyUtil.getChannel(it.channel ?: "")
-            po.openid = channel.openid
-            po.source = channel.source.code
+            val channel = getChannel(it)
+            po.openid = channel?.openid
+            po.source = channel?.source?.code
             return@map po
         }
 
@@ -82,6 +86,19 @@ class CheckZyOrderTask(val zyService: ZyService,
 
         newOrderPOs.forEach {
             userService.addUserTag(it.openid ?: "not found", wxMpProperties.tags.hasZyMemberOrder)
+        }
+    }
+
+    private fun getChannel(it: ZyOrder): ChannelPO? {
+        return try {
+            channelService.getChannelById(it.channel!!.toLong())
+        } catch (e: Exception) {
+            log.warn { "走到了兜底渠道逻辑 ${it.toJson()}" }
+            // todo 历史逻辑 一段时间后删除
+            val openid = ZyUtil.getChannelOpenid(it.channel!!)
+            val appid = WxMpConfigStorageHolder.get()
+            ChannelPO(openid = openid, source = OrderSourceEnum.BUY, appid = appid)
+
         }
     }
 

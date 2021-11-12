@@ -1,4 +1,4 @@
-package net.peihuan.hera.domain.annotation
+package net.peihuan.hera.domain
 
 import net.peihuan.hera.exception.CodeEnum
 

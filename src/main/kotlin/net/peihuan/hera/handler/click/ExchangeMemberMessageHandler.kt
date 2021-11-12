@@ -5,6 +5,7 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.ZyProperties
+import net.peihuan.hera.service.ChannelService
 import net.peihuan.hera.util.ZyUtil
 import net.peihuan.hera.util.buildALabel
 import net.peihuan.hera.util.buildKfImage
@@ -12,8 +13,9 @@ import net.peihuan.hera.util.buildKfText
 import org.springframework.stereotype.Component
 
 @Component
-class ExchangeMemberMessageHandler(val wxMpService: WxMpService,
-                                   val zyProperties: ZyProperties,
+class ExchangeMemberMessageHandler(private val wxMpService: WxMpService,
+                                   private val zyProperties: ZyProperties,
+                                   private val channelService: ChannelService,
                                    private val heraProperties: HeraProperties) : AbstractMenuAndMessageHandler() {
 
     companion object {
@@ -44,7 +46,8 @@ class ExchangeMemberMessageHandler(val wxMpService: WxMpService,
 
     private fun sendMessage(wxMpXmlMessage: WxMpXmlMessage) {
 
-        val productUrl = ZyUtil.buildAllProductUrl(wxMpXmlMessage.fromUser, zyProperties.appid)
+        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
+        val productUrl = ZyUtil.buildAllProductUrl(channelId, zyProperties.appid)
 
         val aLabel = buildALabel(productUrl, "➜ 戳我 六十余种超低会员，应有尽有！")
         val content = """

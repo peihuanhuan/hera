@@ -1,7 +1,7 @@
 package net.peihuan.hera.controller
 
 import me.chanjar.weixin.mp.api.WxMpService
-import net.peihuan.hera.domain.annotation.JsonResult
+import net.peihuan.hera.domain.JsonResult
 import org.springframework.web.bind.annotation.*
 
 @RestController

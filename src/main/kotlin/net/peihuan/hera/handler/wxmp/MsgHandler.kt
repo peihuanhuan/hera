@@ -24,7 +24,11 @@ class MsgHandler(val messageHandlers: List<AbstractMenuAndMessageHandler>,
                         context: Map<String, Any>, weixinService: WxMpService,
                         sessionManager: WxSessionManager): WxMpXmlOutMessage? {
         if (wxMessage.msgType != WxConsts.XmlMsgType.TEXT) {
-            notifyService.notifyLeaveMessage(wxMessage.fromUser, wxMessage.content)
+            if (wxMessage.msgType == WxConsts.XmlMsgType.EVENT) {
+                notifyService.notifyLeaveMessage(wxMessage.fromUser, "事件：${wxMessage.event} 状态：${wxMessage.status}")
+            } else {
+                notifyService.notifyLeaveMessage(wxMessage.fromUser, wxMessage.content)
+            }
             return buildSendToKf(wxMessage, heraProperties.adminOpenid)
         }
 

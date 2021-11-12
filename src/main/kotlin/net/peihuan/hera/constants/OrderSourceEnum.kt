@@ -1,6 +1,8 @@
 package net.peihuan.hera.constants
 
-enum class OrderSourceEnum(val code: Int, val msg: String) {
+import com.baomidou.mybatisplus.annotation.EnumValue
+
+enum class OrderSourceEnum(@EnumValue val code: Int, val msg: String) {
 
     BUY(1, "购买"),
     EXCHANGE(2, "积分兑换"),

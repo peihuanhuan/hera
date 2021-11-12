@@ -1,6 +1,7 @@
 package net.peihuan.hera
 
 import net.peihuan.hera.util.buildALabel
+import net.peihuan.hera.util.completeMsgMenu
 import org.junit.jupiter.api.Test
 
 class SimpleTest {
@@ -24,6 +25,7 @@ class SimpleTest {
 
         println(match)
 
+        val completeMsgMenu = x.completeMsgMenu("aa")
         val url = "http://baidu.com"
         var replace = x.replaceFirst("<a>(.*)<\\/a>".toRegex(), buildALabel(url, "$1"))
         replace = replace.replaceFirst("<a>(.*)<\\/a>".toRegex(), buildALabel("http://taobao", "$1"))

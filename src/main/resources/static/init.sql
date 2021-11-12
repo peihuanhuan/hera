@@ -13,6 +13,17 @@ CREATE TABLE `user_tag` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='用户标签';
 
 
+
+CREATE TABLE `channel` (
+                            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                            `appid` varchar(64) NOT NULL,
+                            `openid` varchar(64) NOT NULL,
+                            `source` int not null,
+                            `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                            PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='会员渠道';
+
+
 INSERT INTO `config` (`appid`, `key`, `desc`, `value`, `expire_at`, `deleted`, `create_time`, `update_time`)
 VALUES ('', 'subscribe_reply_content', '关注后的回复内容',
         '欢迎关注我\n💨这是个充话费的公众号，还可以超低价冲各种会员\n\n\n特价话费通道：\n<a href=\"https://cdn.wxthe.com/life/#/pages/act/phone?appid=zy149890c02e76f180&channel=fuwuhao_subscribe\">92折优惠充话费</a>\n\n\n60种会员低价直冲：\n<a href=\"https://cdn.wxthe.com/life/#/?appid=zy149890c02e76f180&channel=fuwuhao_subscribe\">全网低价会员四折起</a>',
