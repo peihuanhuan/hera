@@ -7,7 +7,7 @@ import net.peihuan.hera.constants.OrderSourceEnum
 @TableName("channel")
 data class ChannelPO(
         @TableId
-        val id: Long? = null,
+        val id: Long,
         val source: OrderSourceEnum,
         val appid: String,
         val openid: String

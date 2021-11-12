@@ -97,7 +97,7 @@ class CheckZyOrderTask(val zyService: ZyService,
             // todo 历史逻辑 一段时间后删除
             val openid = ZyUtil.getChannelOpenid(it.channel!!)
             val appid = WxMpConfigStorageHolder.get()
-            ChannelPO(openid = openid, source = OrderSourceEnum.BUY, appid = appid)
+            ChannelPO(id = 0, openid = openid, source = OrderSourceEnum.BUY, appid = appid)
 
         }
     }

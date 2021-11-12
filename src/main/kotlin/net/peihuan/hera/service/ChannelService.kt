@@ -1,5 +1,6 @@
 package net.peihuan.hera.service
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker
 import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.util.WxMpConfigStorageHolder
 import mu.KotlinLogging
@@ -22,12 +23,12 @@ class ChannelService(private val channelPOService: ChannelPOService,
         val appid = WxMpConfigStorageHolder.get()
         val channel = channelPOService.getChannel(openid = openid, appid = appid, source = source)
         if (channel != null) {
-            return channel.id!!
+            return channel.id
         }
 
-        val po = ChannelPO(openid = openid, appid = appid, source = source)
+        val po = ChannelPO(id = IdWorker.getId(), openid = openid, appid = appid, source = source)
         channelPOService.save(po)
-        return po.id!!
+        return po.id
     }
 
     fun getChannelById(channelId: Long) : ChannelPO? {
