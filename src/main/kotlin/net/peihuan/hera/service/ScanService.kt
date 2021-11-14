@@ -29,7 +29,7 @@ class ScanService(
 
 
     fun handleQrsceneScan(wxMpXmlMessage: WxMpXmlMessage, qrscene: String) {
-        if (qrscene.startsWith("电费")) {
+        if (qrscene.contains("电费")) {
             var content = cacheManage.getBizValue(BizConfigEnum.DIANFEI)
             content = content.completeMsgMenu(DianfeiHandler.reply)
             wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
@@ -40,6 +40,18 @@ class ScanService(
                 腾讯视频限时特惠！
                 
                 年卡104元，周卡5元
+                
+                <a>➜ 戳我进入购买页面</a>
+            """.trimIndent()
+            content = content.completeALable(url)
+            wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
+        } else if (qrscene.contains("喜马拉雅")) {
+            val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
+            val url = ZyUtil.buildOneProductUrl("C0025", channelId, zyProperties.appid)
+            var content = """
+                喜马拉雅限时特惠！
+                
+                年卡97元，周卡2元
                 
                 <a>➜ 戳我进入购买页面</a>
             """.trimIndent()
