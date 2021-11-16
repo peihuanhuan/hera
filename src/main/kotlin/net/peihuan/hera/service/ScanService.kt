@@ -6,13 +6,11 @@ import mu.KotlinLogging
 import net.peihuan.hera.config.ZyProperties
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.domain.CacheManage
-import net.peihuan.hera.handler.click.DianfeiHandler
 import net.peihuan.hera.persistent.service.PointsRecordPOService
 import net.peihuan.hera.persistent.service.UserPointsPOService
 import net.peihuan.hera.util.ZyUtil
 import net.peihuan.hera.util.buildKfText
 import net.peihuan.hera.util.completeALable
-import net.peihuan.hera.util.completeMsgMenu
 import org.springframework.stereotype.Service
 
 @Service
@@ -29,12 +27,13 @@ class ScanService(
 
 
     fun handleQrsceneScan(wxMpXmlMessage: WxMpXmlMessage, qrscene: String) {
+        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
         if (qrscene.contains("电费")) {
             var content = cacheManage.getBizValue(BizConfigEnum.DIANFEI)
-            content = content.completeMsgMenu(DianfeiHandler.reply)
+            val url = ZyUtil.buildOneProductUrl("C0063", channelId, zyProperties.appid)
+            content = content.completeALable(url)
             wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
         } else if (qrscene.contains("腾讯视频")) {
-            val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
             val url = ZyUtil.buildOneProductUrl("C0002", channelId, zyProperties.appid)
             var content = """
                 腾讯视频限时特惠！
@@ -46,12 +45,22 @@ class ScanService(
             content = content.completeALable(url)
             wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
         } else if (qrscene.contains("喜马拉雅")) {
-            val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
             val url = ZyUtil.buildOneProductUrl("C0025", channelId, zyProperties.appid)
             var content = """
                 喜马拉雅限时特惠！
                 
                 年卡97元，周卡2元
+                
+                <a>➜ 戳我进入购买页面</a>
+            """.trimIndent()
+            content = content.completeALable(url)
+            wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
+        } else if (qrscene.uppercase().contains("芒果TV")) {
+            val url = ZyUtil.buildOneProductUrl("C0016", channelId, zyProperties.appid)
+            var content = """
+                芒果TV限时特惠！
+                
+                年卡85元，周卡5.9元
                 
                 <a>➜ 戳我进入购买页面</a>
             """.trimIndent()
