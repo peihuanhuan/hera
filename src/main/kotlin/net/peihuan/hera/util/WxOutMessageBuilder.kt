@@ -44,7 +44,7 @@ fun buildText(content: String?, wxMessage: WxMpXmlMessage): WxMpXmlOutMessage {
 fun buildSendToKf(wxMessage: WxMpXmlMessage, kfOpenid: String): WxMpXmlOutMessage {
     return WxMpXmlOutMessage.TRANSFER_CUSTOMER_SERVICE()
             .fromUser(wxMessage.toUser)
-            .toUser(kfOpenid)
+            .toUser(wxMessage.fromUser)
             .build()
 }
 
