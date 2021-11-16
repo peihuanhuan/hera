@@ -11,7 +11,7 @@ import java.util.*
 data class UserPO (
     @TableId
     var id: Long? = null,
-    val appid: String? = null,
+    var appid: String? = null,
     val openid: String? = null,
     val unionid: String? = null,
     var nickname: String? = null,

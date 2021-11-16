@@ -35,6 +35,8 @@ class UpdateUserInfoTask(val zyService: ZyService,
         val dbUser = userPOService.getByOpenid(openid) ?: return
         val newUser = userConvertService.convertToUserPO(wxMpUser)
         newUser.id = dbUser.id
+        // 获取到的 appid 是 default，清除不设置
+        newUser.appid = null
         userPOService.updateById(newUser)
         log.info { "更新用户信息 ${wxMpUser.toJson()}" }
     }
