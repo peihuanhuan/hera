@@ -14,6 +14,5 @@ class WxMediaService(private val userPOService: UserPOService,
 
     fun uploadPic() {
         val materialFileBatchGet = wxMpService.materialService.materialFileBatchGet(WxConsts.MaterialType.IMAGE, 0, 10)
-
     }
 }

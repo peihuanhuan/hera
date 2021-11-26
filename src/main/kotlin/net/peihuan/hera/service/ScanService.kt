@@ -26,7 +26,10 @@ class ScanService(
     private val logger = KotlinLogging.logger {}
 
 
-    fun handleQrsceneScan(wxMpXmlMessage: WxMpXmlMessage, qrscene: String) {
+    fun handleQrsceneScan(wxMpXmlMessage: WxMpXmlMessage, qrscene: String?) {
+        if (qrscene == null) {
+            return
+        }
         val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
         if (qrscene.contains("电费")) {
             var content = cacheManage.getBizValue(BizConfigEnum.DIANFEI)

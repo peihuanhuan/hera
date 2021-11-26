@@ -1,7 +1,9 @@
 package net.peihuan.hera
 
+import me.chanjar.weixin.common.api.WxConsts
 import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.kefu.request.WxMpKfAccountRequest
+import me.chanjar.weixin.mp.bean.material.WxMpMaterial
 import mu.KotlinLogging
 import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
@@ -35,10 +37,21 @@ class WxConfigServiceTest : HeraApplicationTests() {
 
     @Test
     fun uploadPic() {
-        val mediaImgUpload = wxMpService.materialService.mediaImgUpload(File("/Users/peihuan/Downloads/0000000000000.jpeg"))
-        val materialFileBatchGet = wxMpService.materialService.materialCount()
+        val file = File("/Users/peihuan/Downloads/0000000000000.jpeg")
+        // val mediaImgUpload = wxMpService.materialService.mediaImgUpload(file)
+        // val materialFileBatchGet = wxMpService.materialService.materialCount()
 
-        log.info { mediaImgUpload.toJson() }
+        val wxMpMaterial = WxMpMaterial()
+        wxMpMaterial.name = "客服账号"
+        wxMpMaterial.file = file
+        // val materialFileUpload =
+            // wxMpService.materialService.materialFileUpload(WxConsts.MaterialType.IMAGE, wxMpMaterial)
+
+        val materialCount = wxMpService.materialService.materialFileBatchGet(WxConsts.MaterialType.IMAGE, 0 ,11)
+
+        log.info {  }
+
+        // log.info { mediaImgUpload.toJson() }
     }
 
     @Test

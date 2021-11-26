@@ -7,8 +7,10 @@ import me.chanjar.weixin.mp.bean.result.WxMpUser
 import me.chanjar.weixin.mp.util.WxMpConfigStorageHolder
 import net.peihuan.hera.config.ZyProperties
 import net.peihuan.hera.constants.BizConfigEnum
+import net.peihuan.hera.constants.INVITER
 import net.peihuan.hera.constants.StatusEnum
 import net.peihuan.hera.constants.SubscribeSceneEnum
+import net.peihuan.hera.domain.ActivityUser
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.handler.click.ExchangeMemberMessageHandler
 import net.peihuan.hera.handler.click.SignClickMessageHandler
@@ -18,27 +20,28 @@ import net.peihuan.hera.handler.click.waimai.ElmeWmHandler
 import net.peihuan.hera.handler.click.waimai.MeituanWmHandler
 import net.peihuan.hera.persistent.po.SubscribePO
 import net.peihuan.hera.persistent.service.SubscribePOService
+import net.peihuan.hera.persistent.service.UserInvitationShipService
 import net.peihuan.hera.persistent.service.UserPOService
 import net.peihuan.hera.persistent.service.UserTagPOService
 import net.peihuan.hera.service.convert.UserConvertService
-import net.peihuan.hera.util.MIN_POINTS_CAN_EXCHANGE_MEMBER
-import net.peihuan.hera.util.buildKfText
-import net.peihuan.hera.util.buildMsgMenuUrl
-import net.peihuan.hera.util.completeMsgMenu
+import net.peihuan.hera.util.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class UserService(private val userPOService: UserPOService,
-                  private val wxMpService: WxMpService,
-                  private val userTagPOService: UserTagPOService,
-                  private val userConvertService: UserConvertService,
-                  private val configService: ConfigService,
-                  private val userPointsService: UserPointsService,
-                  private val cacheManage: CacheManage,
-                  private val zyProperties: ZyProperties,
-                  private val scanService: ScanService,
-                  private val subscribePOService: SubscribePOService) {
+class UserService(
+    private val userPOService: UserPOService,
+    private val wxMpService: WxMpService,
+    private val userInvitationShipService: UserInvitationShipService,
+    private val userTagPOService: UserTagPOService,
+    private val userConvertService: UserConvertService,
+    private val configService: ConfigService,
+    private val userPointsService: UserPointsService,
+    private val cacheManage: CacheManage,
+    private val zyProperties: ZyProperties,
+    private val scanService: ScanService,
+    private val subscribePOService: SubscribePOService
+) {
 
     @Transactional
     fun userSubscribeEvent(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
@@ -50,37 +53,51 @@ class UserService(private val userPOService: UserPOService,
         }
         userPOService.saveOrUpdate(newUser)
         addSubscribeRecord(userWxInfo)
-        var replyContent = configService.getConfigWithCommon(WxMpConfigStorageHolder.get(), BizConfigEnum.SUBSCRIBE_REPLY_CONTENT)
+        var replyContent =
+            configService.getConfigWithCommon(WxMpConfigStorageHolder.get(), BizConfigEnum.SUBSCRIBE_REPLY_CONTENT)
                 ?: "感谢关注"
         replyContent = replyContent.completeMsgMenu(
-                MeituanWmHandler.reply,
-                ElmeWmHandler.reply,
-                AllProductMessageHandler.reply,
-                SignClickMessageHandler.reply,
-                TencentMessageHandler.reply
+            MeituanWmHandler.reply,
+            ElmeWmHandler.reply,
+            AllProductMessageHandler.reply,
+            SignClickMessageHandler.reply,
+            TencentMessageHandler.reply
         )
         wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, replyContent))
 
+        val qrscene = resolveQrscene(wxMpXmlMessage)
+
         if (dbUser == null) {
-            firstSubscribe(wxMpXmlMessage)
+            presentPoints(wxMpXmlMessage)
+            handleInviter(qrscene, userWxInfo.openId)
         }
 
-        handleQrscene(wxMpXmlMessage)
-
+        scanService.handleQrsceneScan(wxMpXmlMessage, qrscene)
         return null
     }
 
-    private fun handleQrscene(wxMpXmlMessage: WxMpXmlMessage) {
-        if (wxMpXmlMessage.event != "subscribe") {
+    private fun handleInviter(qrscene: String?, openid: String) {
+        if (qrscene == null) {
             return
         }
-        val qrscene = wxMpXmlMessage.eventKey.removePrefix("qrscene_")
-        scanService.handleQrsceneScan(wxMpXmlMessage, qrscene)
+        if (!qrscene.startsWith(INVITER)) {
+            return
+        }
+
+        val activityUserJson = qrscene.removePrefix(INVITER)
+        val activityInfo = activityUserJson.toBean<ActivityUser>()
+
+        userInvitationShipService.addInvite(openid, activityInfo)
     }
 
-    private fun firstSubscribe(wxMpXmlMessage: WxMpXmlMessage) {
-        presentPoints(wxMpXmlMessage)
+    private fun resolveQrscene(wxMpXmlMessage: WxMpXmlMessage): String? {
+        if (wxMpXmlMessage.event != "subscribe") {
+            return null
+        }
+        return wxMpXmlMessage.eventKey.removePrefix("qrscene_")
     }
+
+
 
     private fun presentPoints(wxMpXmlMessage: WxMpXmlMessage) {
         val configPoints = cacheManage.getBizValue(BizConfigEnum.FIRST_SUBSCRIBE_PRESENT_POINTS) ?: "35"
@@ -96,15 +113,14 @@ class UserService(private val userPOService: UserPOService,
     }
 
 
-
     fun addSubscribeRecord(mpUser: WxMpUser) {
         val subscribePO = SubscribePO(
-                openid = mpUser.openId,
-                appid = WxMpConfigStorageHolder.get(),
-                qrScene = mpUser.qrScene,
-                qrSceneStr = mpUser.qrSceneStr,
-                subscribeScene = SubscribeSceneEnum.valueOf(mpUser.subscribeScene).code,
-                status = StatusEnum.ON.code
+            openid = mpUser.openId,
+            appid = WxMpConfigStorageHolder.get(),
+            qrScene = mpUser.qrScene,
+            qrSceneStr = mpUser.qrSceneStr,
+            subscribeScene = SubscribeSceneEnum.valueOf(mpUser.subscribeScene).code,
+            status = StatusEnum.ON.code
         )
         subscribePOService.save(subscribePO);
     }
