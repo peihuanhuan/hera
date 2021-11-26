@@ -13,5 +13,13 @@ enum class BizConfigEnum(val key: String, val desc: String) {
     MEMBER("member", "多个会员推荐语"),
     HUAFEI("huafei", "话费推荐语"),
     DIANFEI("dianfei", "电费推荐语"),
+
+
+
+
+
+
+    MEDIA_KEFU("media_kefu_weixin", "客服微信二维码素材")
+
     ;
 }
