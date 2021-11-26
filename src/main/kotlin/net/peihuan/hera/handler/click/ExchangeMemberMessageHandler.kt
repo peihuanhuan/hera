@@ -5,6 +5,8 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.ZyProperties
+import net.peihuan.hera.constants.BizConfigEnum
+import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.service.ChannelService
 import net.peihuan.hera.util.ZyUtil
 import net.peihuan.hera.util.buildALabel
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component
 @Component
 class ExchangeMemberMessageHandler(private val wxMpService: WxMpService,
                                    private val zyProperties: ZyProperties,
+                                   private val cacheManage: CacheManage,
                                    private val channelService: ChannelService,
                                    private val heraProperties: HeraProperties) : AbstractMenuAndMessageHandler() {
 
@@ -61,7 +64,9 @@ class ExchangeMemberMessageHandler(private val wxMpService: WxMpService,
             """.trimIndent()
 
         wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
-        wxMpService.kefuService.sendKefuMessage(buildKfImage(wxMpXmlMessage, heraProperties.wechatMediaid));
+
+        val kefuMedia = cacheManage.getBizValue(BizConfigEnum.MEDIA_KEFU)
+        wxMpService.kefuService.sendKefuMessage(buildKfImage(wxMpXmlMessage, kefuMedia))
     }
 
 
