@@ -7,25 +7,8 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 
 
 
-fun buildKfText(wxMessage: WxMpXmlMessage, content: String): WxMpKefuMessage {
-    return buildKfText(wxMessage.fromUser, content)
-}
 
-fun buildKfText(openid: String, content: String): WxMpKefuMessage {
-    return WxMpKefuMessage
-            .TEXT()
-            .toUser(openid)
-            .content(content)
-            .build()
-}
 
-fun buildKfImage(wxMessage: WxMpXmlMessage, mediaId: String): WxMpKefuMessage {
-    return WxMpKefuMessage
-            .IMAGE()
-            .toUser(wxMessage.fromUser)
-            .mediaId(mediaId)
-            .build()
-}
 
 
 fun buildImage(mediaId: String?, wxMessage: WxMpXmlMessage): WxMpXmlOutMessage {

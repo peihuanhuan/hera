@@ -9,8 +9,8 @@ import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.persistent.service.PointsRecordPOService
 import net.peihuan.hera.persistent.service.UserPointsPOService
 import net.peihuan.hera.util.ZyUtil
-import net.peihuan.hera.util.buildKfText
 import net.peihuan.hera.util.completeALable
+import net.peihuan.hera.util.replyKfMessage
 import org.springframework.stereotype.Service
 
 @Service
@@ -35,7 +35,7 @@ class ScanService(
             var content = cacheManage.getBizValue(BizConfigEnum.DIANFEI)
             val url = ZyUtil.buildOneProductUrl("C0063", channelId, zyProperties.appid)
             content = content.completeALable(url)
-            wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
+            wxMpXmlMessage.replyKfMessage(content)
         } else if (qrscene.contains("腾讯视频")) {
             val url = ZyUtil.buildOneProductUrl("C0002", channelId, zyProperties.appid)
             var content = """
@@ -46,7 +46,7 @@ class ScanService(
                 <a>➜ 戳我进入购买页面</a>
             """.trimIndent()
             content = content.completeALable(url)
-            wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
+            wxMpXmlMessage.replyKfMessage(content)
         } else if (qrscene.contains("喜马拉雅")) {
             val url = ZyUtil.buildOneProductUrl("C0025", channelId, zyProperties.appid)
             var content = """
@@ -57,7 +57,7 @@ class ScanService(
                 <a>➜ 戳我进入购买页面</a>
             """.trimIndent()
             content = content.completeALable(url)
-            wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
+            wxMpXmlMessage.replyKfMessage(content)
         } else if (qrscene.uppercase().contains("芒果TV")) {
             val url = ZyUtil.buildOneProductUrl("C0016", channelId, zyProperties.appid)
             var content = """
@@ -68,7 +68,7 @@ class ScanService(
                 <a>➜ 戳我进入购买页面</a>
             """.trimIndent()
             content = content.completeALable(url)
-            wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
+            wxMpXmlMessage.replyKfMessage(content)
         }
     }
 

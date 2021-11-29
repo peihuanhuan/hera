@@ -2,26 +2,32 @@ create
 database hero;
 
 
-CREATE TABLE `user_tag` (
+CREATE TABLE `user_invitation_ship` (
                         `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                        `openid` varchar(64) NOT NULL,
-                        `tagid` int(11) NOT NULL,
+                        `appid` varchar(64) NOT NULL,
+                        `openid` varchar(64) NOT NULL comment '被邀请者 openid',
+                        `inviter` varchar(64) NOT NULL comment '邀请者的 openid',
+                        `channel` int(11) NOT NULL comment '渠道，一般为活动id',
+                        `desc` varchar(64) NOT NULL comment '具体描述',
                         `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                        `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-                        `deleted` smallint(6) NOT NULL DEFAULT '0' COMMENT '逻辑删除',
                         PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='用户标签';
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='用户邀请关系';
 
-
-
-CREATE TABLE `channel` (
+CREATE TABLE `activity` (
                             `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                            `appid` varchar(64) NOT NULL,
-                            `openid` varchar(64) NOT NULL,
-                            `source` int not null,
+                            `name` varchar(64) NOT NULL,
+                            `desc` varchar(128) NOT NULL,
+                            `keyword` varchar(32) NOT NULL,
+                            `disable` int(11) NOT NULL default 0,
+                            `start_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '开始时间',
+                            `end_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '结束时间',
                             `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                            `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                            `deleted` smallint(6) NOT NULL DEFAULT '0' COMMENT '逻辑删除',
                             PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='会员渠道';
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COMMENT='活动';
+
+
 
 
 INSERT INTO `config` (`appid`, `key`, `desc`, `value`, `expire_at`, `deleted`, `create_time`, `update_time`)

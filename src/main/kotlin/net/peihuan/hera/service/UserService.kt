@@ -7,11 +7,10 @@ import me.chanjar.weixin.mp.bean.result.WxMpUser
 import me.chanjar.weixin.mp.util.WxMpConfigStorageHolder
 import net.peihuan.hera.config.ZyProperties
 import net.peihuan.hera.constants.BizConfigEnum
-import net.peihuan.hera.constants.INVITER
 import net.peihuan.hera.constants.StatusEnum
 import net.peihuan.hera.constants.SubscribeSceneEnum
-import net.peihuan.hera.domain.ActivityUser
 import net.peihuan.hera.domain.CacheManage
+import net.peihuan.hera.handler.click.ActivityMessageHandler
 import net.peihuan.hera.handler.click.ExchangeMemberMessageHandler
 import net.peihuan.hera.handler.click.SignClickMessageHandler
 import net.peihuan.hera.handler.click.member.AllProductMessageHandler
@@ -19,6 +18,7 @@ import net.peihuan.hera.handler.click.member.TencentMessageHandler
 import net.peihuan.hera.handler.click.waimai.ElmeWmHandler
 import net.peihuan.hera.handler.click.waimai.MeituanWmHandler
 import net.peihuan.hera.persistent.po.SubscribePO
+import net.peihuan.hera.persistent.po.UserPO
 import net.peihuan.hera.persistent.service.SubscribePOService
 import net.peihuan.hera.persistent.service.UserInvitationShipService
 import net.peihuan.hera.persistent.service.UserPOService
@@ -39,6 +39,7 @@ class UserService(
     private val userPointsService: UserPointsService,
     private val cacheManage: CacheManage,
     private val zyProperties: ZyProperties,
+    private val activityMessageHandler: ActivityMessageHandler,
     private val scanService: ScanService,
     private val subscribePOService: SubscribePOService
 ) {
@@ -63,31 +64,38 @@ class UserService(
             SignClickMessageHandler.reply,
             TencentMessageHandler.reply
         )
-        wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, replyContent))
+        wxMpXmlMessage.replyKfMessage(replyContent)
 
         val qrscene = resolveQrscene(wxMpXmlMessage)
 
         if (dbUser == null) {
             presentPoints(wxMpXmlMessage)
-            handleInviter(qrscene, userWxInfo.openId)
+            handleInviter(qrscene, newUser)
         }
 
         scanService.handleQrsceneScan(wxMpXmlMessage, qrscene)
         return null
     }
 
-    private fun handleInviter(qrscene: String?, openid: String) {
+    private fun handleInviter(qrscene: String?, userPO: UserPO) {
         if (qrscene == null) {
             return
         }
-        if (!qrscene.startsWith(INVITER)) {
+        val inviterInfo = decodeInviter(qrscene) ?: return
+        if (inviterInfo.openid == userPO.openid) {
+            // 排除自己
             return
         }
-
-        val activityUserJson = qrscene.removePrefix(INVITER)
-        val activityInfo = activityUserJson.toBean<ActivityUser>()
-
-        userInvitationShipService.addInvite(openid, activityInfo)
+        userInvitationShipService.addInvite(userPO.openid, inviterInfo)
+        val content = """
+            免费送会员啦！！！
+            
+            爱奇艺、腾讯、优酷、网易云等等，应有尽有！
+            
+            <a>戳我查看详情</a>
+        """.trimIndent().completeMsgMenu(ActivityMessageHandler.receivedMessage)
+        userPO.openid.replyKfMessage(content)
+        inviterInfo.openid.replyKfMessage("邀请用户【${userPO.nickname}】关注成功")
     }
 
     private fun resolveQrscene(wxMpXmlMessage: WxMpXmlMessage): String? {
@@ -96,7 +104,6 @@ class UserService(
         }
         return wxMpXmlMessage.eventKey.removePrefix("qrscene_")
     }
-
 
 
     private fun presentPoints(wxMpXmlMessage: WxMpXmlMessage) {
@@ -108,7 +115,7 @@ class UserService(
                         只要 $MIN_POINTS_CAN_EXCHANGE_MEMBER 积分就可以兑换会员啦
                         ${buildMsgMenuUrl(ExchangeMemberMessageHandler.receivedMessage, "➜ 戳我兑换会员")}
                     """.trimIndent()
-        wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, firstSubscribe))
+        wxMpXmlMessage.replyKfMessage(firstSubscribe)
         userPointsService.addUserPoints(wxMpXmlMessage.fromUser, configPoints.toInt(), "首次关注赠送积分")
     }
 

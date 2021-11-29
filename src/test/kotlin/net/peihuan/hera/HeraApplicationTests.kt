@@ -15,7 +15,7 @@ class HeraApplicationTests {
     @Test
     fun test() {
         val queryUrl =
-            fastposterService.queryUrl(
+            fastposterService.generatePoster(
                 FastposterService.Request("4", "https://www.baidu.com"))
 
 

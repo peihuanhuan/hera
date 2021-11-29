@@ -3,7 +3,7 @@ package net.peihuan.hera.persistent.service
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
 import me.chanjar.weixin.mp.util.WxMpConfigStorageHolder
-import net.peihuan.hera.domain.ActivityUser
+import net.peihuan.hera.domain.InviterUser
 import net.peihuan.hera.persistent.mapper.UserInvitationShipMapper
 import net.peihuan.hera.persistent.po.UserInvitationShipPO
 import org.springframework.stereotype.Service
@@ -12,12 +12,13 @@ import org.springframework.stereotype.Service
 class UserInvitationShipService : ServiceImpl<UserInvitationShipMapper, UserInvitationShipPO>() {
 
 
-    fun addInvite(openid: String, activityUser: ActivityUser) {
+    fun addInvite(openid: String, inviterUser: InviterUser) {
         val appid = WxMpConfigStorageHolder.get()
         val userInvitationShipPO = UserInvitationShipPO(
             openid = openid,
-            inviter = activityUser.openidId,
-            channel = activityUser.activityId,
+            inviter = inviterUser.openid,
+            channel = inviterUser.activityId,
+            desc = "活动邀请",
             appid = appid
         )
         save(userInvitationShipPO)

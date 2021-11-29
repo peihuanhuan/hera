@@ -12,7 +12,7 @@ data class UserPO (
     @TableId
     var id: Long? = null,
     var appid: String? = null,
-    val openid: String? = null,
+    val openid: String,
     val unionid: String? = null,
     var nickname: String? = null,
     var sex: Int? = null,

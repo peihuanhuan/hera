@@ -21,6 +21,12 @@ interface FastposterService {
         val secretKey = "c9d838e9b90c4ac7"
     }
 
+    data class Response (
+        val code: Int,
+        val msg: String,
+        val url: String
+    )
+
     @PostMapping("api/link")
-    fun queryUrl(@RequestBody request: Request): Any?
+    fun generatePoster(@RequestBody request: Request): Response
 }

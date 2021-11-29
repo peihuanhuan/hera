@@ -10,8 +10,8 @@ import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.service.ChannelService
 import net.peihuan.hera.util.ZyUtil
 import net.peihuan.hera.util.buildALabel
-import net.peihuan.hera.util.buildKfImage
-import net.peihuan.hera.util.buildKfText
+import net.peihuan.hera.util.replyKfImage
+import net.peihuan.hera.util.replyKfMessage
 import org.springframework.stereotype.Component
 
 @Component
@@ -63,10 +63,10 @@ class ExchangeMemberMessageHandler(private val wxMpService: WxMpService,
                 每半个月只能兑换一次~
             """.trimIndent()
 
-        wxMpService.kefuService.sendKefuMessage(buildKfText(wxMpXmlMessage, content))
+        wxMpXmlMessage.replyKfMessage(content)
 
         val kefuMedia = cacheManage.getBizValue(BizConfigEnum.MEDIA_KEFU)
-        wxMpService.kefuService.sendKefuMessage(buildKfImage(wxMpXmlMessage, kefuMedia))
+        wxMpXmlMessage.replyKfImage(kefuMedia)
     }
 
 

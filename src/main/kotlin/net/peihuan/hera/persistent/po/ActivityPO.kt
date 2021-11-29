@@ -10,12 +10,14 @@ import java.util.*
 @TableName("activity")
 data class ActivityPO (
     @TableId
-    var id: Long? = null,
+    var id: Long,
     var name: String? = null,
     @TableField("`desc`")
     val desc: String? = null,
-    val disable: Boolean? = null,
+    val keyword: String,
+    val disable: Boolean,
     val createTime: Date? = null,
-    val startTime: Date? = null,
-    val endTime: Date? = null,
+    val updateTime: Date? = null,
+    val startTime: Date,
+    val endTime: Date,
 )

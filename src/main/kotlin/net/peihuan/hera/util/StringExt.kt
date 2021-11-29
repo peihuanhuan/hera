@@ -23,8 +23,8 @@ fun String.completeMsgMenu(vararg contents: String): String {
     return ans
 }
 
-fun String.completeMsgMenu(content: String): String {
-    return replaceFirst("<a>(.*)<\\/a>".toRegex(), buildMsgMenuUrl(content, "$1"))
+fun String.completeMsgMenu(userSendMsg: String): String {
+    return replaceFirst("<a>(.*)<\\/a>".toRegex(), buildMsgMenuUrl(userSendMsg, "$1"))
 }
 
 fun buildMsgMenuUrl(sendMsg: String, show: String): String {
