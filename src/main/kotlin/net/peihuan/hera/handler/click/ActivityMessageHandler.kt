@@ -40,7 +40,7 @@ class ActivityMessageHandler(private val wxMpService: WxMpService,
     }
 
     override fun canHandleMenuClick(key: String): Boolean {
-        return key == "exchangeMember"
+        return key == "xxxx"
     }
 
     override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
