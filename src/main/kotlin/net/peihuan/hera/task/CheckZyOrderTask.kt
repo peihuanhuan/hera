@@ -25,14 +25,16 @@ import org.springframework.stereotype.Component
 
 
 @Component
-class CheckZyOrderTask(val zyService: ZyService,
-                       val wxMpService: WxMpService,
-                       val userPointsService: UserPointsService,
-                       val userService: UserService,
-                       val channelService: ChannelService,
-                       val notifyService: NotifyService,
-                       val wxMpProperties: WxMpProperties,
-                       val zyOrderPOService: ZyOrderPOService) {
+class CheckZyOrderTask(
+    val zyService: ZyService,
+    val wxMpService: WxMpService,
+    val userPointsService: UserPointsService,
+    val userService: UserService,
+    val channelService: ChannelService,
+    val notifyService: NotifyService,
+    val wxMpProperties: WxMpProperties,
+    val zyOrderPOService: ZyOrderPOService
+) {
 
     private val log = KotlinLogging.logger {}
 
@@ -74,14 +76,22 @@ class CheckZyOrderTask(val zyService: ZyService,
                 val presentPoints = (it.incomeMoney ?: 1).coerceAtMost(1000)
                 userPointsService.addUserPoints(it.openid ?: "null", presentPoints, "订单返现【${it.name}】")
                 notifyService.notifyOrderStatusToUser(it, presentPoints)
+            } else if (it.source == OrderSourceEnum.EXCHANGE.code) {
+                notifyService.notifyOrderStatusToUser(it)
+                // 扣除积分
+                userPointsService.addUserPoints(it.openid ?: "null", -(it.incomeMoney ?: 0), "积分兑换【${it.name}】")
             } else {
                 notifyService.notifyOrderStatusToUser(it)
             }
+
             notifyService.notifyOrderStatusToAdmin(it)
         }
 
         if (newOrderPOs.isNotEmpty()) {
-            wxMpService.userTagService.batchTagging(wxMpProperties.tags.hasZyMemberOrder, newOrderPOs.map { it.openid }.toTypedArray())
+            wxMpService.userTagService.batchTagging(
+                wxMpProperties.tags.hasZyMemberOrder,
+                newOrderPOs.map { it.openid }.toTypedArray()
+            )
         }
 
         newOrderPOs.forEach {
