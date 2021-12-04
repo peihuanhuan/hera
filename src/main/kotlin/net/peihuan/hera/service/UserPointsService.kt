@@ -1,6 +1,7 @@
 package net.peihuan.hera.service
 
 import mu.KotlinLogging
+import net.peihuan.hera.persistent.po.PointsRecordPO
 import net.peihuan.hera.persistent.po.UserPointsPO
 import net.peihuan.hera.persistent.service.PointsRecordPOService
 import net.peihuan.hera.persistent.service.UserPointsPOService
@@ -35,6 +36,10 @@ class UserPointsService(private val userPointsPOService: UserPointsPOService,
     fun getUserPoints(openid: String): Int {
         val userPointsPO = userPointsPOService.getByOpenid(openid) ?: return 0
         return userPointsPO.points ?: 0
+    }
+
+    fun getPointRecords(openid: String): List<PointsRecordPO> {
+        return pointsRecordPOService.listPointsRecord(openid)
     }
 
 

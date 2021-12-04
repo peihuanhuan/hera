@@ -1,5 +1,7 @@
 package net.peihuan.hera.service
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page
+import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO
 import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
@@ -10,6 +12,7 @@ import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.constants.StatusEnum
 import net.peihuan.hera.constants.SubscribeSceneEnum
 import net.peihuan.hera.domain.CacheManage
+import net.peihuan.hera.domain.User
 import net.peihuan.hera.handler.click.ActivityMessageHandler
 import net.peihuan.hera.handler.click.ExchangeMemberMessageHandler
 import net.peihuan.hera.handler.click.SignClickMessageHandler
@@ -25,6 +28,7 @@ import net.peihuan.hera.persistent.service.UserPOService
 import net.peihuan.hera.persistent.service.UserTagPOService
 import net.peihuan.hera.service.convert.UserConvertService
 import net.peihuan.hera.util.*
+import org.springframework.beans.BeanUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -43,6 +47,21 @@ class UserService(
     private val scanService: ScanService,
     private val subscribePOService: SubscribePOService
 ) {
+
+    fun queryUsers(nickname: String?, current: Long, size: Long): Page<User> {
+        val userPOPage = userPOService.pageUsers(nickname, PageDTO(current, size))
+        val userPage: Page<User> = Page.of(current, size, userPOPage.total)
+        userPage.records = userPOPage.records.map {
+            val user = User::class.java.getDeclaredConstructor().newInstance()
+            BeanUtils.copyProperties(it, user)
+            user.subscribes =  subscribePOService.getSubscribes(it.openid)
+            user.points = userPointsService.getUserPoints(it.openid)
+            user.pointsRecords = userPointsService.getPointRecords(it.openid)
+            user
+        }
+
+        return userPage
+    }
 
     @Transactional
     fun userSubscribeEvent(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {

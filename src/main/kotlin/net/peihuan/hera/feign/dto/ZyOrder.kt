@@ -1,5 +1,8 @@
 package net.peihuan.hera.feign.dto
 
+import net.peihuan.hera.domain.annotation.NoArg
+
+@NoArg
 data class ZyOrder(
     val account: String? = null,
     val actualOrderAmountStr: String? = null,
