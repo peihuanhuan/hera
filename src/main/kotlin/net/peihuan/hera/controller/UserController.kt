@@ -19,5 +19,9 @@ class UserController(private val userService: UserService) {
         return JsonResult.success(userService.queryUsers(nickname, current ?: 0, size ?: 100))
     }
 
+    @GetMapping("{openid}")
+    fun listUsers(@PathVariable openid: String): JsonResult {
+        return JsonResult.success(userService.getUserDetail(openid))
+    }
 
 }

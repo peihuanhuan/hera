@@ -1,7 +1,6 @@
 package net.peihuan.hera.task
 
 import me.chanjar.weixin.mp.api.WxMpService
-import me.chanjar.weixin.mp.util.WxMpConfigStorageHolder
 import mu.KotlinLogging
 import net.peihuan.hera.config.WxMpProperties
 import net.peihuan.hera.constants.OrderSourceEnum
@@ -106,8 +105,7 @@ class CheckZyOrderTask(
             log.warn { "走到了兜底渠道逻辑 ${it.toJson()}" }
             // todo 历史逻辑 一段时间后删除
             val openid = ZyUtil.getChannelOpenid(it.channel!!)
-            val appid = WxMpConfigStorageHolder.get()
-            ChannelPO(id = 0, openid = openid, source = OrderSourceEnum.BUY, appid = appid)
+            ChannelPO(id = 0, openid = openid, source = OrderSourceEnum.BUY)
 
         }
     }

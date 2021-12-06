@@ -13,6 +13,7 @@ import net.peihuan.hera.constants.StatusEnum
 import net.peihuan.hera.constants.SubscribeSceneEnum
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.domain.User
+import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.handler.click.ActivityMessageHandler
 import net.peihuan.hera.handler.click.ExchangeMemberMessageHandler
 import net.peihuan.hera.handler.click.SignClickMessageHandler
@@ -28,7 +29,6 @@ import net.peihuan.hera.persistent.service.UserPOService
 import net.peihuan.hera.persistent.service.UserTagPOService
 import net.peihuan.hera.service.convert.UserConvertService
 import net.peihuan.hera.util.*
-import org.springframework.beans.BeanUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -40,6 +40,7 @@ class UserService(
     private val userTagPOService: UserTagPOService,
     private val userConvertService: UserConvertService,
     private val configService: ConfigService,
+    private val channelService: ChannelService,
     private val userPointsService: UserPointsService,
     private val cacheManage: CacheManage,
     private val zyProperties: ZyProperties,
@@ -52,16 +53,25 @@ class UserService(
         val userPOPage = userPOService.pageUsers(nickname, PageDTO(current, size))
         val userPage: Page<User> = Page.of(current, size, userPOPage.total)
         userPage.records = userPOPage.records.map {
-            val user = User::class.java.getDeclaredConstructor().newInstance()
-            BeanUtils.copyProperties(it, user)
-            user.subscribes =  subscribePOService.getSubscribes(it.openid)
+            val user = it.copyPropertiesTo<User>()
+
+            user.subscribes = subscribePOService.getLastSubscribe(it.openid).tolist()
             user.points = userPointsService.getUserPoints(it.openid)
-            user.pointsRecords = userPointsService.getPointRecords(it.openid)
             user
         }
-
         return userPage
     }
+
+    fun getUserDetail(openid: String): User {
+        val userPO = userPOService.getByOpenid(openid) ?: throw BizException.buildBizException("用户不存在")
+        val user = userPO.copyPropertiesTo<User>()
+        user.subscribes = subscribePOService.getSubscribes(userPO.openid)
+        user.points = userPointsService.getUserPoints(userPO.openid)
+        user.pointsRecords = userPointsService.getPointRecords(userPO.openid)
+        user.channels = channelService.getChannels(userPO.openid)
+        return user
+    }
+
 
     @Transactional
     fun userSubscribeEvent(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {

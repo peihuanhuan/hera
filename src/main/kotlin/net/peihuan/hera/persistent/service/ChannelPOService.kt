@@ -11,10 +11,13 @@ import org.springframework.stereotype.Service
 class ChannelPOService : ServiceImpl<ChannelMapper, ChannelPO>() {
 
 
-    fun getChannel(appid: String, openid: String, source: OrderSourceEnum): ChannelPO? {
+    fun getChannelPOs(openid: String): List<ChannelPO> {
+        return list(KtQueryWrapper(ChannelPO::class.java).eq(ChannelPO::openid, openid))
+    }
+
+    fun getChannelPO(openid: String, source: OrderSourceEnum): ChannelPO? {
         return getOne(
             KtQueryWrapper(ChannelPO::class.java)
-                .eq(ChannelPO::appid, appid)
                 .eq(ChannelPO::openid, openid)
                 .eq(ChannelPO::source, source)
         )

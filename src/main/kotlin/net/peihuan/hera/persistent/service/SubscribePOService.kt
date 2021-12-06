@@ -22,6 +22,13 @@ class SubscribePOService : ServiceImpl<SubscribeMapper, SubscribePO>() {
             .last("limit 1"))
     }
 
+    fun getLastSubscribe(openid: String): SubscribePO? {
+        return getOne(KtQueryWrapper(SubscribePO::class.java)
+            .eq(SubscribePO::openid, openid)
+            .orderByDesc(SubscribePO::createTime)
+            .last("limit 1"))
+    }
+
     fun getSubscribes(openid: String): List<SubscribePO> {
         return list(KtQueryWrapper(SubscribePO::class.java)
             .eq(SubscribePO::openid, openid)
@@ -29,10 +36,13 @@ class SubscribePOService : ServiceImpl<SubscribeMapper, SubscribePO>() {
     }
 
     fun unSubscribeRecord(openid: String) {
-        val userSubscribe = getLastOnSubscribe(openid) ?: return
-        userSubscribe.status = StatusEnum.OFF.code
-        userSubscribe.updateTime = null
-        updateById(userSubscribe)
+        val subscribes = getSubscribes(openid)
+        subscribes.filter { it.status == StatusEnum.ON.code }
+        subscribes.forEach{
+            it.status = StatusEnum.OFF.code
+            it.updateTime = null
+            updateById(it)
+        }
     }
 
 }
