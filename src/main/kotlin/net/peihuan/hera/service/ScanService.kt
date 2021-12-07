@@ -30,7 +30,7 @@ class ScanService(
         if (qrscene == null) {
             return
         }
-        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
+        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser).id
         if (qrscene.contains("电费")) {
             var content = cacheManage.getBizValue(BizConfigEnum.DIANFEI)
             val url = ZyUtil.buildOneProductUrl("C0063", channelId, zyProperties.appid)

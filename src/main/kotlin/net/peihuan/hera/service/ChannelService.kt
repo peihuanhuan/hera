@@ -6,15 +6,18 @@ import mu.KotlinLogging
 import net.peihuan.hera.constants.OrderSourceEnum
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.domain.Channel
+import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.persistent.po.ChannelPO
 import net.peihuan.hera.persistent.service.ChannelPOService
 import net.peihuan.hera.persistent.service.PointsRecordPOService
+import net.peihuan.hera.persistent.service.UserPOService
 import net.peihuan.hera.service.convert.ChannelConvertService
 import org.springframework.stereotype.Service
 
 @Service
 class ChannelService(private val channelPOService: ChannelPOService,
                      private val wxMpService: WxMpService,
+                     private val userPOService: UserPOService,
                      private val cacheManage: CacheManage,
                      private val channelConvertService: ChannelConvertService,
                      private val pointsRecordPOService: PointsRecordPOService) {
@@ -26,19 +29,19 @@ class ChannelService(private val channelPOService: ChannelPOService,
         return channelPOs.mapNotNull { channelConvertService.convert2Channel(it) }
     }
 
-    fun createChannel() {
-
+    fun getChannelOrCreate(openid: String, source: Int): Channel {
+        userPOService.getByOpenid(openid) ?: throw BizException.buildBizException("用户不存在")
+        val sourceEnum = OrderSourceEnum.getSourceEnum(source) ?: throw BizException.buildBizException("枚举不存在")
+        return getChannelOrCreate(openid, sourceEnum)
     }
 
-    fun getChannelOrCreate(openid: String, source: OrderSourceEnum = OrderSourceEnum.BUY): Long {
+    fun getChannelOrCreate(openid: String, source: OrderSourceEnum = OrderSourceEnum.BUY): Channel {
         val channel = channelPOService.getChannelPO(openid = openid, source = source)
-        if (channel != null) {
-            return channel.id
+        if (channel == null) {
+            val po = ChannelPO(id = IdWorker.getId(), openid = openid, source = source)
+            channelPOService.save(po)
         }
-
-        val po = ChannelPO(id = IdWorker.getId(), openid = openid, source = source)
-        channelPOService.save(po)
-        return po.id
+        return channelConvertService.convert2Channel(channel)!!
     }
 
     fun getChannelById(channelId: Long) : ChannelPO? {

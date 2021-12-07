@@ -1,4 +1,4 @@
-package net.peihuan.hera.controller
+package net.peihuan.hera.web.controller
 
 import me.chanjar.weixin.mp.api.WxMpMessageRouter
 import me.chanjar.weixin.mp.api.WxMpService

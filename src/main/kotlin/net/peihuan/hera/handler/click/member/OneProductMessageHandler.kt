@@ -23,7 +23,7 @@ class OneProductMessageHandler(private val zyProperties: ZyProperties,
     }
 
     override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
-        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
+        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser).id
         val url = ZyUtil.buildOneProductUrl(wxMpXmlMessage.eventKey, channelId, zyProperties.appid)
         val content = getProductName(wxMpXmlMessage.eventKey)
         return buildText(content.completeALable(url), wxMpXmlMessage)

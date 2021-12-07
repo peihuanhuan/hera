@@ -1,5 +1,6 @@
 package net.peihuan.hera.domain
 
+import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.exception.CodeEnum
 
 data class JsonResult(
@@ -10,6 +11,18 @@ data class JsonResult(
     companion object {
         fun success(data: Any? = null): JsonResult {
             return JsonResult(code = CodeEnum.SUCCESS.code, data = data, msg = "success")
+        }
+
+        fun error(e: BizException): JsonResult {
+            return JsonResult(code = e.code, data = null, msg = e.msg?:"空msg")
+        }
+
+        fun error(e: CodeEnum): JsonResult {
+            return JsonResult(code = e.code, data = null, msg = e.msg?:"空msg")
+        }
+
+        fun error(code: Int, msg: String): JsonResult {
+            return JsonResult(code = code, data = null, msg = msg)
         }
     }
 

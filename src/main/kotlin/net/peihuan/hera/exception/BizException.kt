@@ -1,9 +1,9 @@
 package net.peihuan.hera.exception
 
-class BizException private constructor(val code: Int?, val msg: String?) : RuntimeException(msg) {
+class BizException private constructor(val code: Int, val msg: String?) : RuntimeException(msg) {
 
     companion object {
-        fun build(code: Int?, msg: String?): BizException {
+        fun build(code: Int, msg: String?): BizException {
             return BizException(code, msg)
         }
 

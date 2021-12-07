@@ -49,7 +49,7 @@ class ExchangeMemberMessageHandler(private val wxMpService: WxMpService,
 
     private fun sendMessage(wxMpXmlMessage: WxMpXmlMessage) {
 
-        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
+        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser).id
         val productUrl = ZyUtil.buildAllProductUrl(channelId, zyProperties.appid)
 
         val aLabel = buildALabel(productUrl, "➜ 戳我 六十余种超低会员，应有尽有！")

@@ -29,7 +29,7 @@ class TencentMessageHandler(private val zyProperties: ZyProperties,
     }
 
     override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
-        val channel = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
+        val channel = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser).id
         val url = "https://cdn.wxthe.com/life/#/pages/card/recharge?pcode=C0002&appid=${zyProperties.appid}&channel=$channel"
         val content =  """
             腾讯视频年卡限时 99 元

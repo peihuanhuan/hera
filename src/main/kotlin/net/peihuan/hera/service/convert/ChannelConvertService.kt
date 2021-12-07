@@ -14,7 +14,7 @@ class ChannelConvertService(private val zyProperties: ZyProperties,) {
             return null
         }
         val channel = channelPO.copyPropertiesTo<Channel>()
-        channel.zyUrl = ZyUtil.buildAllProductUrl(channel.id, zyProperties.appid)
+        channel.zyAllProductUrl = ZyUtil.buildAllProductUrl(channel.id, zyProperties.appid)
         return channel
     }
 }

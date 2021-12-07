@@ -7,5 +7,5 @@ import net.peihuan.hera.domain.annotation.NoArg
 class Channel(
     var id: Long,
     var source: OrderSourceEnum,
-    var zyUrl: String,
+    var zyAllProductUrl: String,
 )

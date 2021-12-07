@@ -1,4 +1,4 @@
-package net.peihuan.hera.controller
+package net.peihuan.hera.web.controller
 
 import me.chanjar.weixin.common.api.WxConsts
 import me.chanjar.weixin.common.api.WxConsts.MenuButtonType

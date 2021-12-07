@@ -30,7 +30,7 @@ class HuafeiHandler(
     }
 
     override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {
-        val channel = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
+        val channel = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser).id
         val url = "https://cdn.wxthe.com/life/#/pages/act/phone?appid=${zyProperties.appid}&channel=$channel"
         val huafeiContent = cacheManage.getBizValue(BizConfigEnum.HUAFEI)
         return buildText(huafeiContent.completeALable(url), wxMpXmlMessage)

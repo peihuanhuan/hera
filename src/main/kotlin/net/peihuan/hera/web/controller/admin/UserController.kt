@@ -1,12 +1,11 @@
-package net.peihuan.hera.controller
+package net.peihuan.hera.web.controller.admin
 
 import net.peihuan.hera.domain.JsonResult
 import net.peihuan.hera.service.UserService
 import org.springframework.web.bind.annotation.*
 
-@CrossOrigin
 @RestController
-@RequestMapping("/user")
+@RequestMapping("admin/user")
 class UserController(private val userService: UserService) {
 
 
@@ -16,7 +15,7 @@ class UserController(private val userService: UserService) {
         @RequestParam current: Long?,
         @RequestParam size: Long?
     ): JsonResult {
-        return JsonResult.success(userService.queryUsers(nickname, current ?: 0, size ?: 100))
+        return JsonResult.success(userService.queryUsers(nickname, current ?: 0, size ?: 20))
     }
 
     @GetMapping("{openid}")

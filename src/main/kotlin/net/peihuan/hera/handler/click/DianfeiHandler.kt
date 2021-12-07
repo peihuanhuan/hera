@@ -34,7 +34,7 @@ class DianfeiHandler(
     }
 
     override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {
-        val channel = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
+        val channel = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser).id
         val url = "https://cdn.wxthe.com/life/#/pages/card/recharge?pcode=C0063&appid=${zyProperties.appid}&channel=$channel"
         val huafeiContent = "<a>戳我进入优惠电费充值页面</a>"
         return buildText(huafeiContent.completeALable(url), wxMpXmlMessage)

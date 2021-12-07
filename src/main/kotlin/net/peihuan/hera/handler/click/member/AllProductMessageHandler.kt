@@ -29,13 +29,13 @@ class AllProductMessageHandler(
     }
 
     override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {
-        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
+        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser).id
         val url = buildAllProductUrl(channelId, zyProperties.appid)
         return buildText(buildALabel(url, "➜ 全网六十种超低会员，戳我购买！"), wxMpXmlMessage)
     }
 
     override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
-        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser)
+        val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser).id
         val url = buildAllProductUrl(channelId, zyProperties.appid)
         return buildText(buildALabel(url, "➜ 全网六十种超低会员，戳我购买！"), wxMpXmlMessage)
     }
