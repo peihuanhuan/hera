@@ -18,9 +18,6 @@ import net.peihuan.hera.handler.click.ActivityMessageHandler
 import net.peihuan.hera.handler.click.ExchangeMemberMessageHandler
 import net.peihuan.hera.handler.click.SignClickMessageHandler
 import net.peihuan.hera.handler.click.member.AllProductMessageHandler
-import net.peihuan.hera.handler.click.member.TencentMessageHandler
-import net.peihuan.hera.handler.click.waimai.ElmeWmHandler
-import net.peihuan.hera.handler.click.waimai.MeituanWmHandler
 import net.peihuan.hera.persistent.po.SubscribePO
 import net.peihuan.hera.persistent.po.UserPO
 import net.peihuan.hera.persistent.service.SubscribePOService
@@ -87,11 +84,8 @@ class UserService(
             configService.getConfigWithCommon(WxMpConfigStorageHolder.get(), BizConfigEnum.SUBSCRIBE_REPLY_CONTENT)
                 ?: "感谢关注"
         replyContent = replyContent.completeMsgMenu(
-            MeituanWmHandler.reply,
-            ElmeWmHandler.reply,
             AllProductMessageHandler.reply,
             SignClickMessageHandler.reply,
-            TencentMessageHandler.reply
         )
         wxMpXmlMessage.replyKfMessage(replyContent)
 

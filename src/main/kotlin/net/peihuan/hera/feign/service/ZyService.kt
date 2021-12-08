@@ -21,6 +21,13 @@ interface ZyService {
     @GetMapping("/addon/open/v1/life/promote/act")
     fun queryActs() : ZyResponse<List<Map<String, String>>>
 
+    @GetMapping("/addon/open/v1/life/promote/link")
+    fun queryActLink(
+        @RequestParam("channel") channel: String,
+        @RequestParam("act") act: String,
+        @RequestParam("jump") jump: Int? = 0,
+    ) : ZyResponse<Any>
+
     @GetMapping("/addon/open/v1/life/order/list")
     fun queryOrders(@RequestParam("channel") channel: String?,
                     @RequestParam("act") act: String?,

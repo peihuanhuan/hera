@@ -22,6 +22,7 @@ class UserPOService : ServiceImpl<UserMapper, UserPO>() {
             pageDTO,
             KtQueryWrapper(UserPO::class.java)
                 .like(nickname != null, UserPO::nickname, nickname)
+                .orderByDesc(UserPO::createTime)
         )
     }
 
