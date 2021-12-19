@@ -8,3 +8,9 @@ const val MM_DD = "M月d日"
 
 
 const val INVITER = "INVITER_"
+
+
+const val JWT_ROLE_FIELD = "role"
+
+const val HEADER = "Authorization"
+const val TOKEN_PREFIX = "Bearer "

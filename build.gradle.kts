@@ -13,7 +13,7 @@ noArg {
 }
 
 group = "net.peihuan"
-version = "0.9.1"
+version = "0.10.11"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
@@ -25,9 +25,17 @@ extra["springCloudVersion"] = "2020.0.4"
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-security")
 	// implementation("org.springframework.cloud:spring-cloud-starter-feign:1.4.7.RELEASE")
 	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
+	implementation("commons-codec:commons-codec:1.15")
+	implementation("org.apache.commons:commons-compress:1.21")
+
+	implementation("io.jsonwebtoken:jjwt:0.9.0")
+
+
+	implementation("com.aliyun.oss:aliyun-sdk-oss:3.13.2")
 
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")

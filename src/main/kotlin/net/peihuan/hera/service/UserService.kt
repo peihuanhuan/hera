@@ -2,6 +2,7 @@ package net.peihuan.hera.service
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO
+import me.chanjar.weixin.common.bean.WxOAuth2UserInfo
 import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
@@ -46,6 +47,17 @@ class UserService(
     private val subscribePOService: SubscribePOService
 ) {
 
+    fun getOrCreateAuthUser(wxUser: WxOAuth2UserInfo): User {
+        val dbUser = userPOService.getByOpenid(wxUser.openid)
+        val newUser = userConvertService.convertToUserPO(wxUser)
+        if (dbUser != null) {
+            newUser.id = dbUser.id
+        }
+        userPOService.saveOrUpdate(newUser)
+        return newUser.copyPropertiesTo()
+    }
+
+
     fun queryUsers(nickname: String?, current: Long, size: Long): Page<User> {
         val userPOPage = userPOService.pageUsers(nickname, PageDTO(current, size))
         val userPage: Page<User> = Page.of(current, size, userPOPage.total)
@@ -57,6 +69,11 @@ class UserService(
             user
         }
         return userPage
+    }
+
+    fun getSimpleUser(id: Long): User? {
+        val userPO = userPOService.getById(id) ?: return null
+        return userPO.copyPropertiesTo()
     }
 
     fun getUserDetail(openid: String): User {

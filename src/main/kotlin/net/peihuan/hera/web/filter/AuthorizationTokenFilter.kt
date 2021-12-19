@@ -3,12 +3,11 @@ package net.peihuan.hera.web.filter
 import mu.KotlinLogging
 import net.peihuan.hera.domain.JsonResult
 import net.peihuan.hera.exception.CodeEnum
-import net.peihuan.hera.util.toJson
+import net.peihuan.hera.util.printOut
 import org.springframework.boot.web.servlet.ServletComponentScan
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -51,14 +50,5 @@ class AuthorizationTokenFilter : Filter {
         printOut(obj, response, HttpStatus.OK)
     }
 
-    private fun printOut(obj: Any, response: HttpServletResponse, httpStatus: HttpStatus) {
-        response.characterEncoding = "UTF-8"
-        response.status = httpStatus.value()
-        response.contentType = MediaType.APPLICATION_JSON_VALUE
-        try {
-            response.writer.use { printWriter -> printWriter.write(obj.toJson()) }
-        } catch (e: Exception) {
-            log.error("写出响应发生异常", e)
-        }
-    }
+
 }

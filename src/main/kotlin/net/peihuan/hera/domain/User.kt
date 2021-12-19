@@ -9,7 +9,7 @@ data class User(
     var id: Long,
     var appid: String,
     var openid: String,
-    var unionid: String,
+    var unionid: String?,
     var nickname: String,
     var sex: Int,
     var province: String,

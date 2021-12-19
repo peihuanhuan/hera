@@ -7,6 +7,8 @@ import me.chanjar.weixin.mp.bean.material.WxMpMaterial
 import mu.KotlinLogging
 import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
+import net.peihuan.hera.constants.TaskStatusEnum
+import net.peihuan.hera.persistent.po.BilibiliAudioTaskPO
 import net.peihuan.hera.persistent.po.ZyOrderPO
 import net.peihuan.hera.persistent.service.ConfigPOService
 import net.peihuan.hera.service.NotifyService
@@ -61,6 +63,24 @@ class WxConfigServiceTest : HeraApplicationTests() {
         val kfAccountAdd = wxMpService.kefuService.kfAccountAdd(request)
 
         log.info { kfAccountAdd.toJson() }
+    }
+
+
+    @Test
+    fun notifyTest2() {
+
+        val task = BilibiliAudioTaskPO(
+            name = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            url = "www.baidu.com",
+            request = "adasdasdasd",
+            type = 1,  //todo 类型写死了
+            openid = "oIWc_51xYURq_7jNCfrr40dc0q3Q",
+            status = TaskStatusEnum.DEFAULT.code,
+            size = 1
+        )
+        notifyService.notifyTaskResult(task)
+
+        println()
     }
 
     @Test

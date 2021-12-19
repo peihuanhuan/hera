@@ -9,7 +9,7 @@ data class WxMpProperties(
         val configs: List<MpConfig>,
         val tags: Tags,
         val orderStatusTemplateid: String,
-        // val leaveMessageTemplateid: String
+        val taskSubscribeId: String
 )
 
 data class Tags(

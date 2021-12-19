@@ -1,10 +1,13 @@
 package net.peihuan.hera.web.controller
 
 import mu.KotlinLogging
+import net.peihuan.hera.constants.HEADER
 import net.peihuan.hera.domain.JsonResult
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.exception.CodeEnum
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.validation.BindException
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -12,9 +15,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import java.util.*
+import javax.servlet.http.HttpServletRequest
 
 @RestControllerAdvice
-class CommonExceptionHandler {
+class CommonExceptionHandler(val req: HttpServletRequest) {
+
 
     private val log = KotlinLogging.logger {}
 
@@ -29,6 +34,19 @@ class CommonExceptionHandler {
         return JsonResult.error(CodeEnum.SYS_ERROR)
     }
 
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handlerAccessDeniedException(e: AccessDeniedException): Any {
+        return if (req.getHeader(HEADER).isNullOrBlank()) {
+            JsonResult.error(CodeEnum.TOKEN_NOT_EXISTS)
+        } else {
+            val principal = SecurityContextHolder.getContext().authentication.principal
+            if (principal is CodeEnum) {
+                JsonResult.error(principal)
+            } else {
+                JsonResult.error(CodeEnum.FORBIDDEN)
+            }
+        }
+    }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handlerException(e: MethodArgumentTypeMismatchException): JsonResult {

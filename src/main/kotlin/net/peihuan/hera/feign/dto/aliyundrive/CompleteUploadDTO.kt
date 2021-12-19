@@ -1,0 +1,31 @@
+package net.peihuan.hera.feign.dto.aliyundrive
+
+data class CompleteUploadDTO(
+    val category: String,
+    val content_hash: String,
+    val content_hash_name: String,
+    val content_type: String,
+    val crc64_hash: String,
+    val created_at: String,
+    val creator_id: String,
+    val creator_type: String,
+    val domain_id: String,
+    val drive_id: String,
+    val encrypt_mode: String,
+    val file_extension: String,
+    val file_id: String,
+    val hidden: Boolean,
+    val last_modifier_id: String,
+    val last_modifier_type: String,
+    val location: String,
+    val name: String,
+    val parent_file_id: String,
+    val revision_id: String,
+    val size: Int,
+    val starred: Boolean,
+    val status: String,
+    val type: String,
+    val updated_at: String,
+    val upload_id: String,
+    val user_meta: String
+)
