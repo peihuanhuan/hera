@@ -3,9 +3,9 @@ package net.peihuan.hera.handler.click
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 
-interface AbstractMenuHandler {
+interface AbstractMessageHandler {
 
-    fun canHandleMenuClick(key: String): Boolean
+    fun receivedMessages(): List<String>
 
     fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage?
 }

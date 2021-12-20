@@ -9,29 +9,16 @@ import org.springframework.stereotype.Component
 @Component
 class SignClickMessageHandler(val signService: SignService) : AbstractMenuAndMessageHandler() {
 
-    companion object {
-        const val reply = "签到"
-    }
-
-    override fun showMsg(): String {
-        return "use less"
-    }
-
-    override fun reply(): String {
-        return reply
+    override fun receivedMessages(): List<String> {
+        return listOf("签到")
     }
 
     override fun canHandleMenuClick(key: String): Boolean {
         return key == "sign"
     }
 
-    override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
+    override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {
         return buildText(signService.sign(wxMpXmlMessage.fromUser), wxMpXmlMessage)
     }
-
-    override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {
-        return buildText(signService.sign(wxMpXmlMessage.fromUser), wxMpXmlMessage)
-    }
-
 
 }

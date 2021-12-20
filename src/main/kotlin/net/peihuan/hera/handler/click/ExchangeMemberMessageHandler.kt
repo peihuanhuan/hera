@@ -25,24 +25,16 @@ class ExchangeMemberMessageHandler(private val wxMpService: WxMpService,
         const val receivedMessage = "兑换会员"
     }
 
-    override fun showMsg(): String {
-        return "useless"
-    }
-
-    override fun reply(): String {
-        return receivedMessage
+    override fun receivedMessages(): List<String> {
+        return listOf(receivedMessage)
     }
 
     override fun canHandleMenuClick(key: String): Boolean {
         return key == "exchangeMember"
     }
 
-    override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
-        sendMessage(wxMpXmlMessage)
-        return null
-    }
 
-    override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
+    override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
         sendMessage(wxMpXmlMessage)
         return null
     }

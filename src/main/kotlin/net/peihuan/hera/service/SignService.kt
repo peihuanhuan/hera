@@ -39,8 +39,8 @@ class SignService(private val signPOService: SignPOService,
             return funnySign(openid)
         }
 
-        val expect = cacheManage.getBizValue(BizConfigEnum.SIGN_PRESENT_POINTS_EXPECT) ?: "25"
-        val variance = cacheManage.getBizValue(BizConfigEnum.SIGN_PRESENT_POINTS_VARIANCE) ?: "12"
+        val expect = cacheManage.getBizValue(BizConfigEnum.SIGN_PRESENT_POINTS_EXPECT)
+        val variance = cacheManage.getBizValue(BizConfigEnum.SIGN_PRESENT_POINTS_VARIANCE)
         val points = randomGaussianPoints(expect.toInt(), variance.toInt())
         val po = SignPO(openid = openid, points = points)
         signPOService.save(po)

@@ -9,9 +9,9 @@ import net.peihuan.hera.util.buildText
 import org.springframework.stereotype.Component
 
 @Component
-class PointsMessageAndMessageHandler(val userPointsService: UserPointsService) : AbstractMenuHandler() {
+class PointsMessageAndMessageHandler(val userPointsService: UserPointsService) : AbstractMenuHandler {
 
-    override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {
+    override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {
         return getUserPointMessage(wxMpXmlMessage)
     }
 

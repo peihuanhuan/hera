@@ -17,22 +17,21 @@ class HuafeiHandler(
         private val channelService: ChannelService,
         private val cacheManage: CacheManage,
 ) : AbstractMenuAndMessageHandler() {
-    override fun showMsg(): String {
-        return "➜ 戳我了解低价话费"
-    }
 
-    override fun reply(): String {
-        return "戳你啦！"
+    override fun receivedMessages(): List<String> {
+        return listOf("戳你啦!", "话费")
     }
 
     override fun canHandleMenuClick(key: String): Boolean {
         return key == "huafei"
     }
 
-    override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {
+    override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {
         val channel = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser).id
         val url = "https://cdn.wxthe.com/life/#/pages/act/phone?appid=${zyProperties.appid}&channel=$channel"
         val huafeiContent = cacheManage.getBizValue(BizConfigEnum.HUAFEI)
         return buildText(huafeiContent.completeALable(url), wxMpXmlMessage)
     }
+
+
 }

@@ -7,7 +7,7 @@ import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 import net.peihuan.hera.config.HeraProperties
-import net.peihuan.hera.handler.click.AbstractMenuAndMessageHandler
+import net.peihuan.hera.handler.click.AbstractMessageHandler
 import net.peihuan.hera.service.NotifyService
 import net.peihuan.hera.util.buildSendToKf
 import org.apache.commons.lang3.StringUtils
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 
 
 @Component
-class MsgHandler(val messageHandlers: List<AbstractMenuAndMessageHandler>,
+class MsgHandler(val messageHandlers: List<AbstractMessageHandler>,
                  val wxMpService: WxMpService,
                  val notifyService: NotifyService,
                  val heraProperties: HeraProperties
@@ -46,8 +46,8 @@ class MsgHandler(val messageHandlers: List<AbstractMenuAndMessageHandler>,
         }
 
         messageHandlers.forEach {
-            if (it.canHandleMessage(wxMessage.content)) {
-                return it.handleMessage(wxMessage)
+            if (it.receivedMessages().contains(wxMessage.content)) {
+                return it.handle(wxMessage)
             }
         }
 

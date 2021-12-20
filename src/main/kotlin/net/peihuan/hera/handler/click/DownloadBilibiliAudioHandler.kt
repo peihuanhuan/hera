@@ -8,26 +8,13 @@ import net.peihuan.hera.util.replyKfMessage
 import org.springframework.stereotype.Component
 
 @Component
-class DownloadBilibiliAudioHandler(val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService) : AbstractMenuAndMessageHandler() {
+class DownloadBilibiliAudioHandler(val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService) : AbstractMessageHandler {
 
-
-    override fun showMsg(): String {
-        return "use less"
+    override fun receivedMessages(): List<String> {
+        return listOf("音频", "【音频】")
     }
 
-    override fun reply(): String {
-        return "音频"
-    }
-
-    override fun canHandleMenuClick(key: String): Boolean {
-        return key == "xxxx"
-    }
-
-    override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
-        return null
-    }
-
-    override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
+    override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
 
         val successTasks = bilibiliAudioTaskPOService.findByOpenid(wxMpXmlMessage.fromUser)
         if (successTasks.isEmpty()) {

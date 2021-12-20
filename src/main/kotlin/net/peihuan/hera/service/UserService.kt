@@ -19,6 +19,7 @@ import net.peihuan.hera.handler.click.ActivityMessageHandler
 import net.peihuan.hera.handler.click.ExchangeMemberMessageHandler
 import net.peihuan.hera.handler.click.SignClickMessageHandler
 import net.peihuan.hera.handler.click.member.AllProductMessageHandler
+import net.peihuan.hera.handler.click.member.OneProductMessageHandler
 import net.peihuan.hera.persistent.po.SubscribePO
 import net.peihuan.hera.persistent.po.UserPO
 import net.peihuan.hera.persistent.service.SubscribePOService
@@ -40,6 +41,9 @@ class UserService(
     private val configService: ConfigService,
     private val channelService: ChannelService,
     private val userPointsService: UserPointsService,
+    private val allProductMessageHandler: AllProductMessageHandler,
+    private val signClickMessageHandler: SignClickMessageHandler,
+    private val oneProductMessageHandler: OneProductMessageHandler,
     private val cacheManage: CacheManage,
     private val zyProperties: ZyProperties,
     private val activityMessageHandler: ActivityMessageHandler,
@@ -101,8 +105,8 @@ class UserService(
             configService.getConfigWithCommon(WxMpConfigStorageHolder.get(), BizConfigEnum.SUBSCRIBE_REPLY_CONTENT)
                 ?: "感谢关注"
         replyContent = replyContent.completeMsgMenu(
-            AllProductMessageHandler.reply,
-            SignClickMessageHandler.reply,
+            allProductMessageHandler.receivedMessages().first(),
+            signClickMessageHandler.receivedMessages().first(),
         )
         wxMpXmlMessage.replyKfMessage(replyContent)
 
@@ -133,7 +137,7 @@ class UserService(
             爱奇艺、腾讯、优酷、网易云等等，应有尽有！
             
             <a>戳我查看详情</a>
-        """.trimIndent().completeMsgMenu(ActivityMessageHandler.receivedMessage)
+        """.trimIndent().completeMsgMenu(activityMessageHandler.receivedMessages().first())
         userPO.openid.replyKfMessage(content)
         inviterInfo.openid.replyKfMessage("邀请用户【${userPO.nickname}】关注成功")
     }
@@ -147,7 +151,7 @@ class UserService(
 
 
     private fun presentPoints(wxMpXmlMessage: WxMpXmlMessage) {
-        val configPoints = cacheManage.getBizValue(BizConfigEnum.FIRST_SUBSCRIBE_PRESENT_POINTS) ?: "35"
+        val configPoints = cacheManage.getBizValue(BizConfigEnum.FIRST_SUBSCRIBE_PRESENT_POINTS)
         val firstSubscribe = """
                         首次关注，赠送小主 ${configPoints.toInt()} 积分~                
                         每天回复${buildMsgMenuUrl("签到", "【签到】")}可以获取积分哦

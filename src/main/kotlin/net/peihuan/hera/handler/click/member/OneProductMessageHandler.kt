@@ -16,20 +16,18 @@ import org.springframework.stereotype.Component
 @Component
 class OneProductMessageHandler(private val zyProperties: ZyProperties,
                                private val channelService: ChannelService,
-                               private val cacheManage: CacheManage) : AbstractMenuHandler() {
+                               private val cacheManage: CacheManage) : AbstractMenuHandler {
 
     override fun canHandleMenuClick(key: String): Boolean {
         return key.startsWith("C")
     }
 
-    override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
+    override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
         val channelId = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser).id
         val url = ZyUtil.buildOneProductUrl(wxMpXmlMessage.eventKey, channelId, zyProperties.appid)
         val content = getProductName(wxMpXmlMessage.eventKey)
         return buildText(content.completeALable(url), wxMpXmlMessage)
     }
-
-
 
     fun getProductName(code: String): String {
         val bizValue = cacheManage.getBizValue(BizConfigEnum.MEMBER)

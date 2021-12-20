@@ -23,7 +23,7 @@ class MenuHandler(val clickEventsHandlers: List<AbstractMenuHandler>) : Abstract
         clickEventsHandlers.forEach {
             if (it.canHandleMenuClick(wxMessage.eventKey)) {
                 log.info { "用户 ${wxMessage.fromUser} 点击了菜单 ${wxMessage.eventKey}" }
-                return it.handleMenuClick(wxMessage)
+                return it.handle(wxMessage)
             }
         }
 

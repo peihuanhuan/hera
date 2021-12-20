@@ -7,29 +7,13 @@ import net.peihuan.hera.util.replyKfMessage
 import org.springframework.stereotype.Component
 
 @Component
-class NotifyUserInviterMessageHandler(val userInvitationShipService: UserInvitationShipService) : AbstractMenuAndMessageHandler() {
+class NotifyUserInviterMessageHandler(val userInvitationShipService: UserInvitationShipService) : AbstractMessageHandler {
 
-    companion object {
-        const val reply = "问下我邀请多少个好友了呢？"
+    override fun receivedMessages(): List<String> {
+        return listOf("问下我邀请多少个好友了呢？")
     }
 
-    override fun showMsg(): String {
-        return "use less"
-    }
-
-    override fun reply(): String {
-        return reply
-    }
-
-    override fun canHandleMenuClick(key: String): Boolean {
-        return key == "xxxx"
-    }
-
-    override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
-        return null
-    }
-
-    override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
+    override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
         val findInviteUsers = userInvitationShipService.findInviteUsers(wxMpXmlMessage.fromUser)
         if (findInviteUsers.isEmpty()) {
             wxMpXmlMessage.replyKfMessage("您一个人都还没有邀请哦!")

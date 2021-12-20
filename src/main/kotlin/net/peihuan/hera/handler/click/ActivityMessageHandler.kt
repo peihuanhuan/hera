@@ -23,32 +23,17 @@ import java.util.*
 class ActivityMessageHandler(private val wxMpService: WxMpService,
                              private val zyProperties: ZyProperties,
                              private val channelService: ChannelService,
+                             private val notifyUserInviterMessageHandler: NotifyUserInviterMessageHandler,
+                             private val notifyUserMessageHandler: NotifyUserMessageHandler,
                              private val activityService: ActivityPOService,
                              private val fastposterService: FastposterService,
-                             private val heraProperties: HeraProperties) : AbstractMenuAndMessageHandler() {
+                             private val heraProperties: HeraProperties) : AbstractMessageHandler {
 
-    companion object {
-        const val receivedMessage = "海报"
+    override fun receivedMessages(): List<String> {
+        return listOf("海报")
     }
 
-    override fun showMsg(): String {
-        return "useless"
-    }
-
-    override fun reply(): String {
-        return receivedMessage
-    }
-
-    override fun canHandleMenuClick(key: String): Boolean {
-        return key == "xxxx"
-    }
-
-    override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
-        sendMessage(wxMpXmlMessage)
-        return null
-    }
-
-    override fun handleMessage(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
+    override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
         sendMessage(wxMpXmlMessage)
         return null
     }
@@ -63,7 +48,7 @@ class ActivityMessageHandler(private val wxMpService: WxMpService,
             """.trimIndent()
         wxMpXmlMessage.replyKfMessage(content1)
 
-        val activityPO = activityService.getByKeyword(receivedMessage)
+        val activityPO = activityService.getByKeyword(receivedMessages().first())
         if (activityPO == null || activityPO.disable) {
             wxMpXmlMessage.replyKfMessage("抱歉，活动已经下线了哦~")
             return
@@ -99,7 +84,9 @@ class ActivityMessageHandler(private val wxMpService: WxMpService,
             
             （点击底部菜单栏，积分——积分兑换）
             """.trimIndent()
-        wxMpXmlMessage.replyKfMessage(content.completeMsgMenu(NotifyUserMessageHandler.reply, NotifyUserInviterMessageHandler.reply))
+        wxMpXmlMessage.replyKfMessage(content.completeMsgMenu(
+            notifyUserMessageHandler.receivedMessages().first(),
+            notifyUserInviterMessageHandler.receivedMessages().first()))
 
         FileUtils.deleteQuietly(tempFile)
     }

@@ -20,13 +20,13 @@ class WaimaiHandler(
         private val zyProperties: ZyProperties,
         private val cacheManage: CacheManage,
         private val channelService: ChannelService,
-) : AbstractMenuHandler() {
+) : AbstractMenuHandler {
 
     override fun canHandleMenuClick(key: String): Boolean {
         return key == "waimai"
     }
 
-    override fun handleMenuClick(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
+    override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
         val channel = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser, OrderSourceEnum.BUY)
         val wmUrl = ZyUtil.buildWmUrl(channel.id, zyProperties.appid)
         val content = """
