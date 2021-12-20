@@ -35,10 +35,6 @@ class SignService(private val signPOService: SignPOService,
             return "今天已经签到过啦"
         }
 
-        if (openid == "oIWc_57n2Y_Guhe_SK3H1mGoG9-I" || openid == heraProperties.adminOpenid) {
-            return funnySign(openid)
-        }
-
         val expect = cacheManage.getBizValue(BizConfigEnum.SIGN_PRESENT_POINTS_EXPECT)
         val variance = cacheManage.getBizValue(BizConfigEnum.SIGN_PRESENT_POINTS_VARIANCE)
         val points = randomGaussianPoints(expect.toInt(), variance.toInt())

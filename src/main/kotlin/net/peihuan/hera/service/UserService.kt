@@ -99,6 +99,7 @@ class UserService(
         if (dbUser != null) {
             newUser.id = dbUser.id
         }
+        val isNewUser = dbUser == null || subscribePOService.getSubscribes(newUser.openid).isEmpty()
         userPOService.saveOrUpdate(newUser)
         addSubscribeRecord(userWxInfo)
         var replyContent =
@@ -112,7 +113,8 @@ class UserService(
 
         val qrscene = resolveQrscene(wxMpXmlMessage)
 
-        if (dbUser == null) {
+
+        if (isNewUser)  {
             presentPoints(wxMpXmlMessage)
             handleInviter(qrscene, newUser)
         }
