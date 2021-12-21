@@ -40,13 +40,13 @@ class BVideo2AudioService(
 
     @Transactional
     fun saveTask2DB(data: String): Int {
-        val bvIds = bilibiliService.resolveBVids(data)
+        val videos = bilibiliService.resolve2BilibiliVideos(data)
 
-        if (bvIds.isEmpty()) {
+        if (videos.isEmpty()) {
             throw BizException.buildBizException("没解析到B站视频~")
         }
 
-        if (bvIds.size > 5) {
+        if (videos.size > 5) {
             throw BizException.buildBizException("一次不能超过五个文件")
         }
 
@@ -57,23 +57,36 @@ class BVideo2AudioService(
             type = 1,  //todo 类型写死了
             openid = currentUserOpenid,
             status = TaskStatusEnum.DEFAULT.code,
-            size = bvIds.size
+            size = videos.size
         )
         bilibiliAudioTaskPOService.save(task)
 
-        val views = bvIds.map { bilibiliService.getViewByBvid(it) }
+        val views = videos.associateWith { bilibiliService.getViewByBvid(it.bvid) }
+
         val taskAudios = views.map {
+            val pageNo = it.key.page
+            val cid: String
+            val title: String
+            if (pageNo == null) {
+                cid = it.value.cid
+                title = it.value.title
+            } else {
+                val pageVideo = it.value.pages.filter { page -> page.page.toString() == pageNo }.first()
+                cid = pageVideo.cid
+                title = "${it.value.title} p$pageNo ${pageVideo.part}"
+            }
             BilibiliAudioPO(
                 taskId = task.id!!,
                 openid = task.openid,
-                bvid = it.bvid,
-                aid = it.aid,
-                mid = it.owner.mid,
-                title = it.title
+                bvid = it.key.bvid,
+                aid = it.value.aid,
+                cid = cid,
+                mid = it.value.owner.mid,
+                title = title
             )
         }
         bilibiliAudioPOService.saveBatch(taskAudios)
-        return bvIds.size
+        return videos.size
     }
 
 
@@ -87,14 +100,11 @@ class BVideo2AudioService(
 
 
     fun processVideos(task: BilibiliAudioTaskPO): String {
-        // task.status = TaskStatusEnum.PROCESS.code
-        // bilibiliAudioTaskPOService.updateById(task)
 
         val audios = bilibiliAudioPOService.findByTaskId(task.id!!)
 
-        val audioFiles = audios.map { processBV(it.bvid) }
+        val audioFiles = audios.map { processBV(it) }
         val targetFile: File
-        val expireDays = 7
         if (audios.size == 1) {
             targetFile = audioFiles[0]
         } else {
@@ -131,6 +141,7 @@ class BVideo2AudioService(
             task.name = baseName.substring(0, 8) + "..." + baseName.substring(baseName.length - 8)
         }
         task.url = downloadUrl
+        task.updateTime = null
         bilibiliAudioTaskPOService.updateById(task)
 
         notifyService.notifyTaskResult(task)
@@ -142,14 +153,14 @@ class BVideo2AudioService(
         return downloadUrl
     }
 
-    fun processBV(bvId: String): File {
+    fun processBV(bilibiliAudioPO: BilibiliAudioPO): File {
 
-        val viewByBvid = bilibiliService.getViewByBvid(bvId)
-        val dashAudioPlayUrl =
-            bilibiliService.getDashAudioPlayUrl(viewByBvid.aid, viewByBvid.cid) ?: throw BizException.buildBizException(
-                "未解析到音频"
-            )
+        var url = bilibiliService.getDashAudioPlayUrl(bilibiliAudioPO.aid, bilibiliAudioPO.cid)
+        if (url == null) {
+            url = bilibiliService.getFlvPlayUrl(bilibiliAudioPO.aid, bilibiliAudioPO.cid)!!
+        }
 
+        val bvId = bilibiliAudioPO.bvid
         val headers = mapOf(
             "Accept" to "*/*",
             "Accept-Encoding" to "gzip, deflate, br",
@@ -160,21 +171,22 @@ class BVideo2AudioService(
             "User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36"
         )
 
-        val source = "${workDir}/${bvId}.m4s"
+        val source = "${workDir}/${bilibiliAudioPO.cid}.m4s"
         log.info { "====== 开始下载 $source" }
-        doDownload(dashAudioPlayUrl, File(source), headers)
+        doDownload(url, File(source), headers)
 
-        val target = "${workDir}/${bvId}.mp3"
+        val target = "${workDir}/${bilibiliAudioPO.cid}.mp3"
         FileUtils.deleteQuietly(File(target))
         log.info { "====== 开始转 $target" }
         CmdUtil.executeBash("ffmpeg -i $source $target")
         log.info { "====== 转换完成" }
 
 
-        val title = viewByBvid.title.replace("/", "")
+        val title = bilibiliAudioPO.title.replace("/", "")
         val pathname = "${workDir}/${title}.mp3"
         val renameFile = File(pathname)
         File(target).renameTo(renameFile)
+
         // val createWithFoldersDTO = aliyundriveService.uploadFile(renameFile)
         // val share = aliyundriveService.share(createWithFoldersDTO.file_id)
 

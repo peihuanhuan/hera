@@ -14,7 +14,7 @@ data class View(
     // val honor_reply: HonorReply,
     val no_cache: Boolean,
     val owner: Owner,
-    // val pages: List<Any>,
+    val pages: List<VideoPage>,
     val pic: String,
     val pubdate: Int,
     val rights: Rights,

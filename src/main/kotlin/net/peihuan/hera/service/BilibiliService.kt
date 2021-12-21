@@ -1,5 +1,6 @@
 package net.peihuan.hera.service
 
+import net.peihuan.hera.domain.BilibiliVideo
 import net.peihuan.hera.feign.dto.bilibili.Quality
 import net.peihuan.hera.feign.dto.bilibili.View
 import net.peihuan.hera.feign.service.BilibiliFeignService
@@ -11,7 +12,7 @@ import java.util.regex.Pattern
 @Service
 class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
 
-    fun resolveBVids(data: String) : List<String> {
+    fun resolve2BilibiliVideos(data: String) : List<BilibiliVideo> {
         val shortUrls = resolveShortUrls(data)
         val longUrls = shortUrls.mapNotNull { getLocationUrl(it) }
         val shortUrlBvids = longUrls.map { getBVReg(it)[0] }
@@ -33,12 +34,12 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         return shortUrls
     }
 
-    private fun getBVReg(data: String): MutableList<String> {
-        val bvids = mutableListOf<String>()
-        val regex = Pattern.compile("(http|https):\\/\\/www\\.bilibili\\.com\\/video\\/(BV\\w*)(\\?.*)??").matcher(data)
+    private fun getBVReg(data: String): MutableList<BilibiliVideo> {
+        val bvids = mutableListOf<BilibiliVideo>()
+        val regex = Pattern.compile("(http|https):\\/\\/www\\.bilibili\\.com\\/video\\/(BV\\w*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*").matcher(data)
         var matchStart = 0
         while (regex.find(matchStart)) {
-            bvids.add(regex.group(2))
+            bvids.add(BilibiliVideo(regex.group(2), regex.group(6)))
             matchStart = regex.end()
         }
         return bvids
@@ -56,11 +57,17 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
     fun getDashAudioPlayUrl(avid: String, cid: String): String? {
         val dashPlayurl =
             bilibiliFeignService.dashPlayurl(avid = avid, cid = cid, Quality.P_360.code)
-        val audios = dashPlayurl.data.dash.audio
+        val audios = dashPlayurl.data.dash?.audio
         if (audios.isNullOrEmpty()) {
             return null
         }
         return audios.maxByOrNull { it.bandwidth }!!.base_url
+    }
+
+    fun getFlvPlayUrl(avid: String, cid: String): String? {
+        val dashPlayurl =
+            bilibiliFeignService.flvPlayurl(avid = avid, cid = cid, Quality.P_360.code)
+        return dashPlayurl.data.durl?.first()?.url
     }
 
 }

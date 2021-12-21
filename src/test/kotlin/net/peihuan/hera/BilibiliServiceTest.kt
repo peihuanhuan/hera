@@ -57,14 +57,33 @@ class BilibiliServiceTest : HeraApplicationTests() {
 
     @Test
     fun regTest() {
-        val BVReg = Regex("")
+        val data = """
+            
+            https://www.bilibili.com/video/BV1tF411z7Gn?spm_id_from=333.851.b_7265636f6d6d656e64.1
+            
+            https://www.bilibili.com/video/BV111111?p=1&a=3 
 
-        val xx = Pattern.compile("(http|https):\\/\\/www\\.bilibili\\.com\\/video\\/(BV\\w*)(\\?.*)??").matcher("https://www.bilibili.com/video/BV12321?p=1&a=1   https://www.bilibili.com/video/BV66612321?p=1&a=1")
+            https://www.bilibili.com/video/BV111112?p=2 8
+
+            https://www.bilibili.com/video/BV111113?a=1&p=3 
+            
+
+            https://www.bilibili.com/video/BV111114
+
+            https://www.bilibili.com/video/BV111115?a=3
+
+            https://www.bilibili.com/video/BV111116?a=1&p=6&x=3
+
+            https://www.bilibili.com/video/BV11117?
+        """.trimIndent()
+        val bvids = mutableListOf<String>()
+        val regex = Pattern.compile("(http|https):\\/\\/www\\.bilibili\\.com\\/video\\/(BV\\w*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*").matcher(data)
         var matchStart = 0
-        while (xx.find(matchStart)) {
-            log.info { xx.group(2) }
-            matchStart = xx.end()
+        while (regex.find(matchStart)) {
+            bvids.add(regex.group(2) + " " + regex.group(6))
+            matchStart = regex.end()
         }
+        println(bvids)
 
         // val find = BVReg.find("dasdasdasdasda]https://www.bilibili.com/video/BV12321?p=1&a=1") ?: return
         // val groups = find.groups
@@ -88,7 +107,7 @@ class BilibiliServiceTest : HeraApplicationTests() {
 
     @Test
     fun testResolveBv() {
-        val resolveBV = bilibiliService.resolveBVids("【开场一句就能俘获你芳心！《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W")
+        val resolveBV = bilibiliService.resolve2BilibiliVideos("【开场一句就能俘获你芳心！《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W")
         log.info { "==== bv 为 $resolveBV" }
     }
 

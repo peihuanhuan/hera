@@ -32,6 +32,17 @@ interface BilibiliFeignService {
     ): Response<DashPlayUrl>
 
 
+    @GetMapping("x/player/playurl")
+    fun flvPlayurl(
+        @RequestParam("avid") avid: String,
+        @RequestParam("cid") cid: String,
+        @RequestParam("qn") quality: Int,
+        @RequestParam("otype") otype: String = "json",
+        @RequestParam("fourk") fourk: String = "1",
+        @RequestParam("fnver") fnver: String = "0",
+        @RequestParam("fnval") fnval: String = "0",
+    ): Response<DashPlayUrl>
+
     @GetMapping("x/web-interface/view")
     fun getView(
         @RequestParam("bvid") bvid: String? = null,

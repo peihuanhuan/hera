@@ -14,6 +14,7 @@ data class BilibiliAudioPO (
     var openid: String,
     val bvid: String,
     val aid: String,
+    val cid: String,
     val title: String,
     val mid: String,
     val createTime: Date? = null,

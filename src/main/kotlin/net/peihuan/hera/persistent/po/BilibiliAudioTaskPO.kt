@@ -18,5 +18,5 @@ data class BilibiliAudioTaskPO (
     var status: Int,
     var url: String,
     val createTime: Date? = null,
-    val updateTime: Date? = null,
+    var updateTime: Date? = null,
 )
