@@ -36,10 +36,10 @@ class ChannelService(private val channelPOService: ChannelPOService,
     }
 
     fun getChannelOrCreate(openid: String, source: OrderSourceEnum = OrderSourceEnum.BUY): Channel {
-        val channel = channelPOService.getChannelPO(openid = openid, source = source)
+        var channel = channelPOService.getChannelPO(openid = openid, source = source)
         if (channel == null) {
-            val po = ChannelPO(id = IdWorker.getId(), openid = openid, source = source)
-            channelPOService.save(po)
+            channel = ChannelPO(id = IdWorker.getId(), openid = openid, source = source)
+            channelPOService.save(channel)
         }
         return channelConvertService.convert2Channel(channel)!!
     }

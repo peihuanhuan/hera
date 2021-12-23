@@ -113,7 +113,6 @@ class UserService(
 
         val qrscene = resolveQrscene(wxMpXmlMessage)
 
-
         if (isNewUser)  {
             presentPoints(wxMpXmlMessage)
             handleInviter(qrscene, newUser)
