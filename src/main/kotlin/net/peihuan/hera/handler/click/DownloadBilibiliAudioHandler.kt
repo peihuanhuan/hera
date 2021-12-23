@@ -1,14 +1,20 @@
 package net.peihuan.hera.handler.click
 
+import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 import net.peihuan.hera.persistent.service.BilibiliAudioTaskPOService
+import net.peihuan.hera.service.ToolService
 import net.peihuan.hera.util.completeALable
 import net.peihuan.hera.util.replyKfMessage
 import org.springframework.stereotype.Component
 
 @Component
-class DownloadBilibiliAudioHandler(val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService) : AbstractMessageHandler {
+class DownloadBilibiliAudioHandler(
+    val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService,
+    val toolService: ToolService,
+    val wxMpService: WxMpService
+) : AbstractMessageHandler {
 
     override fun receivedMessages(): List<String> {
         return listOf("音频", "【音频】")
@@ -31,7 +37,8 @@ class DownloadBilibiliAudioHandler(val bilibiliAudioTaskPOService: BilibiliAudio
         wxMpXmlMessage.replyKfMessage(
             content
         )
-        wxMpXmlMessage.replyKfMessage(successTasks.first().url)
+
+        wxMpXmlMessage.replyKfMessage(toolService.tryShortUrl(successTasks.first().url))
         return null
     }
 
