@@ -1,7 +1,11 @@
 package net.peihuan.hera.service
 
 import mu.KotlinLogging
+import net.peihuan.hera.constants.BilibiliTaskTypeEnum
+import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.constants.TaskStatusEnum
+import net.peihuan.hera.domain.BilibiliVideo
+import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.persistent.po.BilibiliAudioPO
 import net.peihuan.hera.persistent.po.BilibiliAudioTaskPO
@@ -27,6 +31,7 @@ import java.io.FileInputStream
 class BVideo2AudioService(
     private val bilibiliService: BilibiliService,
     private val notifyService: NotifyService,
+    private val cacheManage: CacheManage,
     private val aliyundriveService: AliyundriveService,
     private val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService,
     private val bilibiliAudioPOService: BilibiliAudioPOService,
@@ -39,22 +44,67 @@ class BVideo2AudioService(
     private val workDir: String? = null
 
     @Transactional
-    fun saveTask2DB(data: String): Int {
+    fun saveTask2DB(data: String, type: Int): Int {
         val videos = bilibiliService.resolve2BilibiliVideos(data)
 
         if (videos.isEmpty()) {
             throw BizException.buildBizException("没解析到B站视频~")
         }
+        if (type == BilibiliTaskTypeEnum.FREE.code) {
+            return freeType(videos, data, type)
+        }
+        if (type == BilibiliTaskTypeEnum.MULTIPLE.code) {
+            return multipleP(videos.first(), data, type)
+        }
+        return 0
+    }
 
-        if (videos.size > 5) {
-            throw BizException.buildBizException("一次不能超过五个文件")
+    private fun multipleP(video: BilibiliVideo, data: String, type: Int): Int {
+
+        val view = bilibiliService.getViewByBvid(video.bvid)
+
+        val limit = cacheManage.getBizValue(BizConfigEnum.MAX_P_LIMIT, "30").toInt()
+        if (view.pages.size > limit) {
+            throw BizException.buildBizException("不支持 P 数大于 $limit，联系公众号解决~")
         }
 
         val task = BilibiliAudioTaskPO(
             name = "",
             url = "",
             request = data,
-            type = 1,  //todo 类型写死了
+            type = type,
+            openid = currentUserOpenid,
+            status = TaskStatusEnum.DEFAULT.code,
+            size = view.pages.size
+        )
+        bilibiliAudioTaskPOService.save(task)
+
+
+        val tasks = view.pages.map {
+            BilibiliAudioPO(
+                taskId = task.id!!,
+                openid = task.openid,
+                bvid = view.bvid,
+                aid = view.aid,
+                cid = it.cid,
+                mid = view.owner.mid,
+                title = it.part
+            )
+        }
+        bilibiliAudioPOService.saveBatch(tasks)
+        return tasks.size
+    }
+
+    private fun freeType(videos: List<BilibiliVideo>, data: String, type: Int): Int {
+        if (videos.size > 15) {
+            throw BizException.buildBizException("一次不能超过 15 个文件")
+        }
+
+        val task = BilibiliAudioTaskPO(
+            name = "",
+            url = "",
+            request = data,
+            type = type,
             openid = currentUserOpenid,
             status = TaskStatusEnum.DEFAULT.code,
             size = videos.size
@@ -108,7 +158,11 @@ class BVideo2AudioService(
         if (audios.size == 1) {
             targetFile = audioFiles[0]
         } else {
-            val name = "「${audioFiles[0].name}」等${audioFiles.size}个文件"
+            val name = if (task.type == BilibiliTaskTypeEnum.MULTIPLE.code) {
+                bilibiliService.getViewByBvid(audios.first().bvid).title
+            } else {
+                "「${audioFiles[0].name}」等${audioFiles.size}个文件"
+            }
             targetFile = File("${workDir}/$name.zip")
             ZipArchiveOutputStream(targetFile).use { zipArchiveOutputStream ->
                 audioFiles.forEach { file ->
