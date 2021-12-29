@@ -24,7 +24,7 @@ class DownloadBilibiliAudioHandler(val bilibiliAudioTaskPOService: BilibiliAudio
 
         val content = """${successTasks.first().name}
                 |
-                |请复制以下链接到系统浏览器中下载，微信中无法下载。
+                |请复制以下链接到「系统浏览器」中下载，微信中无法下载。
                 |
                 |<a>Bilibili 音频提取</a>
             """.trimMargin().completeALable("http://wx.peihuan.net/bilibili-audio/")
