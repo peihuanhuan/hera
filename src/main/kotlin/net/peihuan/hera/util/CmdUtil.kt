@@ -15,9 +15,9 @@ object CmdUtil {
             pro.waitFor()
             val bufrIn = BufferedReader(InputStreamReader(pro.inputStream, "UTF-8"))
             val bufrError = BufferedReader(InputStreamReader(pro.errorStream, "UTF-8"))
-            log.info("执行结果 :${bufrIn.readLines()}  ${bufrError.readLines()}")
+            log.info("错误结果  ${bufrError.readLines()}")
         } catch (ex: Exception) {
-            log.error("______________ 执行bash脚本出错")
+            log.error("______________ 执行bash脚本出错", ex)
             throw ex
         }
     }

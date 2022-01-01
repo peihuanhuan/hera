@@ -96,15 +96,15 @@ class UserService(
         val userWxInfo: WxMpUser = wxMpService.userService.userInfo(wxMpXmlMessage.fromUser, null)
         val dbUser = userPOService.getByOpenid(userWxInfo.openId)
         val newUser = userConvertService.convertToUserPO(userWxInfo)
-        if (dbUser != null) {
-            newUser.id = dbUser.id
+        if (dbUser == null) {
+            // 不更新，因为关注接口获取不到昵称、头像了
+            userPOService.save(newUser)
         }
         val isNewUser = dbUser == null || subscribePOService.getSubscribes(newUser.openid).isEmpty()
-        userPOService.saveOrUpdate(newUser)
+
         addSubscribeRecord(userWxInfo)
         var replyContent =
-            configService.getConfigWithCommon(WxMpConfigStorageHolder.get(), BizConfigEnum.SUBSCRIBE_REPLY_CONTENT)
-                ?: "感谢关注"
+            configService.getConfigWithCommon(WxMpConfigStorageHolder.get(), BizConfigEnum.SUBSCRIBE_REPLY_CONTENT) ?: "感谢关注"
         replyContent = replyContent.completeMsgMenu(
             allProductMessageHandler.receivedMessages().first(),
             signClickMessageHandler.receivedMessages().first(),

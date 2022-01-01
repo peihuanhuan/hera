@@ -96,9 +96,12 @@ class BVideo2AudioService(
     }
 
     private fun freeType(videos: List<BilibiliVideo>, data: String, type: Int): Int {
-        if (videos.size > 15) {
-            throw BizException.buildBizException("一次不能超过 15 个文件")
+
+        val limit = cacheManage.getBizValue(BizConfigEnum.MAX_FREE_LIMIT, "10").toInt()
+        if (videos.size > limit) {
+            throw BizException.buildBizException("一次不能超过 $limit 个视频")
         }
+
 
         val task = BilibiliAudioTaskPO(
             name = "",
@@ -144,7 +147,14 @@ class BVideo2AudioService(
     fun autoProcess() {
         val tasks = bilibiliAudioTaskPOService.findByStatus(TaskStatusEnum.DEFAULT)
         tasks.forEach {
-            processVideos(it)
+            try {
+                processVideos(it)
+            } catch (e: Exception) {
+                log.error(e.message, e)
+                it.status = TaskStatusEnum.FAIL.code
+                it.updateTime = null
+                bilibiliAudioTaskPOService.updateById(it)
+            }
         }
     }
 
