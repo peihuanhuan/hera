@@ -21,8 +21,8 @@ class DownloadBilibiliAudioHandler(val bilibiliAudioTaskPOService: BilibiliAudio
             wxMpXmlMessage.replyKfMessage("最近没有成功的任务呢？")
             return null
         }
-
-        val content = """${successTasks.first().name}
+        val content = """上一个成功任务为：
+                |${successTasks.first().name}
                 |
                 |请复制以下链接到「系统浏览器」中下载，微信中无法下载。
                 |

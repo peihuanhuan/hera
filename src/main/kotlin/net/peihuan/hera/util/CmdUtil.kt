@@ -13,9 +13,9 @@ object CmdUtil {
         try {
             val pro = Runtime.getRuntime().exec(cmd)
             pro.waitFor()
-            val bufrIn = BufferedReader(InputStreamReader(pro.inputStream, "UTF-8"))
-            val bufrError = BufferedReader(InputStreamReader(pro.errorStream, "UTF-8"))
-            log.info("错误结果  ${bufrError.readLines()}")
+            // val bufrIn = BufferedReader(InputStreamReader(pro.inputStream, "UTF-8"))
+            // val bufrError = BufferedReader(InputStreamReader(pro.errorStream, "UTF-8"))
+            // log.info("错误结果  ${bufrError.readLines()}")
         } catch (ex: Exception) {
             log.error("______________ 执行bash脚本出错", ex)
             throw ex

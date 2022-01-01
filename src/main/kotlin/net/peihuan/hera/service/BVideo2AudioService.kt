@@ -246,7 +246,12 @@ class BVideo2AudioService(
         log.info { "====== 转换完成" }
 
 
-        val title = bilibiliAudioPO.title.replace("/", "")
+        var title = bilibiliAudioPO.title.replace("/", "")
+        if (title.length > 100) {
+            // linux 文件名最大 255 个字符，这边截取一部分
+            title = title.substring(0, 50) + "..." + title.substring(title.length - 50)
+        }
+
         val pathname = "${workDir}/${title}.mp3"
         val renameFile = File(pathname)
         File(target).renameTo(renameFile)
