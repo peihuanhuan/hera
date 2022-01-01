@@ -4,11 +4,15 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 import net.peihuan.hera.persistent.service.BilibiliAudioTaskPOService
 import net.peihuan.hera.util.completeALable
+import net.peihuan.hera.util.completeMsgMenu
 import net.peihuan.hera.util.replyKfMessage
 import org.springframework.stereotype.Component
 
 @Component
-class DownloadBilibiliAudioHandler(val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService) : AbstractMessageHandler {
+class DownloadBilibiliAudioHandler(
+    val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService,
+    val bilibiliAudioQunHandler: BilibiliAudioQunHandler,
+    ) : AbstractMessageHandler {
 
     override fun receivedMessages(): List<String> {
         return listOf("音频", "【音频】")
@@ -18,16 +22,28 @@ class DownloadBilibiliAudioHandler(val bilibiliAudioTaskPOService: BilibiliAudio
 
         val successTasks = bilibiliAudioTaskPOService.findByOpenid(wxMpXmlMessage.fromUser)
         if (successTasks.isEmpty()) {
-            wxMpXmlMessage.replyKfMessage("最近没有成功的任务呢？")
+            val content = """
+                |最近没有成功的任务呢？应该还在转换中吧？
+                | 
+                |<a>BiliBili玩梗闲聊群</a>，任务长时间没结果就找群主 _(:з」∠)_
+                |
+                |<a>Bilibili 音频提取</a>
+            """.trimIndent()
+                .completeMsgMenu(bilibiliAudioQunHandler.receivedMessages().first())
+            wxMpXmlMessage.replyKfMessage(content)
             return null
         }
         val content = """上一个成功任务为：
                 |${successTasks.first().name}
                 |
-                |请复制以下链接到「系统浏览器」中下载，微信中无法下载。
+                |<a>BiliBili玩梗闲聊群</a>，任务长时间没结果就找群主  _(:з」∠)_
                 |
                 |<a>Bilibili 音频提取</a>
-            """.trimMargin().completeALable("http://wx.peihuan.net/bilibili-audio/")
+                |
+                |复制链接到「系统浏览器」中下载，微信中无法下载。
+            """.trimMargin()
+            .completeMsgMenu(bilibiliAudioQunHandler.receivedMessages().first())
+            .completeALable("http://wx.peihuan.net/bilibili-audio/")
         wxMpXmlMessage.replyKfMessage(
             content
         )

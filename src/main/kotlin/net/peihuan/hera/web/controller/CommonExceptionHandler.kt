@@ -83,7 +83,7 @@ class CommonExceptionHandler(val req: HttpServletRequest) {
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
     fun handleMethodArgumentNotValidException(e: HttpRequestMethodNotSupportedException): JsonResult {
-        log.info("http方法不支持 e={}", e.getMethod())
+        log.info("http方法不支持 e={}", e.message)
         return JsonResult.error(CodeEnum.HTTP_METHOD_NOT_SUPPORT)
     }
 }

@@ -18,6 +18,8 @@ enum class BizConfigEnum(val key: String, val desc: String) {
 
 
     MEDIA_KEFU("media_kefu_weixin", "客服微信二维码素材"),
+    BILIBILI_QUN("media_bilibili_weixin_qun", "素材Id-BiliBili玩梗闲聊群活码"),
+
 
     MAX_P_LIMIT("max_multiple_p_size", "多p投稿的最大数量限制"),
     MAX_FREE_LIMIT("max_free_size", "自由模式的最大数量限制")
