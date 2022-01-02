@@ -46,6 +46,11 @@ class BVideo2AudioService(
     @Transactional
     fun saveTask2DB(data: String, type: Int): Int {
         val videos = bilibiliService.resolve2BilibiliVideos(data)
+        val notHandleTask =
+            bilibiliAudioTaskPOService.findByOpenidAndStatus(currentUserOpenid, TaskStatusEnum.DEFAULT)
+        if (notHandleTask.isNotEmpty()) {
+            throw BizException.buildBizException("请等待上一个任务执行完成~")
+        }
 
         if (videos.isEmpty()) {
             throw BizException.buildBizException("没解析到B站视频~")

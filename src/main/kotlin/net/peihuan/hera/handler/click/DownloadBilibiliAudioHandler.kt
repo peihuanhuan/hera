@@ -2,6 +2,7 @@ package net.peihuan.hera.handler.click
 
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
+import net.peihuan.hera.constants.TaskStatusEnum
 import net.peihuan.hera.persistent.service.BilibiliAudioTaskPOService
 import net.peihuan.hera.util.completeALable
 import net.peihuan.hera.util.completeMsgMenu
@@ -20,7 +21,7 @@ class DownloadBilibiliAudioHandler(
 
     override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
 
-        val successTasks = bilibiliAudioTaskPOService.findByOpenid(wxMpXmlMessage.fromUser)
+        val successTasks = bilibiliAudioTaskPOService.findByOpenidAndStatus(wxMpXmlMessage.fromUser, TaskStatusEnum.SUCCESS)
         if (successTasks.isEmpty()) {
             val content = """
                 |最近没有成功的任务呢？应该还在转换中吧？

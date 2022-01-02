@@ -14,12 +14,11 @@ class BilibiliAudioTaskPOService : ServiceImpl<BilibiliAudioTaskMapper, Bilibili
         return list(KtQueryWrapper(BilibiliAudioTaskPO::class.java).`in`(BilibiliAudioTaskPO::status, statusEnum))
     }
 
-    fun findByOpenid(openid: String): List<BilibiliAudioTaskPO> {
+    fun findByOpenidAndStatus(openid: String, statusEnum: TaskStatusEnum): List<BilibiliAudioTaskPO> {
         return list(KtQueryWrapper(BilibiliAudioTaskPO::class.java)
             .eq(BilibiliAudioTaskPO::openid, openid)
-            .eq(BilibiliAudioTaskPO::status, TaskStatusEnum.SUCCESS.code)
+            .eq(BilibiliAudioTaskPO::status, statusEnum.code)
             .orderByDesc(BilibiliAudioTaskPO::updateTime)
         )
     }
-
 }
