@@ -14,10 +14,12 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 import org.springframework.stereotype.Component
+import javax.servlet.http.HttpServletRequest
 
 @Component
 class TokenAuthenticationProvider(
     private val userService: UserService,
+    private val request: HttpServletRequest,
     private val jwtTokenComponent: JwtTokenComponent,
 ) : AuthenticationProvider {
 
@@ -28,6 +30,7 @@ class TokenAuthenticationProvider(
         if (authentication.isAuthenticated) {
             return authentication
         }
+        logger.info { "token: ${authentication.credentials}  req: ${request.servletPath}" }
         // 没有 token ，返回没有权限的空认证，需要登录权限的接口会权限不足
         val credentials = authentication.credentials
             ?: return PreAuthenticatedAuthenticationToken("", "", emptyList())

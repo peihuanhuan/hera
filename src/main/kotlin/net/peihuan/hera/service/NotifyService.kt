@@ -89,9 +89,36 @@ class NotifyService(
                     """.trimMargin()
         )
         val send = pushPlusService.send(request)
-        log.info { send }
     }
 
+
+    fun notifyTaskTooLong(task: BilibiliAudioTaskPO) {
+        val request = PushPlusService.SendRequest(
+            token = pushPlustoken,
+            title = "有任务长时间没处理：${task.name}",
+            channel = "webhook",
+            webhook = "pushplus",
+            content = """
+                    创建时间：${DateTime(task.createTime).toString(YYYY_MM_DD_HH_MM_SS)}
+                    个数：${task.size}
+                    """.trimMargin()
+        )
+        val send = pushPlusService.send(request)
+    }
+
+    fun notifyTaskFail(task: BilibiliAudioTaskPO) {
+        val request = PushPlusService.SendRequest(
+            token = pushPlustoken,
+            title = "任务处理失败：${task.name}",
+            channel = "webhook",
+            webhook = "pushplus",
+            content = """
+                    创建时间：${DateTime(task.createTime).toString(YYYY_MM_DD_HH_MM_SS)}
+                    个数：${task.size}
+                    """.trimMargin()
+        )
+        val send = pushPlusService.send(request)
+    }
 
     fun notifyTaskResult(task: BilibiliAudioTaskPO) {
         val templateMessage = WxMpSubscribeMessage.builder()

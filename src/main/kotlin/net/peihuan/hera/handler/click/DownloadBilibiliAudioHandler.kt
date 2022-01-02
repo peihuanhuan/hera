@@ -28,7 +28,7 @@ class DownloadBilibiliAudioHandler(
                 |<a>BiliBili玩梗闲聊群</a>，任务长时间没结果就找群主 _(:з」∠)_
                 |
                 |<a>Bilibili 音频提取</a>
-            """.trimIndent()
+            """.trimMargin()
                 .completeMsgMenu(bilibiliAudioQunHandler.receivedMessages().first())
             wxMpXmlMessage.replyKfMessage(content)
             return null

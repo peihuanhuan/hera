@@ -151,6 +151,7 @@ class BVideo2AudioService(
                 processVideos(it)
             } catch (e: Exception) {
                 log.error(e.message, e)
+                notifyService.notifyTaskFail(it)
                 it.status = TaskStatusEnum.FAIL.code
                 it.updateTime = null
                 bilibiliAudioTaskPOService.updateById(it)

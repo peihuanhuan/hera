@@ -25,7 +25,7 @@ class MsgHandler(val messageHandlers: List<AbstractMessageHandler>,
                         sessionManager: WxSessionManager): WxMpXmlOutMessage? {
         if (wxMessage.msgType != WxConsts.XmlMsgType.TEXT) {
             if (wxMessage.msgType == WxConsts.XmlMsgType.EVENT) {
-                notifyService.notifyLeaveMessage(wxMessage.fromUser, "事件：${wxMessage.event} 状态：${wxMessage.status}")
+                // notifyService.notifyLeaveMessage(wxMessage.fromUser, "事件：${wxMessage.event} 状态：${wxMessage.status}")
             } else {
                 notifyService.notifyLeaveMessage(wxMessage.fromUser, wxMessage.content)
             }
