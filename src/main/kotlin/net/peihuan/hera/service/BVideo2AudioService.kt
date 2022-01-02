@@ -253,9 +253,9 @@ class BVideo2AudioService(
 
 
         var title = bilibiliAudioPO.title.replace("/", "")
-        if (title.length > 100) {
+        if (title.length > 40) {
             // linux 文件名最大 255 个字符，这边截取一部分
-            title = title.substring(0, 50) + "..." + title.substring(title.length - 50)
+            title = title.substring(0, 20) + "..." + title.substring(title.length - 20)
         }
 
         val pathname = "${workDir}/${title}.mp3"
