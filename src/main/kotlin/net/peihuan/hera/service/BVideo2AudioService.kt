@@ -155,15 +155,15 @@ class BVideo2AudioService(
     @Scheduled(fixedDelay = 30_000)
     fun autoProcess() {
         val tasks = bilibiliAudioTaskPOService.findByStatus(TaskStatusEnum.DEFAULT)
-        tasks.forEach {
-            if (processingTasks.contains(it.id!!)) {
+        tasks.forEach { task ->
+            if (processingTasks.contains(task.id!!)) {
                 return@forEach
             }
-            processingTasks.add(it.id!!)
-            log.info { "新增任务 ${it.request}" }
+            processingTasks.add(task.id!!)
+            log.info { "新增任务 ${task.request}" }
             executorService.execute {
-                processVideos(it)
-                processingTasks.remove(it.id)
+                processVideos(task)
+                processingTasks.remove(task.id)
             }
         }
     }
@@ -205,7 +205,7 @@ class BVideo2AudioService(
             }
 
             val objectName = targetFile.name
-            log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}" }
+            log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}M" }
             storageService.upload(objectName, targetFile.absolutePath)
             FileUtils.deleteQuietly(targetFile)
 

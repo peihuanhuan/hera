@@ -78,7 +78,7 @@ class CheckZyOrderTask(
             } else if (it.source == OrderSourceEnum.EXCHANGE.code) {
                 notifyService.notifyOrderStatusToUser(it)
                 // 扣除积分
-                userPointsService.addUserPoints(it.openid ?: "null", -(it.incomeMoney ?: 0), "积分兑换【${it.name}】")
+                userPointsService.addUserPoints(it.openid ?: "null", -(it.money ?: 0), "积分兑换【${it.name}】")
             } else {
                 notifyService.notifyOrderStatusToUser(it)
             }

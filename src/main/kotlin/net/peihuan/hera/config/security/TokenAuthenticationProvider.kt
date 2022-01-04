@@ -30,7 +30,6 @@ class TokenAuthenticationProvider(
         if (authentication.isAuthenticated) {
             return authentication
         }
-        logger.info { "token: ${authentication.credentials}  req: ${request.servletPath}" }
         // 没有 token ，返回没有权限的空认证，需要登录权限的接口会权限不足
         val credentials = authentication.credentials
             ?: return PreAuthenticatedAuthenticationToken("", "", emptyList())
