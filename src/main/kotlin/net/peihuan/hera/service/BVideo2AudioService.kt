@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.io.FileInputStream
+import java.util.concurrent.Executors
 
 
 @Service
@@ -39,6 +40,9 @@ class BVideo2AudioService(
 ) {
 
     private val log = KotlinLogging.logger {}
+    private val executorService = Executors.newFixedThreadPool(3)
+
+    private val processingTasks = mutableSetOf<Long>()
 
     @Value("\${bilibili.workdir}")
     private val workDir: String? = null
@@ -148,79 +152,91 @@ class BVideo2AudioService(
     }
 
 
-    @Scheduled(fixedDelay = 60_000)
+    @Scheduled(fixedDelay = 30_000)
     fun autoProcess() {
         val tasks = bilibiliAudioTaskPOService.findByStatus(TaskStatusEnum.DEFAULT)
         tasks.forEach {
-            try {
+            if (processingTasks.contains(it.id!!)) {
+                return@forEach
+            }
+            processingTasks.add(it.id!!)
+            log.info { "新增任务 ${it.request}" }
+            executorService.execute {
                 processVideos(it)
-            } catch (e: Exception) {
-                log.error(e.message, e)
-                notifyService.notifyTaskFail(it)
-                it.status = TaskStatusEnum.FAIL.code
-                it.updateTime = null
-                bilibiliAudioTaskPOService.updateById(it)
+                processingTasks.remove(it.id)
             }
         }
     }
 
-
     fun processVideos(task: BilibiliAudioTaskPO): String {
+        try {
+            val byId = bilibiliAudioTaskPOService.getById(task.id!!)
+            if (byId.status == TaskStatusEnum.SUCCESS.code) {
+                // 再次进行检查
+                return byId.url
+            }
+            val audios = bilibiliAudioPOService.findByTaskId(task.id!!)
 
-        val audios = bilibiliAudioPOService.findByTaskId(task.id!!)
-
-        val audioFiles = audios.map { processBV(it) }
-        val targetFile: File
-        if (audios.size == 1) {
-            targetFile = audioFiles[0]
-        } else {
-            val name = if (task.type == BilibiliTaskTypeEnum.MULTIPLE.code) {
-                bilibiliService.getViewByBvid(audios.first().bvid).title
+            val audioFiles = audios.map { processBV(it) }
+            val targetFile: File
+            if (audios.size == 1) {
+                targetFile = audioFiles[0]
             } else {
-                "「${audioFiles[0].name}」等${audioFiles.size}个文件"
-            }
-            targetFile = File("${workDir}/$name.zip")
-            ZipArchiveOutputStream(targetFile).use { zipArchiveOutputStream ->
-                audioFiles.forEach { file ->
-                    val zipArchiveEntry = ZipArchiveEntry(file, name + File.separator + file.name)
-                    zipArchiveOutputStream.putArchiveEntry(zipArchiveEntry)
-                    val inputStream = FileInputStream(file)
-                    val buffer = ByteArray(1024 * 5)
-                    var len: Int
-                    while (inputStream.read(buffer).also { len = it } != -1) {
-                        zipArchiveOutputStream.write(buffer, 0, len)
-                    }
+                val name = if (task.type == BilibiliTaskTypeEnum.MULTIPLE.code) {
+                    bilibiliService.getViewByBvid(audios.first().bvid).title
+                } else {
+                    "「${audioFiles[0].name}」等${audioFiles.size}个文件"
                 }
-                zipArchiveOutputStream.closeArchiveEntry()
-                zipArchiveOutputStream.finish()
+                targetFile = File("${workDir}/$name.zip")
+                ZipArchiveOutputStream(targetFile).use { zipArchiveOutputStream ->
+                    audioFiles.forEach { file ->
+                        val zipArchiveEntry = ZipArchiveEntry(file, name + File.separator + file.name)
+                        zipArchiveOutputStream.putArchiveEntry(zipArchiveEntry)
+                        val inputStream = FileInputStream(file)
+                        val buffer = ByteArray(1024 * 5)
+                        var len: Int
+                        while (inputStream.read(buffer).also { len = it } != -1) {
+                            zipArchiveOutputStream.write(buffer, 0, len)
+                        }
+                    }
+                    zipArchiveOutputStream.closeArchiveEntry()
+                    zipArchiveOutputStream.finish()
+                }
             }
+
+            val objectName = targetFile.name
+            log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}" }
+            storageService.upload(objectName, targetFile.absolutePath)
+            FileUtils.deleteQuietly(targetFile)
+
+            val downloadUrl = storageService.getDownloadUrl(objectName)
+
+            task.status = TaskStatusEnum.SUCCESS.code
+            val baseName = FilenameUtils.getBaseName(targetFile.name)
+            if (baseName.length < 20) {
+                task.name = baseName
+            } else {
+                task.name = baseName.substring(0, 8) + "..." + baseName.substring(baseName.length - 8)
+            }
+            task.url = downloadUrl
+            task.updateTime = null
+            bilibiliAudioTaskPOService.updateById(task)
+
+            notifyService.notifyTaskResult(task)
+
+            audioFiles.forEach {
+                FileUtils.deleteQuietly(it)
+            }
+
+            return downloadUrl
+        } catch (e: Exception) {
+            log.error(e.message, e)
+            notifyService.notifyTaskFail(task)
+            task.status = TaskStatusEnum.FAIL.code
+            task.updateTime = null
+            bilibiliAudioTaskPOService.updateById(task)
         }
-
-
-        val objectName = targetFile.name
-        storageService.upload(objectName, targetFile.absolutePath)
-        FileUtils.deleteQuietly(targetFile)
-
-        val downloadUrl = storageService.getDownloadUrl(objectName)
-
-        task.status = TaskStatusEnum.SUCCESS.code
-        val baseName = FilenameUtils.getBaseName(targetFile.name)
-        if (baseName.length < 20) {
-            task.name = baseName
-        } else {
-            task.name = baseName.substring(0, 8) + "..." + baseName.substring(baseName.length - 8)
-        }
-        task.url = downloadUrl
-        task.updateTime = null
-        bilibiliAudioTaskPOService.updateById(task)
-
-        notifyService.notifyTaskResult(task)
-
-        audioFiles.forEach {
-            FileUtils.deleteQuietly(it)
-        }
-
-        return downloadUrl
+        return "处理失败"
     }
 
     fun processBV(bilibiliAudioPO: BilibiliAudioPO): File {
