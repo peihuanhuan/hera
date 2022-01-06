@@ -20,7 +20,6 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
@@ -152,7 +151,7 @@ class BVideo2AudioService(
     }
 
 
-    @Scheduled(fixedDelay = 30_000)
+    // @Scheduled(fixedDelay = 30_000)
     fun autoProcess() {
         val tasks = bilibiliAudioTaskPOService.findByStatus(TaskStatusEnum.DEFAULT)
         tasks.forEach { task ->

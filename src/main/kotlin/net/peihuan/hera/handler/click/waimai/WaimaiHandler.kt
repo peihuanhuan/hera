@@ -4,7 +4,7 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 import net.peihuan.hera.config.ZyProperties
 import net.peihuan.hera.constants.MM_DD
-import net.peihuan.hera.constants.OrderSourceEnum
+import net.peihuan.hera.constants.ZyOrderSourceEnum
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.handler.click.AbstractMenuHandler
 import net.peihuan.hera.service.ChannelService
@@ -27,7 +27,7 @@ class WaimaiHandler(
     }
 
     override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
-        val channel = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser, OrderSourceEnum.BUY)
+        val channel = channelService.getChannelOrCreate(wxMpXmlMessage.fromUser, ZyOrderSourceEnum.BUY)
         val wmUrl = ZyUtil.buildWmUrl(channel.id, zyProperties.appid)
         val content = """
             小主，您的外卖红包来了~

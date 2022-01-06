@@ -3,7 +3,7 @@ package net.peihuan.hera.task
 import me.chanjar.weixin.mp.api.WxMpService
 import mu.KotlinLogging
 import net.peihuan.hera.config.WxMpProperties
-import net.peihuan.hera.constants.OrderSourceEnum
+import net.peihuan.hera.constants.ZyOrderSourceEnum
 import net.peihuan.hera.constants.YYYY_MM_DD
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.feign.dto.ZyOrder
@@ -37,7 +37,7 @@ class CheckZyOrderTask(
 
     private val log = KotlinLogging.logger {}
 
-    @Scheduled(fixedDelay = 60_000)
+    // @Scheduled(fixedDelay = 60_000)
     fun scheduled() {
 
         val to = DateTime.now().withTimeAtStartOfDay()
@@ -71,11 +71,11 @@ class CheckZyOrderTask(
         }
 
         newOrderPOs.forEach {
-            if (it.source == OrderSourceEnum.BUY.code) {
+            if (it.source == ZyOrderSourceEnum.BUY.code) {
                 val presentPoints = (it.incomeMoney ?: 1).coerceAtMost(1000)
                 userPointsService.addUserPoints(it.openid ?: "null", presentPoints, "订单返现【${it.name}】")
                 notifyService.notifyOrderStatusToUser(it, presentPoints)
-            } else if (it.source == OrderSourceEnum.EXCHANGE.code) {
+            } else if (it.source == ZyOrderSourceEnum.EXCHANGE.code) {
                 notifyService.notifyOrderStatusToUser(it)
                 // 扣除积分
                 userPointsService.addUserPoints(it.openid ?: "null", -(it.money ?: 0), "积分兑换【${it.name}】")
@@ -105,7 +105,7 @@ class CheckZyOrderTask(
             log.warn { "走到了兜底渠道逻辑 ${it.toJson()}" }
             // todo 历史逻辑 一段时间后删除
             val openid = ZyUtil.getChannelOpenid(it.channel!!)
-            ChannelPO(id = 0, openid = openid, source = OrderSourceEnum.BUY)
+            ChannelPO(id = 0, openid = openid, source = ZyOrderSourceEnum.BUY)
 
         }
     }

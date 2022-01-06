@@ -34,7 +34,7 @@ class CheckBilibiliTask(
 
     private val log = KotlinLogging.logger {}
 
-    @Scheduled(fixedDelay = 180_000)
+    // @Scheduled(fixedDelay = 180_000)
     fun scheduled() {
         val minutes = cacheManage.getBizValue(BizConfigEnum.ALARM_TIME, "5").toInt()
         val tasks = bilibiliAudioTaskPOService.findByStatus(TaskStatusEnum.DEFAULT)
