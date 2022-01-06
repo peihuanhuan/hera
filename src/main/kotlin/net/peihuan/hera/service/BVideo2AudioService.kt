@@ -74,7 +74,7 @@ class BVideo2AudioService(
 
         val limit = cacheManage.getBizValue(BizConfigEnum.MAX_P_LIMIT, "30").toInt()
         if (view.pages.size > limit) {
-            throw BizException.buildBizException("不支持 P 数大于 $limit，联系公众号解决~")
+            throw BizException.buildBizException("不支持 P 数大于 $limit，联系群主/公众号解决~")
         }
 
         val task = BilibiliAudioTaskPO(
@@ -186,7 +186,7 @@ class BVideo2AudioService(
                     bilibiliService.getViewByBvid(audios.first().bvid).title
                 } else {
                     "「${audioFiles[0].name}」等${audioFiles.size}个文件"
-                }
+                }.replace("/", "")
                 targetFile = File("${workDir}/$name.zip")
                 ZipArchiveOutputStream(targetFile).use { zipArchiveOutputStream ->
                     audioFiles.forEach { file ->
