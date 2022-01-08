@@ -37,6 +37,7 @@ class BVideo2AudioService(
     private val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService,
     private val bilibiliAudioPOService: BilibiliAudioPOService,
     private val storageService: StorageService,
+    private val blackKeywordService: BlackKeywordService
 ) {
 
     private val log = KotlinLogging.logger {}
@@ -222,6 +223,7 @@ class BVideo2AudioService(
             task.updateTime = null
             bilibiliAudioTaskPOService.updateById(task)
 
+            task.name = blackKeywordService.replaceBlackKeyword(task.name)
             notifyService.notifyTaskResult(task)
 
             audioFiles.forEach {

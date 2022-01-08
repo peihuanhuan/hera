@@ -14,6 +14,7 @@ enum class BizConfigEnum(val key: String, val desc: String) {
     HUAFEI("huafei", "话费推荐语"),
     DIANFEI("dianfei", "电费推荐语"),
 
+    BLACK_KEY_WORD("black_key_word", "黑名单关键词"),
 
 
 

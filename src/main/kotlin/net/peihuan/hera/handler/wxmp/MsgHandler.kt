@@ -46,7 +46,7 @@ class MsgHandler(val messageHandlers: List<AbstractMessageHandler>,
         }
 
         messageHandlers.forEach {
-            if (it.receivedMessages().contains(wxMessage.content)) {
+            if (it.receivedMessages().contains(wxMessage.content.trim())) {
                 return it.handle(wxMessage)
             }
         }

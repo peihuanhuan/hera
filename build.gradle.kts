@@ -13,7 +13,7 @@ noArg {
 }
 
 group = "net.peihuan"
-version = "0.14.1"
+version = "0.14.3"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
