@@ -7,9 +7,9 @@ import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage
 import mu.KotlinLogging
 import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
+import net.peihuan.hera.constants.YYYY_MM_DD_HH_MM_SS
 import net.peihuan.hera.constants.ZyOrderSourceEnum
 import net.peihuan.hera.constants.ZyOrderSourceEnum.Companion.getSourceEnum
-import net.peihuan.hera.constants.YYYY_MM_DD_HH_MM_SS
 import net.peihuan.hera.feign.service.PushPlusService
 import net.peihuan.hera.persistent.po.BilibiliAudioTaskPO
 import net.peihuan.hera.persistent.po.ZyOrderPO
@@ -91,6 +91,17 @@ class NotifyService(
         val send = pushPlusService.send(request)
     }
 
+
+    fun notifyAdmin(message: String) {
+        val request = PushPlusService.SendRequest(
+            token = pushPlustoken,
+            title = message,
+            channel = "webhook",
+            webhook = "pushplus",
+            content = message
+        )
+        val send = pushPlusService.send(request)
+    }
 
     fun notifyTaskTooLong(task: BilibiliAudioTaskPO) {
         val request = PushPlusService.SendRequest(

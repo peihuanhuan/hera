@@ -26,7 +26,7 @@ class WxPortalController {
     @Autowired
     private lateinit var payService: WxPayService
 
-    @PostMapping("/pay_result")
+    @PostMapping("/pay/callback")
     fun payResult(@RequestBody xmlData: String) {
         val parseOrderNotifyResult = payService.parseOrderNotifyResult(xmlData)
         orderService.handlePayCallback(parseOrderNotifyResult)

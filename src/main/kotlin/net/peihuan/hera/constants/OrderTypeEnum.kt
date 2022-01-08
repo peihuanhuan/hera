@@ -1,7 +1,22 @@
 package net.peihuan.hera.constants
 
-enum class OrderTypeEnum(val code: Int, val msg: String) {
+import com.baomidou.mybatisplus.annotation.EnumValue
 
-    RED_PACKAGE(1, "红包封面"),
+enum class OrderTypeEnum(@EnumValue val code: Int, val msg: String) {
+
+    RED_PACKAGE(1, "红包封面")
+
+    ;
+
+    companion object {
+        fun getTypeEnum(code: Int): OrderTypeEnum? {
+            for (value in values()) {
+                if (value.code == code) {
+                    return value;
+                }
+            }
+            return null
+        }
+    }
 
 }

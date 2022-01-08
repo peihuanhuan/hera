@@ -38,5 +38,5 @@ fun printOut(obj: Any, response: HttpServletResponse, httpStatus: HttpStatus) {
 }
 
 fun randomOutTradeNo(): String {
-    return DateTime.now().toString(YYYYMMDDHHMMSS) + UUID.randomUUID().toString().replace("-", "")
+    return DateTime.now().toString(YYYYMMDDHHMMSS) + UUID.randomUUID().toString().replace("-", "").substring(0, 10)
 }

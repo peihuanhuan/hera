@@ -13,8 +13,9 @@ data class WxOrderPO(
     @TableId
     var id: Long? = null,
     val openid: String,
+    val title: String,
     val outTradeNo: String,
-    val transactionId: String? = null,
+    var transactionId: String? = null,
     var type: OrderTypeEnum,
     var outId: Long? = null,
     var totalFee: Int,
