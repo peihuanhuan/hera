@@ -106,12 +106,20 @@ class BVideo2AudioService(
     }
 
     private fun freeType(videos: List<BilibiliVideo>, data: String, type: Int): Int {
-
         val limit = cacheManage.getBizValue(BizConfigEnum.MAX_FREE_LIMIT, "10").toInt()
         if (videos.size > limit) {
             throw BizException.buildBizException("一次不能超过 $limit 个视频")
         }
+        val views = videos.associateWith { bilibiliService.getViewByBvid(it.bvid) }
 
+        var totalDuration = 0
+        views.values.forEach { view ->
+            totalDuration += view.duration
+        }
+        val maxDurationMinute = cacheManage.getBizValue(BizConfigEnum.MAX_DURATION_MINUTE, "120").toInt()
+        if (totalDuration > maxDurationMinute * 60) {
+            throw BizException.buildBizException("视频总时长不能超过 $maxDurationMinute 分钟")
+        }
 
         val task = BilibiliAudioTaskPO(
             name = "",
@@ -124,7 +132,6 @@ class BVideo2AudioService(
         )
         bilibiliAudioTaskPOService.save(task)
 
-        val views = videos.associateWith { bilibiliService.getViewByBvid(it.bvid) }
 
         val taskAudios = views.map {
             val pageNo = it.key.page
@@ -243,6 +250,19 @@ class BVideo2AudioService(
 
     fun processBV(bilibiliAudioPO: BilibiliAudioPO): File {
 
+        var title = bilibiliAudioPO.title.replace("/", "")
+        if (title.length > 40) {
+            // linux 文件名最大 255 个字符，这边截取一部分
+            title = title.substring(0, 20) + "..." + title.substring(title.length - 20)
+        }
+
+        val pathname = "${workDir}/${title}.mp3"
+        val destentFile = File(pathname)
+        if (destentFile.exists()) {
+            log.info { "已存在 $pathname 直接使用" }
+            return destentFile
+        }
+
         var url = bilibiliService.getDashAudioPlayUrl(bilibiliAudioPO.aid, bilibiliAudioPO.cid)
         if (url == null) {
             url = bilibiliService.getFlvPlayUrl(bilibiliAudioPO.aid, bilibiliAudioPO.cid)!!
@@ -270,22 +290,15 @@ class BVideo2AudioService(
         log.info { "====== 转换完成" }
 
 
-        var title = bilibiliAudioPO.title.replace("/", "")
-        if (title.length > 40) {
-            // linux 文件名最大 255 个字符，这边截取一部分
-            title = title.substring(0, 20) + "..." + title.substring(title.length - 20)
-        }
-
-        val pathname = "${workDir}/${title}.mp3"
-        val renameFile = File(pathname)
-        File(target).renameTo(renameFile)
+        
+        File(target).renameTo(destentFile)
 
         // val createWithFoldersDTO = aliyundriveService.uploadFile(renameFile)
         // val share = aliyundriveService.share(createWithFoldersDTO.file_id)
 
         FileUtils.deleteQuietly(File(target))
         FileUtils.deleteQuietly(File(source))
-        return renameFile
+        return destentFile
     }
 
 }

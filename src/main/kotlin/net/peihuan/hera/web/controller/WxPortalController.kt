@@ -1,5 +1,6 @@
 package net.peihuan.hera.web.controller
 
+import com.github.binarywang.wxpay.bean.notify.WxPayNotifyResponse
 import com.github.binarywang.wxpay.service.WxPayService
 import me.chanjar.weixin.mp.api.WxMpMessageRouter
 import me.chanjar.weixin.mp.api.WxMpService
@@ -27,9 +28,10 @@ class WxPortalController {
     private lateinit var payService: WxPayService
 
     @PostMapping("/pay/callback")
-    fun payResult(@RequestBody xmlData: String) {
+    fun payResult(@RequestBody xmlData: String): String{
         val parseOrderNotifyResult = payService.parseOrderNotifyResult(xmlData)
         orderService.handlePayCallback(parseOrderNotifyResult)
+        return WxPayNotifyResponse.success("成功")
     }
 
     @GetMapping(produces = ["text/plain;charset=utf-8"])
