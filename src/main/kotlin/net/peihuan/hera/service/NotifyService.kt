@@ -7,9 +7,9 @@ import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage
 import mu.KotlinLogging
 import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
-import net.peihuan.hera.constants.OrderSourceEnum
-import net.peihuan.hera.constants.OrderSourceEnum.Companion.getSourceEnum
 import net.peihuan.hera.constants.YYYY_MM_DD_HH_MM_SS
+import net.peihuan.hera.constants.ZyOrderSourceEnum
+import net.peihuan.hera.constants.ZyOrderSourceEnum.Companion.getSourceEnum
 import net.peihuan.hera.feign.service.PushPlusService
 import net.peihuan.hera.persistent.po.BilibiliAudioTaskPO
 import net.peihuan.hera.persistent.po.ZyOrderPO
@@ -36,14 +36,14 @@ class NotifyService(
             .build()
 
         val remark = when (order.source) {
-            OrderSourceEnum.BUY.code -> "小主，您的订单已完成，赠送您 $presentPoints 积分，可兑换其它会员"
-            OrderSourceEnum.EXCHANGE.code -> "小主，您兑换的权益已送达，连续签到更有惊喜哦~"
-            OrderSourceEnum.PRESENT.code -> "小主，赠送您的权益已送达，请查收哦~"
+            ZyOrderSourceEnum.BUY.code -> "小主，您的订单已完成，赠送您 $presentPoints 积分，可兑换其它会员"
+            ZyOrderSourceEnum.EXCHANGE.code -> "小主，您兑换的权益已送达，连续签到更有惊喜哦~"
+            ZyOrderSourceEnum.PRESENT.code -> "小主，赠送您的权益已送达，请查收哦~"
             else -> ""
         }
 
         val actualOrderAmountStr = when (order.source) {
-            OrderSourceEnum.BUY.code -> order.actualOrderAmountStr
+            ZyOrderSourceEnum.BUY.code -> order.actualOrderAmountStr
             else -> "0"
         }
 
@@ -91,6 +91,17 @@ class NotifyService(
         val send = pushPlusService.send(request)
     }
 
+
+    fun notifyAdmin(message: String) {
+        val request = PushPlusService.SendRequest(
+            token = pushPlustoken,
+            title = message,
+            channel = "webhook",
+            webhook = "pushplus",
+            content = message
+        )
+        val send = pushPlusService.send(request)
+    }
 
     fun notifyTaskTooLong(task: BilibiliAudioTaskPO) {
         val request = PushPlusService.SendRequest(

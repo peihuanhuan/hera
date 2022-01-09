@@ -1,9 +1,12 @@
 package net.peihuan.hera.util
 
 import mu.KotlinLogging
+import net.peihuan.hera.constants.YYYYMMDDHHMMSS
+import org.joda.time.DateTime
 import org.springframework.beans.BeanUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import java.util.*
 import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
@@ -32,4 +35,8 @@ fun printOut(obj: Any, response: HttpServletResponse, httpStatus: HttpStatus) {
     } catch (e: Exception) {
         log.error("写出响应发生异常", e)
     }
+}
+
+fun randomOutTradeNo(): String {
+    return DateTime.now().toString(YYYYMMDDHHMMSS) + UUID.randomUUID().toString().replace("-", "").substring(0, 10)
 }

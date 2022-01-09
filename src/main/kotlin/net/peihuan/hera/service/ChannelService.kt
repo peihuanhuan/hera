@@ -3,7 +3,7 @@ package net.peihuan.hera.service
 import com.baomidou.mybatisplus.core.toolkit.IdWorker
 import me.chanjar.weixin.mp.api.WxMpService
 import mu.KotlinLogging
-import net.peihuan.hera.constants.OrderSourceEnum
+import net.peihuan.hera.constants.ZyOrderSourceEnum
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.domain.Channel
 import net.peihuan.hera.exception.BizException
@@ -31,11 +31,11 @@ class ChannelService(private val channelPOService: ChannelPOService,
 
     fun getChannelOrCreate(openid: String, source: Int): Channel {
         userPOService.getByOpenid(openid) ?: throw BizException.buildBizException("用户不存在")
-        val sourceEnum = OrderSourceEnum.getSourceEnum(source) ?: throw BizException.buildBizException("枚举不存在")
+        val sourceEnum = ZyOrderSourceEnum.getSourceEnum(source) ?: throw BizException.buildBizException("枚举不存在")
         return getChannelOrCreate(openid, sourceEnum)
     }
 
-    fun getChannelOrCreate(openid: String, source: OrderSourceEnum = OrderSourceEnum.BUY): Channel {
+    fun getChannelOrCreate(openid: String, source: ZyOrderSourceEnum = ZyOrderSourceEnum.BUY): Channel {
         var channel = channelPOService.getChannelPO(openid = openid, source = source)
         if (channel == null) {
             channel = ChannelPO(id = IdWorker.getId(), openid = openid, source = source)
