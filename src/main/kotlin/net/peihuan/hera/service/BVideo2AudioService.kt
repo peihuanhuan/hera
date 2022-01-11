@@ -185,7 +185,7 @@ class BVideo2AudioService(
             }
             val audios = bilibiliAudioPOService.findByTaskId(task.id!!)
 
-            val audioFiles = audios.map { processBV(it) }
+            val audioFiles = audios.map { processBV(it, 3) }
             val targetFile: File
             if (audios.size == 1) {
                 targetFile = audioFiles[0]
@@ -246,6 +246,20 @@ class BVideo2AudioService(
             bilibiliAudioTaskPOService.updateById(task)
         }
         return "处理失败"
+    }
+
+    fun processBV(bilibiliAudioPO: BilibiliAudioPO, tryTime: Int): File {
+        var count = 0
+        var file: File? = null
+        while (file?.exists() != true && count < tryTime) {
+            try {
+                file = processBV(bilibiliAudioPO)
+                count++
+            } catch (e: Exception) {
+                log.error(e.message, e)
+            }
+        }
+        return file!!
     }
 
     fun processBV(bilibiliAudioPO: BilibiliAudioPO): File {
