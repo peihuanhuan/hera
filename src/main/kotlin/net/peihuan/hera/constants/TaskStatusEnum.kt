@@ -1,6 +1,8 @@
 package net.peihuan.hera.constants
 
-enum class TaskStatusEnum(val code: Int, val msg: String) {
+import com.baomidou.mybatisplus.annotation.EnumValue
+
+enum class TaskStatusEnum(@EnumValue val code: Int, val msg: String) {
 
     DEFAULT(0, "未处理"),
     PROCESS(1, "处理中"),

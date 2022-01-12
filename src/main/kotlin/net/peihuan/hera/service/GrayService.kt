@@ -16,7 +16,7 @@ class GrayService(private val cacheManage: CacheManage) {
         val openidHash = openid.hashCode().absoluteValue % MAX_PERCENTAGE
 
         val grayPercentage = cacheManage.getBizValue(BizConfigEnum.GRAY_USER_PERCENTAGE, "0").toInt()
-        val grayUsers = cacheManage.getBizValue(BizConfigEnum.GRAY_USER).split("\n")
+        val grayUsers = cacheManage.getBizValue(BizConfigEnum.GRAY_USER, "").split("\n")
         return grayUsers.contains(openid) || openidHash < grayPercentage
 
 

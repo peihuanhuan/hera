@@ -17,6 +17,7 @@ data class BilibiliAudioPO (
     val cid: String,
     val title: String,
     val mid: String,
+    var fileId: String? = null,   // 阿里云盘fileId
     val createTime: Date? = null,
-    val updateTime: Date? = null,
+    var updateTime: Date? = null,
 )

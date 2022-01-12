@@ -184,13 +184,29 @@ class BVideo2AudioService(
                 // 再次进行检查
                 return byId.url
             }
-            val audios = bilibiliAudioPOService.findByTaskId(task.id!!)
+            val subTasks = bilibiliAudioPOService.findByTaskId(task.id!!)
 
-            val audioFiles = audios.map { processBV(it, 3) }
 
             if(grayService.isGrayUser(task.openid)) {
-                val fileIds = audioFiles.map {
-                    val createWithFoldersDTO = aliyundriveService.uploadFile(it)
+
+                val fileIds = subTasks.map { subTask ->
+
+                    if (!subTask.fileId.isNullOrEmpty()) {
+                        val fileDTO = aliyundriveService.get(subTask.fileId!!)
+                        if (fileDTO != null && !fileDTO.trashed) {
+                            return@map fileDTO.file_id
+                        }
+                    }
+
+                    val targetFile = processBV(subTask, 3)
+                    val createWithFoldersDTO = aliyundriveService.uploadFile(targetFile)
+
+                    subTask.fileId = createWithFoldersDTO.file_id
+                    subTask.updateTime = null
+                    bilibiliAudioPOService.updateById(subTask)
+
+                    FileUtils.deleteQuietly(targetFile)
+
                     createWithFoldersDTO.file_id
                 }
                 val share = aliyundriveService.share(fileIds)
@@ -198,11 +214,13 @@ class BVideo2AudioService(
                 task.name = share.share_name
 
             } else {
+                val audioFiles = subTasks.map { processBV(it, 3) }
+
                 val targetFile: File
-                if (audios.size == 1) {
+                if (subTasks.size == 1) {
                     targetFile = audioFiles[0]
                 } else {
-                    targetFile = zipFiles(task, audios, audioFiles)
+                    targetFile = zipFiles(task, subTasks, audioFiles)
                 }
 
                 val objectName = targetFile.name
@@ -213,6 +231,10 @@ class BVideo2AudioService(
 
                 task.name = FilenameUtils.getBaseName(targetFile.name)
                 task.url = downloadUrl
+
+                audioFiles.forEach {
+                    FileUtils.deleteQuietly(it)
+                }
             }
 
             if (task.name.length >= 20) {
@@ -225,9 +247,7 @@ class BVideo2AudioService(
             task.name = blackKeywordService.replaceBlackKeyword(task.name)
             notifyService.notifyTaskResult(task)
 
-            audioFiles.forEach {
-                FileUtils.deleteQuietly(it)
-            }
+
 
             return task.url
         } catch (e: Exception) {

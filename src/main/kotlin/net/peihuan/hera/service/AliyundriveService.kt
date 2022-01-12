@@ -49,6 +49,15 @@ class AliyundriveService(
         refreshToken = cacheManage.getBizValue(BizConfigEnum.ALI_YUN_DRIVER_REFRESH_TOKEN)
     }
 
+    fun get(fileId: String): GetFileDTO? {
+        return try {
+            aliyundriveFeignService.get(GetFileRequest(drive_id = driveId, file_id = fileId))
+        } catch (e: Exception) {
+            log.error(e.message)
+            null
+        }
+    }
+
     fun share(fileId: String): ShareDTO {
         return share(listOf(fileId))
     }
@@ -68,10 +77,12 @@ class AliyundriveService(
             File(FilenameUtils.getFullPath(file.absolutePath) + FilenameUtils.getBaseName(file.absolutePath) + "-fake.mp3")
 
         // 添加图片的魔数
-        fakeFile.writeBytes(byteArrayOf(
+        fakeFile.writeBytes(
+            byteArrayOf(
                 "ff".toInt(16).toByte(),
                 ("d8".toInt(16).toByte()),
-                ("ff".toInt(16).toByte()))
+                ("ff".toInt(16).toByte())
+            )
         )
         fakeFile.appendBytes(file.readBytes())
 

@@ -35,8 +35,19 @@ class AliyundriveServiceTest : HeraApplicationTests() {
     }
 
     @Test
+    fun get() {
+        aliyundriveService.refreshToken()
+        var dto = aliyundriveService.get("61da5bbc425af30397f5451db5ac881b5259e14b")
+        log.info { dto }
+
+        dto = aliyundriveService.get("xxxxxxxx")
+        log.info { dto }
+    }
+
+    @Test
     fun share() {
-        val dto = aliyundriveService.share(listOf("61b5b6fb7508a4a017e44ece9c2e4d75c4737f15"))
+        aliyundriveService.refreshToken()
+        val dto = aliyundriveService.share(listOf("61da5bbc425af30397f5451db5ac881b5259e14b"))
         log.info { dto }
     }
 

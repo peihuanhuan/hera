@@ -1,6 +1,7 @@
 package net.peihuan.hera
 
 import mu.KotlinLogging
+import net.peihuan.hera.service.BVideo2AudioService
 import net.peihuan.hera.service.BilibiliService
 import net.peihuan.hera.util.CmdUtil
 import net.peihuan.hera.util.doDownload
@@ -17,7 +18,12 @@ class BilibiliServiceTest : HeraApplicationTests() {
 
     @Autowired
     lateinit var bilibiliService: BilibiliService
+    @Autowired
+    lateinit var bVideo2AudioService: BVideo2AudioService
 
+    @Test
+    fun testProcessVideos(){
+    }
 
     @Test
     fun orderService() {
