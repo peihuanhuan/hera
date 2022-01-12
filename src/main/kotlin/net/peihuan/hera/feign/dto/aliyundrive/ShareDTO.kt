@@ -14,6 +14,7 @@ data class ShareDTO(
     val save_count: Int,
     val share_id: String,
     val share_msg: String,
+    val full_share_msg: String,
     val share_name: String,
     val share_policy: String,
     val share_pwd: String,

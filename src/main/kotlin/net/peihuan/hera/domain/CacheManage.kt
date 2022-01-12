@@ -30,4 +30,8 @@ class CacheManage(
         }
     }
 
+    fun updateBizValue(config: BizConfigEnum, value: String) {
+        configService.updateConfig(config.key, value)
+    }
+
 }

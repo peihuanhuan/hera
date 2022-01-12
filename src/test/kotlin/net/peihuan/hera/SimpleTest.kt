@@ -2,7 +2,9 @@ package net.peihuan.hera
 
 import net.peihuan.hera.util.buildALabel
 import net.peihuan.hera.util.completeMsgMenu
+import org.apache.commons.io.FilenameUtils
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class SimpleTest {
 
@@ -30,5 +32,21 @@ class SimpleTest {
         var replace = x.replaceFirst("<a>(.*)<\\/a>".toRegex(), buildALabel(url, "$1"))
         replace = replace.replaceFirst("<a>(.*)<\\/a>".toRegex(), buildALabel("http://taobao", "$1"))
         println(replace)
+    }
+
+
+    @Test
+    fun tesss() {
+        val file = File("/Users/peihuan/Downloads/20220110163524.xlsx")
+        val fakeFile =
+            File(FilenameUtils.getFullPath(file.absolutePath) + FilenameUtils.getBaseName(file.absolutePath) + "-fake.xlsx")
+        val xx = File("/Users/peihuan/Downloads/20220110163524-fake2.xlsx")
+        // 添加图片的魔数
+        fakeFile.writeBytes(byteArrayOf(
+            "ff".toInt(16).toByte(),
+            ("d8".toInt(16).toByte()),
+            ("ff".toInt(16).toByte()))
+        )
+        fakeFile.appendBytes(file.readBytes())
     }
 }

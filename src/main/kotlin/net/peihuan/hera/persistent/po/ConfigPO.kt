@@ -22,7 +22,7 @@ class ConfigPO {
     @TableLogic
     val deleted: Boolean? = null
     val createTime: Date? = null
-    val updateTime: Date? = null
+    var updateTime: Date? = null
 
 
     fun isExpired(): Boolean {

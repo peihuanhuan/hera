@@ -37,6 +37,7 @@ class BVideo2AudioService(
     private val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService,
     private val bilibiliAudioPOService: BilibiliAudioPOService,
     private val storageService: StorageService,
+    private val grayService: GrayService,
     private val blackKeywordService: BlackKeywordService
 ) {
 
@@ -186,50 +187,41 @@ class BVideo2AudioService(
             val audios = bilibiliAudioPOService.findByTaskId(task.id!!)
 
             val audioFiles = audios.map { processBV(it, 3) }
-            val targetFile: File
-            if (audios.size == 1) {
-                targetFile = audioFiles[0]
-            } else {
-                val name = if (task.type == BilibiliTaskTypeEnum.MULTIPLE.code) {
-                    bilibiliService.getViewByBvid(audios.first().bvid).title
-                } else {
-                    "「${audioFiles[0].name}」等${audioFiles.size}个文件"
-                }.replace("/", "")
-                targetFile = File("${workDir}/$name.zip")
-                ZipArchiveOutputStream(targetFile).use { zipArchiveOutputStream ->
-                    audioFiles.forEach { file ->
-                        val zipArchiveEntry = ZipArchiveEntry(file, name + File.separator + file.name)
-                        zipArchiveOutputStream.putArchiveEntry(zipArchiveEntry)
-                        val inputStream = FileInputStream(file)
-                        val buffer = ByteArray(1024 * 5)
-                        var len: Int
-                        while (inputStream.read(buffer).also { len = it } != -1) {
-                            zipArchiveOutputStream.write(buffer, 0, len)
-                        }
-                    }
-                    zipArchiveOutputStream.closeArchiveEntry()
-                    zipArchiveOutputStream.finish()
+
+            if(grayService.isGrayUser(task.openid)) {
+                val fileIds = audioFiles.map {
+                    val createWithFoldersDTO = aliyundriveService.uploadFile(it)
+                    createWithFoldersDTO.file_id
                 }
+                val share = aliyundriveService.share(fileIds)
+                task.url = share.full_share_msg
+                task.name = share.share_name
+
+            } else {
+                val targetFile: File
+                if (audios.size == 1) {
+                    targetFile = audioFiles[0]
+                } else {
+                    targetFile = zipFiles(task, audios, audioFiles)
+                }
+
+                val objectName = targetFile.name
+                log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}M" }
+                storageService.upload(objectName, targetFile.absolutePath)
+                FileUtils.deleteQuietly(targetFile)
+                val downloadUrl = storageService.getDownloadUrl(objectName)
+
+                task.name = FilenameUtils.getBaseName(targetFile.name)
+                task.url = downloadUrl
             }
 
-            val objectName = targetFile.name
-            log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}M" }
-            storageService.upload(objectName, targetFile.absolutePath)
-            FileUtils.deleteQuietly(targetFile)
-
-            val downloadUrl = storageService.getDownloadUrl(objectName)
+            if (task.name.length >= 20) {
+                task.name = task.name.substring(0, 8) + "..." + task.name.substring(task.name.length - 8)
+            }
 
             task.status = TaskStatusEnum.SUCCESS.code
-            val baseName = FilenameUtils.getBaseName(targetFile.name)
-            if (baseName.length < 20) {
-                task.name = baseName
-            } else {
-                task.name = baseName.substring(0, 8) + "..." + baseName.substring(baseName.length - 8)
-            }
-            task.url = downloadUrl
             task.updateTime = null
             bilibiliAudioTaskPOService.updateById(task)
-
             task.name = blackKeywordService.replaceBlackKeyword(task.name)
             notifyService.notifyTaskResult(task)
 
@@ -237,7 +229,7 @@ class BVideo2AudioService(
                 FileUtils.deleteQuietly(it)
             }
 
-            return downloadUrl
+            return task.url
         } catch (e: Exception) {
             log.error(e.message, e)
             notifyService.notifyTaskFail(task)
@@ -246,6 +238,34 @@ class BVideo2AudioService(
             bilibiliAudioTaskPOService.updateById(task)
         }
         return "处理失败"
+    }
+
+    private fun zipFiles(
+        task: BilibiliAudioTaskPO,
+        audios: List<BilibiliAudioPO>,
+        audioFiles: List<File>,
+    ): File {
+        val name = if (task.type == BilibiliTaskTypeEnum.MULTIPLE.code) {
+            bilibiliService.getViewByBvid(audios.first().bvid).title
+        } else {
+            "「${audioFiles[0].name}」等${audioFiles.size}个文件"
+        }.replace("/", "")
+        val targetFile = File("${workDir}/$name.zip")
+        ZipArchiveOutputStream(targetFile).use { zipArchiveOutputStream ->
+            audioFiles.forEach { file ->
+                val zipArchiveEntry = ZipArchiveEntry(file, name + File.separator + file.name)
+                zipArchiveOutputStream.putArchiveEntry(zipArchiveEntry)
+                val inputStream = FileInputStream(file)
+                val buffer = ByteArray(1024 * 5)
+                var len: Int
+                while (inputStream.read(buffer).also { len = it } != -1) {
+                    zipArchiveOutputStream.write(buffer, 0, len)
+                }
+            }
+            zipArchiveOutputStream.closeArchiveEntry()
+            zipArchiveOutputStream.finish()
+        }
+        return targetFile
     }
 
     fun processBV(bilibiliAudioPO: BilibiliAudioPO, tryTime: Int): File {
@@ -306,9 +326,6 @@ class BVideo2AudioService(
 
         
         File(target).renameTo(destentFile)
-
-        // val createWithFoldersDTO = aliyundriveService.uploadFile(renameFile)
-        // val share = aliyundriveService.share(createWithFoldersDTO.file_id)
 
         FileUtils.deleteQuietly(File(target))
         FileUtils.deleteQuietly(File(source))

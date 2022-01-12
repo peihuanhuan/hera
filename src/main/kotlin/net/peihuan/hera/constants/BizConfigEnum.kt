@@ -29,7 +29,12 @@ enum class BizConfigEnum(val key: String, val desc: String) {
 
     BLESS("bless", "虎年祝福语"),
 
-    RED_PACKAGE_NOT_ENOUGH("red_package_not_enough", "红包数量不够")
+    RED_PACKAGE_NOT_ENOUGH("red_package_not_enough", "红包数量不够"),
 
+
+    ALI_YUN_DRIVER_REFRESH_TOKEN("ali_yun_driver_refresh_token", "阿里云盘 refresh token"),
+
+    GRAY_USER_PERCENTAGE("gray_user_percentage", "用户灰度比例 0-100"),
+    GRAY_USER("gray_user", "指定灰度用户"),
     ;
 }

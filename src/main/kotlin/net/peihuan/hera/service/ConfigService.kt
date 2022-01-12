@@ -52,6 +52,7 @@ class ConfigService(private val configPOService: ConfigPOService) {
     fun updateConfig(key: String, value: String) {
         val config = configPOService.getByKey(key) ?: return
         config.value = value
+        config.updateTime = null
         configPOService.updateById(config)
     }
 

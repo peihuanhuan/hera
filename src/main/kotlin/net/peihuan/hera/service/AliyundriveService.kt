@@ -1,6 +1,8 @@
 package net.peihuan.hera.service
 
 import mu.KotlinLogging
+import net.peihuan.hera.constants.BizConfigEnum
+import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.feign.dto.aliyundrive.*
 import net.peihuan.hera.feign.service.AliyundriveFeignService
@@ -8,7 +10,10 @@ import net.peihuan.hera.util.JsUtil
 import net.peihuan.hera.util.toJson
 import net.peihuan.hera.util.upload
 import org.apache.commons.codec.digest.DigestUtils
+import org.apache.commons.io.FileUtils
+import org.apache.commons.io.FilenameUtils
 import org.joda.time.DateTime
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.FileInputStream
@@ -17,16 +22,20 @@ import javax.annotation.PostConstruct
 
 
 @Service
-class AliyundriveService(private val aliyundriveFeignService: AliyundriveFeignService) {
+class AliyundriveService(
+    private val aliyundriveFeignService: AliyundriveFeignService,
+    private val notifyService: NotifyService,
+    private val cacheManage: CacheManage,
+) {
 
     private val log = KotlinLogging.logger {}
 
-    var accassToken =
-        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiOTIwNzA1Y2U3YjY0ZDdmOTYyOTEwN2ZhZjQ4NmNiOSIsImN1c3RvbUpzb24iOiJ7XCJjbGllbnRJZFwiOlwiMjVkelgzdmJZcWt0Vnh5WFwiLFwiZG9tYWluSWRcIjpcImJqMjlcIixcInNjb3BlXCI6W1wiRFJJVkUuQUxMXCIsXCJTSEFSRS5BTExcIixcIkZJTEUuQUxMXCIsXCJVU0VSLkFMTFwiLFwiU1RPUkFHRS5BTExcIixcIlNUT1JBR0VGSUxFLkxJU1RcIixcIkJBVENIXCIsXCJPQVVUSC5BTExcIixcIklNQUdFLkFMTFwiLFwiSU5WSVRFLkFMTFwiLFwiQUNDT1VOVC5BTExcIl0sXCJyb2xlXCI6XCJ1c2VyXCIsXCJyZWZcIjpcImh0dHBzOi8vd3d3LmFsaXl1bmRyaXZlLmNvbS9cIixcImRldmljZV9pZFwiOlwiMGI5YTE1ZmMzOTBjNDA1MWFlZTkxZGIwZTU2YjlmYTlcIn0iLCJleHAiOjE2MzkzMjY4MDEsImlhdCI6MTYzOTMxOTU0MX0.cCLUDMzGXmNryVKTFBdNK5x9viBFon1q4bJRPRhB9zc2QeR0CFx3xaJiDyNyL5qmwTuBOwjlJn0wZKRPuo0qWfLYA0ehUOw5390VTnZqsPOypasf8NZqaz7I9epMAxeOOhSM9KxeMOLFigiIDN7XUwUPP6a-F3cKviP9jgfPCiQ"
-    var refreshToken = "4e328ddd40f141469cd686db5f347ba8"
-    var driveId = "1115450"
+    var accassToken = ""
+    var refreshToken = "24aabfbc10ca42b0a87581269a35420b"
+    var driveId = ""
     var tokeType = "Bearer"
 
+    // 根目录
     val parentId = "61b5b695fa43037eca8d44cb85bb457b299b5005"
 
     companion object {
@@ -37,15 +46,15 @@ class AliyundriveService(private val aliyundriveFeignService: AliyundriveFeignSe
 
     @PostConstruct
     fun setToken() {
-        ALIYUN_DRIVER_TOKEN = "$tokeType $accassToken"
+        refreshToken = cacheManage.getBizValue(BizConfigEnum.ALI_YUN_DRIVER_REFRESH_TOKEN)
     }
 
-    fun share(fileId: String) : ShareDTO{
+    fun share(fileId: String): ShareDTO {
         return share(listOf(fileId))
     }
 
-    fun share(fileIds:List<String>) : ShareDTO{
-        if(fileIds.size > 100) {
+    fun share(fileIds: List<String>): ShareDTO {
+        if (fileIds.size > 100) {
             throw BizException.buildBizException("最大分享不能超过100个")
         }
         val shareRequest =
@@ -53,12 +62,24 @@ class AliyundriveService(private val aliyundriveFeignService: AliyundriveFeignSe
         return aliyundriveFeignService.share(shareRequest)
     }
 
-    fun uploadFile(file: File) :CreateWithFoldersDTO {
+    fun uploadFile(file: File): CreateWithFoldersDTO {
 
-        val part: Int = if (file.length() / part_max_size == 0L) {
-            (file.length() / part_max_size).toInt()
+        val fakeFile =
+            File(FilenameUtils.getFullPath(file.absolutePath) + FilenameUtils.getBaseName(file.absolutePath) + "-fake.mp3")
+
+        // 添加图片的魔数
+        fakeFile.writeBytes(byteArrayOf(
+                "ff".toInt(16).toByte(),
+                ("d8".toInt(16).toByte()),
+                ("ff".toInt(16).toByte()))
+        )
+        fakeFile.appendBytes(file.readBytes())
+
+
+        val part: Int = if (fakeFile.length() / part_max_size == 0L) {
+            (fakeFile.length() / part_max_size).toInt()
         } else {
-            (file.length() / part_max_size).toInt() + 1
+            (fakeFile.length() / part_max_size).toInt() + 1
         }
         val mutableListOf = mutableListOf<PartInfo>()
         for (i in 0..part) {
@@ -66,27 +87,26 @@ class AliyundriveService(private val aliyundriveFeignService: AliyundriveFeignSe
         }
 
         val execJs = JsUtil.execJs(accassToken).substring(0, 16)
-        val left = if (file.length() == 0L) {
+        val left = if (fakeFile.length() == 0L) {
             0L
         } else {
-            (execJs.toBigInteger(16).mod(file.length().toBigInteger())).toLong()
+            (execJs.toBigInteger(16).mod(fakeFile.length().toBigInteger())).toLong()
         }
-        val right = minOf(left + 8, file.length())
+        val right = minOf(left + 8, fakeFile.length())
 
-        val pRoofCode = Base64.getEncoder().encodeToString(file.readBytes().copyOfRange(left.toInt(), right.toInt()))
+        val pRoofCode =
+            Base64.getEncoder().encodeToString(fakeFile.readBytes().copyOfRange(left.toInt(), right.toInt()))
         val createWithFoldersRequest = CreateWithFoldersRequest(
             drive_id = driveId,
             parent_file_id = parentId,
             part_info_list = mutableListOf,
             name = file.name,
             type = "file",
-            size = file.length().toInt(),
+            size = fakeFile.length().toInt(),
             proof_version = "v1",
             content_hash_name = "sha1",
             check_name_mode = "auto_rename",
-            content_hash = DigestUtils.sha1Hex(file.inputStream()),
-            // mime_extension = "txt", // 应该无用
-            // mime_type = "text/plain", // 应该无用
+            content_hash = DigestUtils.sha1Hex(fakeFile.inputStream()),
             proof_code = pRoofCode
         )
         log.info { "createWithFolders 参数: ${createWithFoldersRequest.toJson()}" }
@@ -97,7 +117,7 @@ class AliyundriveService(private val aliyundriveFeignService: AliyundriveFeignSe
         }
 
         // 分段上传
-        val fileInputStream = FileInputStream(file)
+        val fileInputStream = FileInputStream(fakeFile)
         val buf = ByteArray(part_max_size.toInt())
         var partNo = 0
         var length: Int
@@ -109,27 +129,43 @@ class AliyundriveService(private val aliyundriveFeignService: AliyundriveFeignSe
 
 
         // 完成上传
-        val completeUploadRequest = CompleteUploadRequest(drive_id = driveId, file_id = createWithFoldersDTO.file_id, upload_id = createWithFoldersDTO.upload_id)
+        val completeUploadRequest = CompleteUploadRequest(
+            drive_id = driveId,
+            file_id = createWithFoldersDTO.file_id,
+            upload_id = createWithFoldersDTO.upload_id
+        )
         aliyundriveFeignService.completeUpload(completeUploadRequest)
 
+        FileUtils.deleteQuietly(fakeFile)
 
         return createWithFoldersDTO
     }
 
     fun listFile(): Any {
-        return aliyundriveFeignService.listFile(ListFileRequest(limit = 100, drive_id = driveId, parent_file_id = parentId))
+        return aliyundriveFeignService.listFile(
+            ListFileRequest(
+                limit = 100,
+                drive_id = driveId,
+                parent_file_id = parentId
+            )
+        )
     }
 
+    @Scheduled(fixedDelay = 1800_000)
     fun refreshToken() {
         val refreshTokenDTO = aliyundriveFeignService.refreshToken(RefreshTokenRequest(refreshToken))
         if (refreshTokenDTO == null) {
             log.error { "刷新access_token失败" }
+            notifyService.notifyAdmin("刷新access_token失败")
             return
         }
         accassToken = refreshTokenDTO.access_token
         refreshToken = refreshTokenDTO.refresh_token
         driveId = refreshTokenDTO.default_drive_id
         tokeType = refreshTokenDTO.token_type
+        ALIYUN_DRIVER_TOKEN = "$tokeType $accassToken"
+        // 更新token
+        cacheManage.updateBizValue(BizConfigEnum.ALI_YUN_DRIVER_REFRESH_TOKEN, refreshToken)
         log.info { "刷新access_token完成 $accassToken" }
     }
 
