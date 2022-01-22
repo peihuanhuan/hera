@@ -23,6 +23,7 @@ class BilibiliServiceTest : HeraApplicationTests() {
 
     @Test
     fun testProcessVideos(){
+        bVideo2AudioService.ffmpeg("/Users/peihuan/Downloads/479516842_nb2-1-30280.m4s", "/Users/peihuan/Downloads/b3.mp3")
     }
 
     @Test

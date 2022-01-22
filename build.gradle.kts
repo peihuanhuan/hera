@@ -13,7 +13,7 @@ noArg {
 }
 
 group = "net.peihuan"
-version = "0.16.8"
+version = "0.16.9"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
@@ -33,6 +33,10 @@ dependencies {
 	implementation("org.apache.commons:commons-compress:1.21")
 
 	implementation("io.jsonwebtoken:jjwt:0.9.0")
+
+	// implementation("org.bytedeco:ffmpeg:4.4-1.5.6")
+	// implementation("org.bytedeco:javacv-platform:1.5.6")
+	implementation("net.bramp.ffmpeg:ffmpeg:0.6.2")
 
 
 	implementation("com.aliyun.oss:aliyun-sdk-oss:3.13.2")

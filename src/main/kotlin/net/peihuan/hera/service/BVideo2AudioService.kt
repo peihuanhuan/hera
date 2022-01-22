@@ -1,6 +1,11 @@
 package net.peihuan.hera.service
 
 import mu.KotlinLogging
+import net.bramp.ffmpeg.FFmpeg
+import net.bramp.ffmpeg.FFmpegExecutor
+import net.bramp.ffmpeg.FFmpegUtils
+import net.bramp.ffmpeg.FFprobe
+import net.bramp.ffmpeg.builder.FFmpegBuilder
 import net.peihuan.hera.constants.BilibiliTaskTypeEnum
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.constants.TaskStatusEnum
@@ -12,7 +17,6 @@ import net.peihuan.hera.persistent.po.BilibiliAudioTaskPO
 import net.peihuan.hera.persistent.service.BilibiliAudioPOService
 import net.peihuan.hera.persistent.service.BilibiliAudioTaskPOService
 import net.peihuan.hera.service.storage.StorageService
-import net.peihuan.hera.util.CmdUtil
 import net.peihuan.hera.util.currentUserOpenid
 import net.peihuan.hera.util.doDownload
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
@@ -26,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.io.FileInputStream
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 
 @Service
@@ -339,17 +344,53 @@ class BVideo2AudioService(
 
         val target = "${workDir}/${bilibiliAudioPO.cid}.mp3"
         FileUtils.deleteQuietly(File(target))
-        log.info { "====== 开始转 $target" }
-        CmdUtil.executeBash("ffmpeg -i $source $target")
-        log.info { "====== 转换完成" }
+        // CmdUtil.executeBash("ffmpeg -i $source $target")
+        ffmpeg(source, target)
 
-
-        
         File(target).renameTo(destentFile)
 
         FileUtils.deleteQuietly(File(target))
         FileUtils.deleteQuietly(File(source))
         return destentFile
+    }
+
+    fun ffmpeg(inputPath: String, outputPath: String) {
+        val ffmpeg = FFmpeg("ffmpeg")
+        val ffprobe = FFprobe("ffprobe")
+
+        val inputProbe = ffprobe.probe(inputPath)
+
+        // 根据不同的时长，设置合适的比特率
+        val byteRate: Long = if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(10)) {
+            192
+        } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(100)){
+            128
+        } else {
+            64
+        }
+
+        val builder = FFmpegBuilder()
+            .setInput(inputPath) // Filename, or a FFmpegProbeResult
+            .overrideOutputFiles(true) // Override the output if it exists
+            .addOutput(outputPath) // Filename for the destination
+            .setAudioBitRate(byteRate * 1024) // at 32 kbit/s
+            .done()
+
+        val executor = FFmpegExecutor(ffmpeg, ffprobe)
+
+        executor.createJob(builder) { progress ->
+            // 转换进度 [0, 100]
+            val duration_ns: Double = inputProbe.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
+
+            val percentage = if (duration_ns > 0) (progress.out_time_ns / duration_ns * 100) else 99
+
+            log.info(
+                "进度：[{}%] 耗时: {}",
+                percentage.toInt(),
+                FFmpegUtils.toTimecode(progress.out_time_ns, TimeUnit.NANOSECONDS),
+            )
+        }.run()
+
     }
 
 }
