@@ -365,8 +365,10 @@ class BVideo2AudioService(
             192
         } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(100)){
             128
-        } else {
+        } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(200)){
             64
+        } else {
+            32
         }
 
         val builder = FFmpegBuilder()
