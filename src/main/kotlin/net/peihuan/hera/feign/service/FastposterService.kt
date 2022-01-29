@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody
 
 @FeignClient(
     name = "fastposter",
-    url = "http://81.68.119.197:5000",
+    url = "http://101.43.150.221:5000",
     configuration = [ZhongyongRequestInterceptor::class]
 )
 interface FastposterService {
@@ -15,7 +15,9 @@ interface FastposterService {
 
     data class Request(
         val posterId: String,
-        val inviter: String,
+        val qrcode: String,
+        val head: String,
+        val nickname: String
     ) {
         val accessKey = "923db64fc136fef1"
         val secretKey = "c9d838e9b90c4ac7"

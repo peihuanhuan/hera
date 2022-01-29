@@ -42,9 +42,7 @@ class DownloadBilibiliAudioHandler(
                 |
                 |<a>BiliBili玩梗闲聊群</a>，任务长时间没结果就找群主  _(:з」∠)_
                 |
-                |<a>Bilibili 音频提取</a>
-                |
-                |复制链接到「系统浏览器」中下载，微信中无法下载。
+                |<a>Bilibili 音频提取工具</a>
             """.trimMargin()
             .completeMsgMenu(bilibiliAudioQunHandler.receivedMessages().first())
             .completeALable("http://wx.peihuan.net/bilibili-audio/")

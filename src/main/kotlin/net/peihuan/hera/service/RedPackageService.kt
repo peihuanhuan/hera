@@ -5,10 +5,14 @@ import mu.KotlinLogging
 import net.peihuan.hera.config.ZyProperties
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.domain.CacheManage
+import net.peihuan.hera.handler.click.RedPackageMessageHandler
 import net.peihuan.hera.persistent.po.RedPackagePO
 import net.peihuan.hera.persistent.service.PointsRecordPOService
 import net.peihuan.hera.persistent.service.RedPackagePOService
 import net.peihuan.hera.persistent.service.UserPointsPOService
+import net.peihuan.hera.util.completeALable
+import net.peihuan.hera.util.currentUserOpenid
+import net.peihuan.hera.util.replyKfMessage
 import org.apache.commons.io.FileUtils
 import org.springframework.stereotype.Service
 import java.io.File
@@ -16,6 +20,7 @@ import java.nio.charset.Charset
 
 @Service
 class RedPackageService(
+    private val redPackageMessageHandler: RedPackageMessageHandler,
     private val userPointsPOService: UserPointsPOService,
     private val wxMpService: WxMpService,
     private val redPackagePOService: RedPackagePOService,
@@ -27,8 +32,25 @@ class RedPackageService(
 ) {
 
     private val logger = KotlinLogging.logger {}
+    private val RED_PACKAGE_STYLE = 1
 
-    fun giveUpPackage(openid: String, style: Int): RedPackagePO? {
+
+    fun generateHaibao() {
+        redPackageMessageHandler.process(currentUserOpenid)
+    }
+
+    fun sendPackage(openid: String) {
+        val redPackagePO = giveUpPackage(openid, RED_PACKAGE_STYLE)
+        if (redPackagePO == null) {
+            notifyService.notifyAdmin("！！！！！没有红包了！！！！！")
+            return
+        }
+        var content = cacheManage.getBizValue(BizConfigEnum.BLESS) + "\n\n<a>➜ 戳我领取封面红包</a>"
+        content = content.completeALable(redPackagePO.url)
+        openid.replyKfMessage(content)
+    }
+
+    private fun giveUpPackage(openid: String, style: Int): RedPackagePO? {
         val notGiveupPackages = redPackagePOService.findNotGiveupPackages(style)
         val alarmCount = cacheManage.getBizValue(BizConfigEnum.RED_PACKAGE_NOT_ENOUGH, "20").toInt()
         if (notGiveupPackages.size < alarmCount) {

@@ -7,7 +7,6 @@ import com.github.binarywang.wxpay.constant.WxPayConstants
 import com.github.binarywang.wxpay.service.WxPayService
 import mu.KotlinLogging
 import net.peihuan.hera.config.WxPayProperties
-import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.constants.OrderTypeEnum
 import net.peihuan.hera.constants.PayStatusEnum
 import net.peihuan.hera.constants.YYYYMMDDHHMMSS
@@ -16,10 +15,8 @@ import net.peihuan.hera.persistent.po.WxOrderPO
 import net.peihuan.hera.persistent.service.SubscribePOService
 import net.peihuan.hera.persistent.service.UserPOService
 import net.peihuan.hera.persistent.service.WxOrderPOService
-import net.peihuan.hera.util.completeALable
 import net.peihuan.hera.util.currentUserOpenid
 import net.peihuan.hera.util.randomOutTradeNo
-import net.peihuan.hera.util.replyKfMessage
 import org.joda.time.format.DateTimeFormat
 import org.springframework.stereotype.Service
 import javax.servlet.http.HttpServletRequest
@@ -38,7 +35,6 @@ class OrderService(private val userPOService: UserPOService,
 
     private val log = KotlinLogging.logger {}
 
-    private val RED_PACKAGE_STYLE = 1
 
     fun order(type: Int): WxPayMpOrderResult {
         val typeEnum = OrderTypeEnum.getTypeEnum(type)!!
@@ -91,14 +87,7 @@ class OrderService(private val userPOService: UserPOService,
         wxOrderPOService.updateById(wxOrderPO)
 
         if (wxOrderPO.type == OrderTypeEnum.RED_PACKAGE) {
-            val redPackagePO = redPackageService.giveUpPackage(wxOrderPO.openid, RED_PACKAGE_STYLE)
-            if (redPackagePO == null) {
-                notifyService.notifyAdmin("！！！！！没有红包了！！！！！")
-                return
-            }
-            var content = cacheManage.getBizValue(BizConfigEnum.BLESS) + "\n\n<a>➜ 戳我领取封面红包</a>"
-            content = content.completeALable(redPackagePO.url)
-            wxOrderPO.openid.replyKfMessage(content)
+            redPackageService.sendPackage(wxOrderPO.openid)
         }
 
 

@@ -17,14 +17,18 @@ fun WxMpXmlMessage.replyKfMessage(content: String) {
     wxMpService.kefuService.sendKefuMessage(buildKfText(this, content))
 }
 
-fun WxMpXmlMessage.replyKfImage(mediaId: String) {
+fun String.replyKfImage(mediaId: String) {
     wxMpService.kefuService.sendKefuMessage(buildKfImage(this, mediaId))
 }
 
-private fun buildKfImage(wxMessage: WxMpXmlMessage, mediaId: String): WxMpKefuMessage {
+fun WxMpXmlMessage.replyKfImage(mediaId: String) {
+    wxMpService.kefuService.sendKefuMessage(buildKfImage(this.fromUser, mediaId))
+}
+
+private fun buildKfImage(openid: String, mediaId: String): WxMpKefuMessage {
     return WxMpKefuMessage
         .IMAGE()
-        .toUser(wxMessage.fromUser)
+        .toUser(openid)
         .mediaId(mediaId)
         .build()
 }

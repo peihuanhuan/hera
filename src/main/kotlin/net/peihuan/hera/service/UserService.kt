@@ -17,6 +17,7 @@ import net.peihuan.hera.domain.User
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.handler.click.ActivityMessageHandler
 import net.peihuan.hera.handler.click.ExchangeMemberMessageHandler
+import net.peihuan.hera.handler.click.RedPackageMessageHandler
 import net.peihuan.hera.handler.click.SignClickMessageHandler
 import net.peihuan.hera.handler.click.member.AllProductMessageHandler
 import net.peihuan.hera.handler.click.member.OneProductMessageHandler
@@ -37,6 +38,7 @@ class UserService(
     private val wxMpService: WxMpService,
     private val userInvitationShipService: UserInvitationShipService,
     private val userTagPOService: UserTagPOService,
+    private val redPackageService: RedPackageService,
     private val userConvertService: UserConvertService,
     private val configService: ConfigService,
     private val channelService: ChannelService,
@@ -45,11 +47,17 @@ class UserService(
     private val signClickMessageHandler: SignClickMessageHandler,
     private val oneProductMessageHandler: OneProductMessageHandler,
     private val cacheManage: CacheManage,
+    private val redPackageMessageHandler: RedPackageMessageHandler,
     private val zyProperties: ZyProperties,
     private val activityMessageHandler: ActivityMessageHandler,
     private val scanService: ScanService,
     private val subscribePOService: SubscribePOService
 ) {
+
+    fun getSimpleUser(openid: String): User? {
+        val userPO = userPOService.getByOpenid(openid) ?: return null
+        return userPO.copyPropertiesTo()
+    }
 
     fun getOrCreateAuthUser(wxUser: WxOAuth2UserInfo): User {
         val dbUser = userPOService.getByOpenid(wxUser.openid)
@@ -132,15 +140,17 @@ class UserService(
             return
         }
         userInvitationShipService.addInvite(userPO.openid, inviterInfo)
-        val content = """
-            免费送会员啦！！！
-            
-            爱奇艺、腾讯、优酷、网易云等等，应有尽有！
-            
-            <a>戳我查看详情</a>
-        """.trimIndent().completeMsgMenu(activityMessageHandler.receivedMessages().first())
-        userPO.openid.replyKfMessage(content)
-        inviterInfo.openid.replyKfMessage("邀请用户【${userPO.nickname}】关注成功")
+
+        redPackageMessageHandler.sendMessage(userPO.openid)
+
+        val findInviteUsers = userInvitationShipService.findInviteUsers(inviterInfo.openid)
+        val aim = 3
+        if (findInviteUsers.size == aim) {
+            redPackageService.sendPackage(inviterInfo.openid)
+        } else {
+            inviterInfo.openid.replyKfMessage("成功邀请一位用户关注(${findInviteUsers.size}/$aim)")
+        }
+
     }
 
     private fun resolveQrscene(wxMpXmlMessage: WxMpXmlMessage): String? {

@@ -28,7 +28,7 @@ class UserInvitationShipService : ServiceImpl<UserInvitationShipMapper, UserInvi
     fun findInviteUsers(openid: String): List<UserInvitationShipPO> {
         return list(KtQueryWrapper(UserInvitationShipPO::class.java).eq(UserInvitationShipPO::inviter, openid))
             // 防止一个人多次邀请一个人的错误
-            .distinctBy { it.openid }
+            // .distinctBy { it.openid }
     }
 
 }

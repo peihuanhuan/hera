@@ -189,6 +189,15 @@ class BVideo2AudioService(
                 // 再次进行检查
                 return byId.url
             }
+            // 手动恢复
+            if(byId.url.isNotBlank() && byId.name.isNotBlank()) {
+                task.status = TaskStatusEnum.SUCCESS.code
+                task.updateTime = null
+                bilibiliAudioTaskPOService.updateById(task)
+                notifyService.notifyTaskResult(task)
+                return task.url
+            }
+
             val subTasks = bilibiliAudioPOService.findByTaskId(task.id!!)
 
 
@@ -367,8 +376,12 @@ class BVideo2AudioService(
             128
         } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(200)){
             64
-        } else {
+        } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(400)) {
             32
+        } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(800)) {
+            16
+        } else {
+            16
         }
 
         val builder = FFmpegBuilder()
