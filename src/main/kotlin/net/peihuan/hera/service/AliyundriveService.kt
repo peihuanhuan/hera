@@ -73,18 +73,7 @@ class AliyundriveService(
 
     fun uploadFile(file: File): CreateWithFoldersDTO {
 
-        val fakeFile =
-            File(FilenameUtils.getFullPath(file.absolutePath) + FilenameUtils.getBaseName(file.absolutePath) + "-fake.mp3")
-
-        // 添加图片的魔数
-        fakeFile.writeBytes(
-            byteArrayOf(
-                "ff".toInt(16).toByte(),
-                ("d8".toInt(16).toByte()),
-                ("ff".toInt(16).toByte())
-            )
-        )
-        fakeFile.appendBytes(file.readBytes())
+        val fakeFile = buildFakeFile(file)
 
 
         val part: Int = if (fakeFile.length() / part_max_size == 0L) {
@@ -150,6 +139,36 @@ class AliyundriveService(
         FileUtils.deleteQuietly(fakeFile)
 
         return createWithFoldersDTO
+    }
+
+    // https://www.garykessler.net/library/file_sigs.html
+    // https://en.wikipedia.org/wiki/List_of_file_signatures
+    fun buildFakeFile(file: File): File {
+        val fakeFile =
+            File(FilenameUtils.getFullPath(file.absolutePath) + FilenameUtils.getBaseName(file.absolutePath) + "-fake.mp3")
+
+        // 添加图片的魔数
+        // fakeFile.writeBytes(
+        //     byteArrayOf(
+        //         "ff".toInt(16).toByte(),
+        //         ("d8".toInt(16).toByte()),
+        //         ("ff".toInt(16).toByte())
+        //     )
+        // )
+        fakeFile.writeBytes(
+            byteArrayOf(
+                "46".toInt(16).toByte(),
+                "4C".toInt(16).toByte(),
+                "56".toInt(16).toByte(),
+                "01".toInt(16).toByte(),
+                // "69".toInt(16).toByte(),
+                // "73".toInt(16).toByte(),
+                // "6F".toInt(16).toByte(),
+                // "6D".toInt(16).toByte(),
+            )
+        )
+        fakeFile.appendBytes(file.readBytes())
+        return fakeFile
     }
 
     fun listFile(): Any {

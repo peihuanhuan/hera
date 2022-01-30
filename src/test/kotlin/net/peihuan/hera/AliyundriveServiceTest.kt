@@ -18,6 +18,11 @@ class AliyundriveServiceTest : HeraApplicationTests() {
 
 
     @Test
+    fun fake() {
+        aliyundriveService.buildFakeFile(File("/Users/peihuan/Downloads/test.mp3"))
+    }
+
+    @Test
     fun testRefresh() {
         aliyundriveService.refreshToken()
     }

@@ -14,7 +14,7 @@ class RedPackageServiceTest : HeraApplicationTests() {
 
     @Test
     fun redPackage() {
-        redPackageService.giveUpPackage("fake", 1)
+        // redPackageService.giveUpPackage("fake", 1)
     }
 
 }
