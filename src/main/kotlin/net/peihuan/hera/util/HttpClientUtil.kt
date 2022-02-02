@@ -66,7 +66,8 @@ fun doDownload(url: String, descFile: File, header: Map<String, String>) {
             println(response.statusLine)
         }
     } catch (e: Exception) {
-        log.error { e }
+        //fixme org.apache.http.ConnectionClosedException: Premature end of Content-Length delimited message body (expected: 10,360,240; received: 122,064)
+        log.error(e.message, e)
     } finally {
         if (response != null) {
             try {

@@ -8,6 +8,8 @@ import net.peihuan.hera.util.doDownload
 import net.peihuan.hera.util.getLocationUrl
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 import java.io.File
 import java.util.regex.Pattern
 
@@ -24,6 +26,18 @@ class BilibiliServiceTest : HeraApplicationTests() {
     @Test
     fun testProcessVideos(){
         bVideo2AudioService.ffmpeg("/Users/peihuan/Downloads/479516842_nb2-1-30280.m4s", "/Users/peihuan/Downloads/b3.mp3")
+    }
+
+    @Test
+    fun testSaveDB() {
+        SecurityContextHolder.getContext().authentication = PreAuthenticatedAuthenticationToken("fake-3","",null)
+        bVideo2AudioService.saveTask2DB("""【《大理寺日志》 《少卿游》MV-哔哩哔哩国创】https://b23.tv/ep320711
+            |
+            |https://www.bilibili.com/video/BV1bh411z7yF
+            |            ！《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W
+            |            https://www.bilibili.com/bangumi/play/ep317089
+            |            
+        """.trimMargin(), 1)
     }
 
     @Test

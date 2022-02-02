@@ -57,8 +57,7 @@ class BVideo2AudioService(
     @Transactional
     fun saveTask2DB(data: String, type: Int): Int {
         val videos = bilibiliService.resolve2BilibiliVideos(data)
-        val notHandleTask =
-            bilibiliAudioTaskPOService.findByOpenidAndStatus(currentUserOpenid, TaskStatusEnum.DEFAULT)
+        val notHandleTask = bilibiliAudioTaskPOService.findByOpenidAndStatus(currentUserOpenid, TaskStatusEnum.DEFAULT)
         if (notHandleTask.isNotEmpty()) {
             throw BizException.buildBizException("请等待上一个任务执行完成~")
         }
@@ -77,38 +76,75 @@ class BVideo2AudioService(
 
     private fun multipleP(video: BilibiliVideo, data: String, type: Int): Int {
 
-        val view = bilibiliService.getViewByBvid(video.bvid)
+        val limit = cacheManage.getBizValue(BizConfigEnum.MAX_P_LIMIT, "35").toInt()
 
-        val limit = cacheManage.getBizValue(BizConfigEnum.MAX_P_LIMIT, "30").toInt()
-        if (view.pages.size > limit) {
-            throw BizException.buildBizException("不支持 P 数大于 $limit，联系群主/公众号解决~")
-        }
-
-        val task = BilibiliAudioTaskPO(
-            name = "",
-            url = "",
-            request = data,
-            type = type,
-            openid = currentUserOpenid,
-            status = TaskStatusEnum.DEFAULT.code,
-            size = view.pages.size
-        )
-        bilibiliAudioTaskPOService.save(task)
-
-
-        val tasks = view.pages.map {
-            BilibiliAudioPO(
-                taskId = task.id!!,
-                openid = task.openid,
-                bvid = view.bvid,
-                aid = view.aid,
-                cid = it.cid,
-                mid = view.owner.mid,
-                title = it.part
+        if (video.epid != null) {
+            val bangumiInfo = bilibiliService.getAllBangumiInfos(video.epid)
+            if (bangumiInfo.size > limit) {
+                throw BizException.buildBizException("不支持 P 数大于 $limit，联系群主/公众号解决~")
+            }
+            val task = BilibiliAudioTaskPO(
+                name = "",
+                url = "",
+                request = data,
+                type = type,
+                openid = currentUserOpenid,
+                status = TaskStatusEnum.DEFAULT.code,
+                size = bangumiInfo.size
             )
+            bilibiliAudioTaskPOService.save(task)
+
+            val tasks = bangumiInfo.map {
+                BilibiliAudioPO(
+                    taskId = task.id!!,
+                    openid = task.openid,
+                    bvid = it.bvid,
+                    aid = it.aid!!,
+                    cid = it.cid!!,
+                    mid = "",
+                    title = it.title!!
+                )
+            }
+            bilibiliAudioPOService.saveBatch(tasks)
+            return task.size
+        } else {
+            val view = bilibiliService.getViewByBvid(video.bvid)
+
+            if (view.pages.size > limit) {
+                throw BizException.buildBizException("不支持 P 数大于 $limit，联系群主/公众号解决~")
+            }
+
+            val task = BilibiliAudioTaskPO(
+                name = "",
+                url = "",
+                request = data,
+                type = type,
+                openid = currentUserOpenid,
+                status = TaskStatusEnum.DEFAULT.code,
+                size = view.pages.size
+            )
+            bilibiliAudioTaskPOService.save(task)
+
+
+            val tasks = view.pages.map {
+                BilibiliAudioPO(
+                    taskId = task.id!!,
+                    openid = task.openid,
+                    bvid = view.bvid,
+                    aid = view.aid,
+                    cid = it.cid,
+                    mid = view.owner.mid,
+                    title = it.part
+                )
+            }
+            bilibiliAudioPOService.saveBatch(tasks)
+            return tasks.size
         }
-        bilibiliAudioPOService.saveBatch(tasks)
-        return tasks.size
+
+
+
+
+
     }
 
     private fun freeType(videos: List<BilibiliVideo>, data: String, type: Int): Int {
@@ -122,7 +158,7 @@ class BVideo2AudioService(
         views.values.forEach { view ->
             totalDuration += view.duration
         }
-        val maxDurationMinute = cacheManage.getBizValue(BizConfigEnum.MAX_DURATION_MINUTE, "120").toInt()
+        val maxDurationMinute = cacheManage.getBizValue(BizConfigEnum.MAX_DURATION_MINUTE, "300").toInt()
         if (totalDuration > maxDurationMinute * 60) {
             throw BizException.buildBizException("视频总时长不能超过 $maxDurationMinute 分钟")
         }

@@ -1,5 +1,6 @@
 package net.peihuan.hera.feign.service
 
+import net.peihuan.hera.feign.dto.bilibili.BangumiInfo
 import net.peihuan.hera.feign.dto.bilibili.DashPlayUrl
 import net.peihuan.hera.feign.dto.bilibili.View
 import org.springframework.cloud.openfeign.FeignClient
@@ -19,6 +20,11 @@ interface BilibiliFeignService {
         val data: T
     )
 
+    data class Result<T>(
+        val code: Int,
+        val message: String,
+        val result: T
+    )
 
     @GetMapping("x/player/playurl")
     fun dashPlayurl(
@@ -48,5 +54,8 @@ interface BilibiliFeignService {
         @RequestParam("bvid") bvid: String? = null,
         @RequestParam("aid") aid: String? = null
     ): Response<View>
+
+    @GetMapping("pgc/view/web/season")
+    fun getBangumiIbfo(@RequestParam("ep_id") epId: Int): Result<BangumiInfo>
 
 }
