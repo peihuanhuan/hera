@@ -341,10 +341,9 @@ class BVideo2AudioService(
     fun processBV(bilibiliAudioPO: BilibiliAudioPO, tryTime: Int): File {
         var count = 0
         var file: File? = null
-        while (file?.exists() != true && count < tryTime) {
+        while (file?.exists() != true && count++ < tryTime) {
             try {
                 file = processBV(bilibiliAudioPO)
-                count++
             } catch (e: Exception) {
                 log.error(e.message, e)
             }
