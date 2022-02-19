@@ -21,6 +21,10 @@ class DownloadBilibiliAudioHandler(
         return listOf("音频", "【音频】")
     }
 
+    override fun canHandle(message: String): Boolean {
+        return message.contains("音频")
+    }
+
     override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
 
         val successTasks =
