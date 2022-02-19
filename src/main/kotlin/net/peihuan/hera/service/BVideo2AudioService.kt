@@ -8,6 +8,7 @@ import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.builder.FFmpegBuilder
 import net.peihuan.hera.constants.BilibiliTaskTypeEnum
 import net.peihuan.hera.constants.BizConfigEnum
+import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.TaskStatusEnum
 import net.peihuan.hera.domain.BilibiliVideo
 import net.peihuan.hera.domain.CacheManage
@@ -55,7 +56,7 @@ class BVideo2AudioService(
     private val workDir: String? = null
 
     @Transactional
-    fun saveTask2DB(data: String, type: Int): Int {
+    fun saveTask2DB(data: String, type: Int, notifyType: NotifyTypeEnum): Int {
         val videos = bilibiliService.resolve2BilibiliVideos(data)
         val notHandleTask = bilibiliAudioTaskPOService.findByOpenidAndStatus(currentUserOpenid, TaskStatusEnum.DEFAULT)
         if (notHandleTask.isNotEmpty()) {
@@ -66,15 +67,15 @@ class BVideo2AudioService(
             throw BizException.buildBizException("没解析到B站视频~")
         }
         if (type == BilibiliTaskTypeEnum.FREE.code) {
-            return freeType(videos, data, type)
+            return freeType(videos, data, type, notifyType)
         }
         if (type == BilibiliTaskTypeEnum.MULTIPLE.code) {
-            return multipleP(videos.first(), data, type)
+            return multipleP(videos.first(), data, type, notifyType)
         }
         return 0
     }
 
-    private fun multipleP(video: BilibiliVideo, data: String, type: Int): Int {
+    private fun multipleP(video: BilibiliVideo, data: String, type: Int, notifyType: NotifyTypeEnum,): Int {
 
         val limit = cacheManage.getBizValue(BizConfigEnum.MAX_P_LIMIT, "35").toInt()
 
@@ -88,6 +89,7 @@ class BVideo2AudioService(
                 url = "",
                 request = data,
                 type = type,
+                notifyType = notifyType,
                 openid = currentUserOpenid,
                 status = TaskStatusEnum.DEFAULT.code,
                 size = bangumiInfo.size
@@ -119,6 +121,7 @@ class BVideo2AudioService(
                 url = "",
                 request = data,
                 type = type,
+                notifyType = notifyType,
                 openid = currentUserOpenid,
                 status = TaskStatusEnum.DEFAULT.code,
                 size = view.pages.size
@@ -147,7 +150,7 @@ class BVideo2AudioService(
 
     }
 
-    private fun freeType(videos: List<BilibiliVideo>, data: String, type: Int): Int {
+    private fun freeType(videos: List<BilibiliVideo>, data: String, type: Int, notifyType: NotifyTypeEnum): Int {
         val limit = cacheManage.getBizValue(BizConfigEnum.MAX_FREE_LIMIT, "10").toInt()
         if (videos.size > limit) {
             throw BizException.buildBizException("一次不能超过 $limit 个视频")
@@ -168,6 +171,7 @@ class BVideo2AudioService(
             url = "",
             request = data,
             type = type,
+            notifyType = notifyType,
             openid = currentUserOpenid,
             status = TaskStatusEnum.DEFAULT.code,
             size = videos.size

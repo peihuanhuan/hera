@@ -1,5 +1,6 @@
 package net.peihuan.hera.web.controller
 
+import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.domain.JsonResult
 import net.peihuan.hera.service.BVideo2AudioService
 import org.springframework.security.access.prepost.PreAuthorize
@@ -21,6 +22,6 @@ class BilibiliController(private val bVideo2AudioService: BVideo2AudioService) {
     @PostMapping("/audio")
     @PreAuthorize("hasAnyAuthority(@userAuthorities.NORMAL_USER)")
     fun convert2Audio(@RequestBody body:AudioRequest): JsonResult {
-        return JsonResult.success(bVideo2AudioService.saveTask2DB(body.data, body.type))
+        return JsonResult.success(bVideo2AudioService.saveTask2DB(body.data, body.type, NotifyTypeEnum.MESSAGE_TEMPLATE))
     }
 }

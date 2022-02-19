@@ -7,12 +7,14 @@ import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage
 import mu.KotlinLogging
 import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
+import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.YYYY_MM_DD_HH_MM_SS
 import net.peihuan.hera.constants.ZyOrderSourceEnum
 import net.peihuan.hera.constants.ZyOrderSourceEnum.Companion.getSourceEnum
 import net.peihuan.hera.feign.service.PushPlusService
 import net.peihuan.hera.persistent.po.BilibiliAudioTaskPO
 import net.peihuan.hera.persistent.po.ZyOrderPO
+import net.peihuan.hera.util.replyKfMessage
 import org.joda.time.DateTime
 import org.springframework.stereotype.Service
 
@@ -132,20 +134,24 @@ class NotifyService(
     }
 
     fun notifyTaskResult(task: BilibiliAudioTaskPO) {
-        val templateMessage = WxMpSubscribeMessage.builder()
-            .toUser(task.openid)
-            .page("https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=Mzg3OTY5MjA2NQ==&scene=124#wechat_redirect")
-            .dataMap(
-                mapOf(
-                    "thing1" to task.name,
-                    "phrase2" to "任务已完成",
-                    "thing3" to "公众号回复【音频】，复制链接浏览器下载"
+        if (task.notifyType == NotifyTypeEnum.MESSAGE_TEMPLATE) {
+            val templateMessage = WxMpSubscribeMessage.builder()
+                .toUser(task.openid)
+                .page("https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=Mzg3OTY5MjA2NQ==&scene=124#wechat_redirect")
+                .dataMap(
+                    mapOf(
+                        "thing1" to task.name,
+                        "phrase2" to "任务已完成",
+                        "thing3" to "公众号回复【音频】，复制链接浏览器下载"
+                    )
                 )
-            )
-            .templateId(wxMpProperties.taskSubscribeId)
-            .build()
+                .templateId(wxMpProperties.taskSubscribeId)
+                .build()
 
-        wxMpService.subscribeMsgService.send(templateMessage)
+            wxMpService.subscribeMsgService.send(templateMessage)
+        } else if (task.notifyType == NotifyTypeEnum.MP_REPLY){
+            task.openid.replyKfMessage(task.url)
+        }
     }
 
 }
