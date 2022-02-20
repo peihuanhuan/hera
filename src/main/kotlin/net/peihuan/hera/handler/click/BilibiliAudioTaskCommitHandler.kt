@@ -29,7 +29,7 @@ class BilibiliAudioTaskCommitHandler(val bVideo2AudioService: BVideo2AudioServic
                 BilibiliTaskTypeEnum.FREE.code,
                 NotifyTypeEnum.MP_REPLY
             )
-            wxMpXmlMessage.replyKfMessage("解析到了 $cnt 个视频，请静待转换结果。")
+            wxMpXmlMessage.replyKfMessage("解析到了 $cnt 个视频，请静候佳音。")
         } catch (e: Exception) {
             wxMpXmlMessage.replyKfMessage(e.message?: "处理失败")
         } finally {

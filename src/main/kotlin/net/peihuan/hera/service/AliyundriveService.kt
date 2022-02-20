@@ -25,6 +25,7 @@ import javax.annotation.PostConstruct
 class AliyundriveService(
     private val aliyundriveFeignService: AliyundriveFeignService,
     private val notifyService: NotifyService,
+    private val blackKeywordService: BlackKeywordService,
     private val cacheManage: CacheManage,
 ) {
 
@@ -100,7 +101,7 @@ class AliyundriveService(
             drive_id = driveId,
             parent_file_id = parentId,
             part_info_list = mutableListOf,
-            name = file.name,
+            name = blackKeywordService.replaceBlackKeyword(file.name),
             type = "file",
             size = fakeFile.length().toInt(),
             proof_version = "v1",
