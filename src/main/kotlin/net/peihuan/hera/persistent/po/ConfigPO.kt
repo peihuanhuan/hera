@@ -2,7 +2,6 @@ package net.peihuan.hera.persistent.po
 
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
-import com.baomidou.mybatisplus.annotation.TableLogic
 import com.baomidou.mybatisplus.annotation.TableName
 import java.util.*
 
@@ -19,7 +18,7 @@ class ConfigPO {
     var value: String? = null
     var expireAt: Date? = null
 
-    @TableLogic
+    // @TableLogic
     val deleted: Boolean? = null
     val createTime: Date? = null
     var updateTime: Date? = null

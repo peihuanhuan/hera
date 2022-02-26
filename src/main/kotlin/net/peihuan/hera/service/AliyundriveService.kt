@@ -69,7 +69,15 @@ class AliyundriveService(
         }
         val shareRequest =
             ShareRequest(drive_id = driveId, expiration = DateTime.now().plusDays(7).toString(), file_id_list = fileIds)
-        return aliyundriveFeignService.share(shareRequest)
+
+        var retryTime = 5
+        while (retryTime-- > 0) {
+            try {
+                return aliyundriveFeignService.share(shareRequest)
+            } catch (e: Exception) {
+            }
+        }
+        throw BizException.buildBizException("阿里云盘分享失败")
     }
 
     fun uploadFile(file: File): CreateWithFoldersDTO {
