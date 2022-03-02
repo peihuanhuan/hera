@@ -8,7 +8,6 @@ import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPut
 import org.apache.http.entity.ByteArrayEntity
-import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.protocol.HTTP
 import java.io.File
@@ -19,9 +18,9 @@ private val log = KotlinLogging.logger {}
 
 private val config =
     RequestConfig.custom()
-        .setConnectTimeout(50000)
-        .setConnectionRequestTimeout(10000)
-        .setSocketTimeout(50000)
+        .setConnectTimeout(5000)
+        .setConnectionRequestTimeout(1000)
+        .setSocketTimeout(5000)
         .setRedirectsEnabled(false)
         .build() //不允许重定向
 private val locationHttpClient = HttpClients.custom().setDefaultRequestConfig(config).build()
@@ -48,12 +47,19 @@ fun getLocationUrl(url: String): String? {
 
 
 
-val downloadHttpClient = HttpClientBuilder.create().build()
+val downloadHttpClient = HttpClients.custom().setDefaultRequestConfig(config).build()
 
+fun doDownload(url: String, descFile: File, header: Map<String, String>, retryTime: Int) {
+    var retry = 0;
+    while (retry++ < retryTime && !descFile.exists()) {
+        doDownload(url, descFile, header)
+    }
+}
 fun doDownload(url: String, descFile: File, header: Map<String, String>) {
 
     val post = HttpGet(url)
     post.addHeader(HTTP.CONTENT_ENCODING, "UTF-8")
+
     var response: CloseableHttpResponse? = null
     try {
         header.forEach { (t, u) ->
@@ -68,6 +74,7 @@ fun doDownload(url: String, descFile: File, header: Map<String, String>) {
     } catch (e: Exception) {
         //fixme org.apache.http.ConnectionClosedException: Premature end of Content-Length delimited message body (expected: 10,360,240; received: 122,064)
         log.error(e.message, e)
+        FileUtils.deleteQuietly(descFile)
     } finally {
         if (response != null) {
             try {

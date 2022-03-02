@@ -388,7 +388,7 @@ class BVideo2AudioService(
 
         val source = "${workDir}/${bilibiliAudioPO.cid}.m4s"
         log.info { "====== 开始下载 $source" }
-        doDownload(url, File(source), headers)
+        doDownload(url, File(source), headers, 5)
 
         val target = "${workDir}/${bilibiliAudioPO.cid}.mp3"
         FileUtils.deleteQuietly(File(target))

@@ -37,7 +37,7 @@ class BilibiliServiceTest : HeraApplicationTests() {
             |            ！《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W
             |            https://www.bilibili.com/bangumi/play/ep317089
             |            
-        """.trimMargin(), 1)
+        """.trimMargin(), 1,1)
     }
 
     @Test
