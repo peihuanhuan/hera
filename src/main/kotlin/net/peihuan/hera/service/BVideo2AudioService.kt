@@ -241,7 +241,7 @@ class BVideo2AudioService(
             val subTasks = bilibiliAudioPOService.findByTaskId(task.id!!)
 
 
-            if(grayService.isGrayUser(task.openid)) {
+            if(!grayService.isGrayUser(task.openid)) {
 
                 val fileIds = subTasks.map { subTask ->
 
@@ -253,7 +253,7 @@ class BVideo2AudioService(
                     }
 
                     val targetFile = processBV(subTask, 3)
-                    val createWithFoldersDTO = aliyundriveService.uploadFile(targetFile)
+                    val createWithFoldersDTO = aliyundriveService.uploadFile(targetFile, 5)
 
                     subTask.fileId = createWithFoldersDTO.file_id
                     subTask.updateTime = null
@@ -263,12 +263,12 @@ class BVideo2AudioService(
 
                     createWithFoldersDTO.file_id
                 }
-                val share = aliyundriveService.share(fileIds)
+                val share = aliyundriveService.share(fileIds, 5)
                 task.url = share.full_share_msg
                 task.name = share.share_name
 
             } else {
-                val audioFiles = subTasks.map { processBV(it, 3) }
+                val audioFiles = subTasks.map { processBV(it, 5) }
 
                 val targetFile: File
                 if (subTasks.size == 1) {

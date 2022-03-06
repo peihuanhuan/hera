@@ -60,30 +60,41 @@ class AliyundriveService(
     }
 
     fun share(fileId: String): ShareDTO {
-        return share(listOf(fileId))
+        return share(listOf(fileId), 5)
     }
 
-    fun share(fileIds: List<String>): ShareDTO {
+    fun share(fileIds: List<String>, retry: Int): ShareDTO {
         if (fileIds.size > 100) {
             throw BizException.buildBizException("最大分享不能超过100个")
         }
         val shareRequest =
             ShareRequest(drive_id = driveId, expiration = DateTime.now().plusDays(7).toString(), file_id_list = fileIds)
 
-        var retryTime = 5
-        while (retryTime-- > 0) {
+        var retryTime = 0
+        while (retryTime++ < retry) {
             try {
                 return aliyundriveFeignService.share(shareRequest)
             } catch (e: Exception) {
+                log.error(e.message, e)
             }
         }
         throw BizException.buildBizException("阿里云盘分享失败")
     }
 
+    fun uploadFile(file: File , retry: Int): CreateWithFoldersDTO {
+        var time = 0
+        while (time++ < retry) {
+            try {
+                return uploadFile(file)
+            } catch (e: Exception) {
+                log.error(e.message, e)
+            }
+        }
+        throw BizException.buildBizException("阿里云盘上传失败")
+    }
     fun uploadFile(file: File): CreateWithFoldersDTO {
 
         val fakeFile = buildFakeFile(file)
-
 
         val part: Int = if (fakeFile.length() / part_max_size == 0L) {
             (fakeFile.length() / part_max_size).toInt()
@@ -156,6 +167,9 @@ class AliyundriveService(
         val fakeFile =
             File(FilenameUtils.getFullPath(file.absolutePath) + FilenameUtils.getBaseName(file.absolutePath) + "-fake.mp3")
 
+        if (fakeFile.exists()) {
+            fakeFile.delete()
+        }
         // 添加图片的魔数
         // fakeFile.writeBytes(
         //     byteArrayOf(
