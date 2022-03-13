@@ -48,7 +48,7 @@ class BVideo2AudioService(
 ) {
 
     private val log = KotlinLogging.logger {}
-    private val executorService = Executors.newFixedThreadPool(3)
+    private val executorService = Executors.newFixedThreadPool(5)
 
     private val processingTasks = mutableSetOf<Long>()
 
