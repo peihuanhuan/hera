@@ -36,10 +36,11 @@ class CheckBilibiliTask(
 
     @Scheduled(fixedDelay = 180_000)
     fun scheduled() {
-        val minutes = cacheManage.getBizValue(BizConfigEnum.ALARM_TIME, "5").toInt()
+        val singleMinutes = cacheManage.getBizValue(BizConfigEnum.ALARM_TIME, "1").toInt()
         val tasks = bilibiliAudioTaskPOService.findByStatus(TaskStatusEnum.DEFAULT)
         tasks.forEach { task ->
-            if (task.createTime!!.before(DateTime.now().minusMinutes(minutes).toDate())) {
+            val limitMinutes = singleMinutes * task.size + 1
+            if (task.createTime!!.before(DateTime.now().minusMinutes(limitMinutes).toDate())) {
                 notifyService.notifyTaskTooLong(task)
             }
         }
