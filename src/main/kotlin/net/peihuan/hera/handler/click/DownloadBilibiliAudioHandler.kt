@@ -33,7 +33,7 @@ class DownloadBilibiliAudioHandler(
             val content = """
                 |最近没有成功的任务呢？应该还在转换中吧？
                 | 
-                |<a>BiliBili玩梗闲聊群</a>，任务长时间没结果就找群主 _(:з」∠)_
+                |<a>BiliBili玩梗闲聊群</a>，想及时了解此工具最新动态，或无法导出音频求助，请进群，回复及时！
                 |
                 |<a>Bilibili 音频提取</a>
             """.trimMargin()
@@ -44,7 +44,7 @@ class DownloadBilibiliAudioHandler(
         var content = """上一个成功任务为：
                 |${successTasks.first().name}
                 |
-                |<a>BiliBili玩梗闲聊群</a>，任务长时间没结果就找群主  _(:з」∠)_
+                |<a>BiliBili玩梗闲聊群</a>，想及时了解此工具最新动态，或无法导出音频求助，请进群，回复及时！
                 |
                 |<a>Bilibili 音频提取工具</a>
             """.trimMargin()

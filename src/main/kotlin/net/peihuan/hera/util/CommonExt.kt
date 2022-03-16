@@ -6,6 +6,7 @@ import org.joda.time.DateTime
 import org.springframework.beans.BeanUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import java.net.URL
 import java.util.*
 import javax.servlet.http.HttpServletResponse
 
@@ -39,4 +40,20 @@ fun printOut(obj: Any, response: HttpServletResponse, httpStatus: HttpStatus) {
 
 fun randomOutTradeNo(): String {
     return DateTime.now().toString(YYYYMMDDHHMMSS) + UUID.randomUUID().toString().replace("-", "").substring(0, 10)
+}
+
+fun getUrlParams(url: String) :Map<String, String> {
+    var u = url
+    if (!url.startsWith("https://") && !url.startsWith("http://")) {
+        u = "http://" + url
+    }
+
+    val query = URL(u).query
+    val keyValues = query?.split("&")
+    val map = mutableMapOf<String, String>()
+    keyValues?.forEach {
+        val split = it.split("=")
+        map[split[0]] = split[1]
+    }
+    return map
 }

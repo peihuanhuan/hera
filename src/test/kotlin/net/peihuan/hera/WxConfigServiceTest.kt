@@ -7,6 +7,7 @@ import me.chanjar.weixin.mp.bean.material.WxMpMaterial
 import mu.KotlinLogging
 import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
+import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.TaskStatusEnum
 import net.peihuan.hera.persistent.po.BilibiliAudioTaskPO
 import net.peihuan.hera.persistent.po.ZyOrderPO
@@ -76,7 +77,8 @@ class WxConfigServiceTest : HeraApplicationTests() {
             type = 1,  //todo 类型写死了
             openid = "oIWc_51xYURq_7jNCfrr40dc0q3Q",
             status = TaskStatusEnum.DEFAULT.code,
-            size = 1
+            size = 1,
+            notifyType = NotifyTypeEnum.MP_REPLY
         )
         notifyService.notifyTaskResult(task)
 

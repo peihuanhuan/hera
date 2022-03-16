@@ -1,6 +1,7 @@
 package net.peihuan.hera
 
 import mu.KotlinLogging
+import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.service.BVideo2AudioService
 import net.peihuan.hera.service.BilibiliService
 import net.peihuan.hera.util.CmdUtil
@@ -37,7 +38,7 @@ class BilibiliServiceTest : HeraApplicationTests() {
             |            ！《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W
             |            https://www.bilibili.com/bangumi/play/ep317089
             |            
-        """.trimMargin(), 1,1)
+        """.trimMargin(), 1,NotifyTypeEnum.MP_REPLY)
     }
 
     @Test
@@ -124,6 +125,20 @@ class BilibiliServiceTest : HeraApplicationTests() {
         // val find = shortUrlReg.find("【一个敢说，一个敢做-哔哩哔哩】 https://b23.tv/CYkD9MT kkk") ?: return
         // val groups = find.groups
         // log.info { "==== 解析到的 短链 为 ${groups[1]!!.value}" }
+    }
+
+    @Test
+    fun test1() {
+        val x = bilibiliService.resolve2BilibiliVideos("""
+            【开场一句就能俘获你芳心！《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W
+
+            https://www.bilibili.com/festival/2022bnj?bvid=BV1Ga41127eH&spm_id_from=333.788.top_right_bar_window_custom_collection.content.click
+
+            https://www.bilibili.com/video/BV1ua411872R
+        """.trimIndent())
+        val bvFromPram =
+            bilibiliService.getBVFromPram("https://www.bilibili.com/video/BV12321?p=1&a=1 https://www.bilibili.com/festival/2021bnj?bvid=1&p=1&share_m=1    https://www.bil")
+        println(x)
     }
 
     @Test

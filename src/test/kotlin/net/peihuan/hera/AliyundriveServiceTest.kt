@@ -52,7 +52,7 @@ class AliyundriveServiceTest : HeraApplicationTests() {
     @Test
     fun share() {
         aliyundriveService.refreshToken()
-        val dto = aliyundriveService.share(listOf("61da5bbc425af30397f5451db5ac881b5259e14b"))
+        val dto = aliyundriveService.share(listOf("61da5bbc425af30397f5451db5ac881b5259e14b"), 1)
         log.info { dto }
     }
 

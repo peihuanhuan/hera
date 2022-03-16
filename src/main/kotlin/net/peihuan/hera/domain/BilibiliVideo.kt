@@ -10,4 +10,8 @@ data class BilibiliVideo (
     val cid: String? = null,
     val epid: Int? = null,
     val title: String? = null,
-)
+) {
+    fun x() {
+
+    }
+}

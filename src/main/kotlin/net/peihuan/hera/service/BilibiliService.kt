@@ -8,6 +8,7 @@ import net.peihuan.hera.feign.dto.bilibili.Quality
 import net.peihuan.hera.feign.dto.bilibili.View
 import net.peihuan.hera.feign.service.BilibiliFeignService
 import net.peihuan.hera.util.getLocationUrl
+import net.peihuan.hera.util.getUrlParams
 import org.springframework.stereotype.Service
 import java.util.regex.Pattern
 
@@ -21,9 +22,11 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         val videos = mutableListOf<BilibiliVideo>()
         videos.addAll(longUrls.mapNotNull { getBV(it).firstOrNull() })
         videos.addAll(longUrls.mapNotNull { getEp(it).firstOrNull() })
+        videos.addAll(longUrls.mapNotNull { getBVFromPram(it).firstOrNull() })
 
         videos.addAll(getBV(data))
         videos.addAll(getEp(data))
+        videos.addAll(getBVFromPram(data))
         return videos.distinct()
     }
 
@@ -46,7 +49,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
                 .matcher(data)
         var matchStart = 0
         while (regex.find(matchStart)) {
-            bvids.add(BilibiliVideo(regex.group(2), regex.group(6)))
+            bvids.add(BilibiliVideo(bvid = regex.group(2), page = regex.group(6)))
             matchStart = regex.end()
         }
         return bvids
@@ -63,6 +66,26 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
             matchStart = regex.end()
         }
         return epids.mapNotNull { epid -> getBangumiInfo(epid) }
+    }
+
+    /**
+     *  https://www.bilibili.com/festival/2021bnj?bvid=BV1Do4y1d7K7   支持这种类型的视频
+     */
+    fun getBVFromPram(data: String) : MutableList<BilibiliVideo> {
+        val bvids = mutableListOf<BilibiliVideo>()
+        val regex =
+            Pattern.compile("www\\.bilibili\\.com\\S*\\s*")
+                .matcher(data)
+        var matchStart = 0
+        while (regex.find(matchStart)) {
+            val wholeUrl = regex.group(0)
+            val bvid = getUrlParams(wholeUrl)["bvid"]
+            if (bvid != null) {
+                bvids.add(BilibiliVideo(bvid = bvid))
+            }
+            matchStart = regex.end()
+        }
+        return bvids
     }
 
 
