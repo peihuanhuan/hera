@@ -157,14 +157,7 @@ class BVideo2AudioService(
         }
         val views = videos.associateWith { bilibiliService.getViewByBvid(it.bvid) }
 
-        var totalDuration = 0
-        views.values.forEach { view ->
-            totalDuration += view.duration
-        }
-        val maxDurationMinute = cacheManage.getBizValue(BizConfigEnum.MAX_DURATION_MINUTE, "300").toInt()
-        if (totalDuration > maxDurationMinute * 60) {
-            throw BizException.buildBizException("视频总时长不能超过 $maxDurationMinute 分钟")
-        }
+
 
         val task = BilibiliAudioTaskPO(
             name = "",
@@ -178,7 +171,8 @@ class BVideo2AudioService(
         )
         bilibiliAudioTaskPOService.save(task)
 
-
+        val maxDurationMinute = cacheManage.getBizValue(BizConfigEnum.MAX_DURATION_MINUTE, "300").toInt()
+        var totalDuration = 0
         val taskAudios = views.map {
             val pageNo = it.key.page
             val cid: String
@@ -186,10 +180,16 @@ class BVideo2AudioService(
             if (pageNo == null) {
                 cid = it.value.cid
                 title = it.value.title
+                totalDuration += it.value.duration
             } else {
                 val pageVideo = it.value.pages.filter { page -> page.page.toString() == pageNo }.first()
                 cid = pageVideo.cid
                 title = "${it.value.title} p$pageNo ${pageVideo.part}"
+                totalDuration += pageVideo.duration
+            }
+            
+            if (totalDuration > maxDurationMinute * 60) {
+                throw BizException.buildBizException("视频总时长不能超过 $maxDurationMinute 分钟")
             }
             BilibiliAudioPO(
                 taskId = task.id!!,
