@@ -7,7 +7,7 @@ import java.util.*
 
 @NoArg
 @TableName("bilibili_audio")
-data class BilibiliAudioPO (
+data class BilibiliSubTaskPO (
     @TableId
     var id: Long?=null,
     var taskId: Long,

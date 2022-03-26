@@ -24,9 +24,9 @@ class BilibiliAudioTaskCommitHandler(val bVideo2AudioService: BVideo2AudioServic
     override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
         try {
             setCurrentUser(wxMpXmlMessage.fromUser)
-            val cnt = bVideo2AudioService.saveTask2DB(
+            val cnt = bVideo2AudioService.saveTask(
                 wxMpXmlMessage.content,
-                BilibiliTaskTypeEnum.FREE.code,
+                BilibiliTaskTypeEnum.FREE,
                 NotifyTypeEnum.MP_REPLY
             )
             wxMpXmlMessage.replyKfMessage("解析到了 $cnt 个视频，请静候佳音。")

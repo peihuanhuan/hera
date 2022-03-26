@@ -12,7 +12,7 @@ import net.peihuan.hera.constants.YYYY_MM_DD_HH_MM_SS
 import net.peihuan.hera.constants.ZyOrderSourceEnum
 import net.peihuan.hera.constants.ZyOrderSourceEnum.Companion.getSourceEnum
 import net.peihuan.hera.feign.service.PushPlusService
-import net.peihuan.hera.persistent.po.BilibiliAudioTaskPO
+import net.peihuan.hera.persistent.po.BilibiliTaskPO
 import net.peihuan.hera.persistent.po.ZyOrderPO
 import net.peihuan.hera.util.replyKfMessage
 import org.joda.time.DateTime
@@ -105,7 +105,7 @@ class NotifyService(
         val send = pushPlusService.send(request)
     }
 
-    fun notifyTaskTooLong(task: BilibiliAudioTaskPO) {
+    fun notifyTaskTooLong(task: BilibiliTaskPO) {
         val request = PushPlusService.SendRequest(
             token = pushPlustoken,
             title = "有任务长时间没处理：${task.name}",
@@ -119,7 +119,7 @@ class NotifyService(
         val send = pushPlusService.send(request)
     }
 
-    fun notifyTaskFail(task: BilibiliAudioTaskPO) {
+    fun notifyTaskFail(task: BilibiliTaskPO) {
         val request = PushPlusService.SendRequest(
             token = pushPlustoken,
             title = "任务处理失败：${task.name}",
@@ -133,7 +133,7 @@ class NotifyService(
         val send = pushPlusService.send(request)
     }
 
-    fun notifyTaskResult(task: BilibiliAudioTaskPO) {
+    fun notifyTaskResult(task: BilibiliTaskPO) {
         if (task.notifyType == NotifyTypeEnum.MESSAGE_TEMPLATE) {
             val templateMessage = WxMpSubscribeMessage.builder()
                 .toUser(task.openid)

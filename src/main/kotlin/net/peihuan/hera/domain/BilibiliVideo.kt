@@ -4,12 +4,14 @@ import net.peihuan.hera.domain.annotation.NoArg
 
 @NoArg
 data class BilibiliVideo (
-    val bvid: String,
-    val page: String? = null,
-    val aid: String? = null,
-    val cid: String? = null,
+    var aid: String? = null,
+    var bvid: String,
+    var cid: String? = null,
     val epid: Int? = null,
-    val title: String? = null,
+    var page: String? = null,
+    var title: String? = null,
+    var duration: Int? = null,
+    var mid: String? = null
 ) {
     fun x() {
 

@@ -9,7 +9,7 @@ import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.TaskStatusEnum
-import net.peihuan.hera.persistent.po.BilibiliAudioTaskPO
+import net.peihuan.hera.persistent.po.BilibiliTaskPO
 import net.peihuan.hera.persistent.po.ZyOrderPO
 import net.peihuan.hera.persistent.service.ConfigPOService
 import net.peihuan.hera.service.NotifyService
@@ -70,7 +70,7 @@ class WxConfigServiceTest : HeraApplicationTests() {
     @Test
     fun notifyTest2() {
 
-        val task = BilibiliAudioTaskPO(
+        val task = BilibiliTaskPO(
             name = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             url = "www.baidu.com",
             request = "adasdasdasd",

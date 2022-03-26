@@ -2,10 +2,7 @@ package net.peihuan.hera.service
 
 import net.peihuan.hera.domain.BilibiliVideo
 import net.peihuan.hera.exception.BizException
-import net.peihuan.hera.feign.dto.bilibili.BangumiInfo
-import net.peihuan.hera.feign.dto.bilibili.Episode
-import net.peihuan.hera.feign.dto.bilibili.Quality
-import net.peihuan.hera.feign.dto.bilibili.View
+import net.peihuan.hera.feign.dto.bilibili.*
 import net.peihuan.hera.feign.service.BilibiliFeignService
 import net.peihuan.hera.util.getLocationUrl
 import net.peihuan.hera.util.getUrlParams
@@ -19,15 +16,65 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
     fun resolve2BilibiliVideos(data: String): List<BilibiliVideo> {
         val shortUrls = resolveShortUrls(data)
         val longUrls = shortUrls.mapNotNull { getLocationUrl(it) }
-        val videos = mutableListOf<BilibiliVideo>()
-        videos.addAll(longUrls.mapNotNull { getBV(it).firstOrNull() })
-        videos.addAll(longUrls.mapNotNull { getEp(it).firstOrNull() })
-        videos.addAll(longUrls.mapNotNull { getBVFromPram(it).firstOrNull() })
 
-        videos.addAll(getBV(data))
-        videos.addAll(getEp(data))
-        videos.addAll(getBVFromPram(data))
+        // 将原始长链接追加到原本数据中进行解析
+        var newData = data
+        longUrls.forEach {
+            newData += "\n $it "
+        }
+
+        val videos = mutableListOf<BilibiliVideo>()
+        videos.addAll(resolveBvSimpleInfo(newData))
+        videos.addAll(getEpCompleteInfo(newData))
+        videos.addAll(resolveBvSimpleInfoFromPram(newData))
+
+        videos.forEach { bilibiliVideo ->
+            if (bilibiliVideo.epid != null) {
+                // ep 已经填充过属性
+                return@forEach
+            }
+            val view = getViewByBvid(bilibiliVideo.bvid)
+            assembleBilibiliVideo(bilibiliVideo, view)
+        }
         return videos.distinct()
+    }
+
+    fun findAllBilibiliVideos(bilibiliVideo: BilibiliVideo): List<BilibiliVideo> {
+        if (bilibiliVideo.epid != null) {
+            return getAllBangumiInfos(bilibiliVideo.epid)
+        }
+        val view = getViewByBvid(bilibiliVideo.bvid)
+        return view.pages.map { page -> convert2BilibiliVideo(view, page) }
+    }
+
+    private fun assembleBilibiliVideo(bilibiliVideo: BilibiliVideo, view: View) {
+        bilibiliVideo.aid = view.aid
+        bilibiliVideo.bvid = view.bvid
+        bilibiliVideo.mid = view.owner.mid
+        bilibiliVideo.title = view.title
+        if (bilibiliVideo.page == null) {
+            bilibiliVideo.duration = view.duration
+            bilibiliVideo.cid = view.cid
+            bilibiliVideo.title = view.title
+        } else {
+            val pageVideo = view.pages.filter { page -> page.page.toString() == bilibiliVideo.page }.first()
+            bilibiliVideo.duration = pageVideo.duration
+            bilibiliVideo.cid = pageVideo.cid
+            bilibiliVideo.title = "${view.title} p${bilibiliVideo.page} ${pageVideo.part}"
+        }
+    }
+
+    private fun convert2BilibiliVideo(view: View, page: VideoPage): BilibiliVideo {
+
+        val bilibiliVideo = BilibiliVideo(bvid = view.bvid)
+
+        bilibiliVideo.aid = view.aid
+        bilibiliVideo.bvid = view.bvid
+        bilibiliVideo.mid = view.owner.mid
+        bilibiliVideo.duration = page.duration
+        bilibiliVideo.cid = page.cid
+        bilibiliVideo.title = "${view.title} p${bilibiliVideo.page} ${page.part}"
+        return bilibiliVideo
     }
 
 
@@ -42,7 +89,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         return shortUrls
     }
 
-    private fun getBV(data: String): MutableList<BilibiliVideo> {
+    private fun resolveBvSimpleInfo(data: String): MutableList<BilibiliVideo> {
         val bvids = mutableListOf<BilibiliVideo>()
         val regex =
             Pattern.compile("(http|https):\\/\\/www\\.bilibili\\.com\\/video\\/(BV\\w*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*")
@@ -55,7 +102,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         return bvids
     }
 
-    private fun getEp(data: String): List<BilibiliVideo> {
+    private fun getEpCompleteInfo(data: String): List<BilibiliVideo> {
         val epids = mutableListOf<Int>()
         val regex =
             Pattern.compile("(http|https):\\/\\/www\\.bilibili\\.com\\/bangumi\\/play\\/ep(\\d*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*")
@@ -71,7 +118,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
     /**
      *  https://www.bilibili.com/festival/2021bnj?bvid=BV1Do4y1d7K7   支持这种类型的视频
      */
-    fun getBVFromPram(data: String) : MutableList<BilibiliVideo> {
+    fun resolveBvSimpleInfoFromPram(data: String): MutableList<BilibiliVideo> {
         val bvids = mutableListOf<BilibiliVideo>()
         val regex =
             Pattern.compile("www\\.bilibili\\.com\\S*\\s*")
@@ -114,22 +161,24 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
     }
 
     fun getBangumiInfo(epId: Int): BilibiliVideo? {
-        val bangumiIbfo = bilibiliFeignService.getBangumiIbfo(epId)
+        val bangumiIbfo: BilibiliFeignService.Result<BangumiInfo> = bilibiliFeignService.getBangumiIbfo(epId)
         val allEpisodes = getAllEpisodes(bangumiIbfo)
 
         val ep = allEpisodes.first { it.id == epId }
         checkNeedVip(ep)
         return BilibiliVideo(
             aid = ep.aid.toString(),
-            bvid = ep.bvid,
+            bvid = ep.bvid!!,
             epid = epId,
-            title = ep.title,
-            cid = ep.cid.toString()
+            title = ep.share_copy,
+            // ep 时长单位为毫秒
+            duration = ep.duration?.div(1000),
+            cid = ep.cid.toString(),
         )
     }
 
     private fun checkNeedVip(ep: Episode) {
-        if (ep.badge.contains("会员")) {
+        if ((ep.badge?:"").contains("会员")) {
             throw BizException.buildBizException("视频需要大会员，拒绝执行。")
         }
     }
@@ -151,7 +200,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
             checkNeedVip(ep)
             BilibiliVideo(
                 aid = ep.aid.toString(),
-                bvid = ep.bvid,
+                bvid = ep.bvid!!,
                 title = ep.title,
                 epid = epId,
                 cid = ep.cid.toString()

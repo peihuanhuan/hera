@@ -10,13 +10,15 @@ import net.peihuan.hera.constants.BilibiliTaskTypeEnum
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.TaskStatusEnum
-import net.peihuan.hera.domain.BilibiliVideo
+import net.peihuan.hera.domain.BilibiliSubTask
+import net.peihuan.hera.domain.BilibiliTask
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.exception.BizException
-import net.peihuan.hera.persistent.po.BilibiliAudioPO
-import net.peihuan.hera.persistent.po.BilibiliAudioTaskPO
+import net.peihuan.hera.persistent.po.BilibiliSubTaskPO
+import net.peihuan.hera.persistent.po.BilibiliTaskPO
 import net.peihuan.hera.persistent.service.BilibiliAudioPOService
 import net.peihuan.hera.persistent.service.BilibiliAudioTaskPOService
+import net.peihuan.hera.service.convert.BilibiliTaskConvertService
 import net.peihuan.hera.service.storage.StorageService
 import net.peihuan.hera.util.currentUserOpenid
 import net.peihuan.hera.util.doDownload
@@ -43,6 +45,7 @@ class BVideo2AudioService(
     private val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService,
     private val bilibiliAudioPOService: BilibiliAudioPOService,
     private val storageService: StorageService,
+    private val bilibiliTaskConvertService: BilibiliTaskConvertService,
     private val grayService: GrayService,
     private val blackKeywordService: BlackKeywordService
 ) {
@@ -55,155 +58,48 @@ class BVideo2AudioService(
     @Value("\${bilibili.workdir}")
     private val workDir: String? = null
 
+
     @Transactional
-    fun saveTask2DB(data: String, type: Int, notifyType: NotifyTypeEnum): Int {
-        val videos = bilibiliService.resolve2BilibiliVideos(data)
+    fun saveTask(data: String, type: BilibiliTaskTypeEnum, notifyType: NotifyTypeEnum): Int {
+
         val notHandleTask = bilibiliAudioTaskPOService.findByOpenidAndStatus(currentUserOpenid, TaskStatusEnum.DEFAULT)
         if (notHandleTask.isNotEmpty()) {
             throw BizException.buildBizException("请等待上一个任务执行完成~")
         }
 
-        if (videos.isEmpty()) {
+        val task: BilibiliTask = generateBilibiliTask(data, type, notifyType)
+
+        val freeLimit = cacheManage.getBizValue(BizConfigEnum.MAX_FREE_LIMIT, "10").toInt()
+        val multiPLimit = cacheManage.getBizValue(BizConfigEnum.MAX_P_LIMIT, "35").toInt()
+        val maxDurationMinute = cacheManage.getBizValue(BizConfigEnum.MAX_DURATION_MINUTE, "300").toInt()
+
+        task.validTask(freeLimit = freeLimit, multiPLimit = multiPLimit, allowMaxDurationMinutes = maxDurationMinute)
+
+        val taskPO: BilibiliTaskPO = bilibiliTaskConvertService.convert2BilibiliTaskPO(task)
+        bilibiliAudioTaskPOService.save(taskPO)
+        task.setId(taskPO.id!!)
+        val subTaskPOs = task.subTasks.map { bilibiliTaskConvertService.convert2BilibiliSubTaskPO(it) }
+        bilibiliAudioPOService.saveBatch(subTaskPOs)
+
+        return task.subTaskSize
+    }
+
+    fun generateBilibiliTask(requestData: String, type: BilibiliTaskTypeEnum, notifyType: NotifyTypeEnum): BilibiliTask {
+        var bilibiliVideos = bilibiliService.resolve2BilibiliVideos(requestData)
+        if (bilibiliVideos.isEmpty()) {
             throw BizException.buildBizException("没解析到B站视频~")
         }
-        if (type == BilibiliTaskTypeEnum.FREE.code) {
-            return freeType(videos, data, type, notifyType)
+
+        if (type == BilibiliTaskTypeEnum.MULTIPLE) {
+            bilibiliVideos = bilibiliService.findAllBilibiliVideos(bilibiliVideos.first())
         }
-        if (type == BilibiliTaskTypeEnum.MULTIPLE.code) {
-            return multipleP(videos.first(), data, type, notifyType)
-        }
-        return 0
+
+        val task = BilibiliTask(request = requestData, type = type, notifyType = notifyType, openid = currentUserOpenid)
+        val subTasks = bilibiliVideos.map { BilibiliSubTask(bilibiliVideo = it, openid = currentUserOpenid) }
+        subTasks.forEach { task.addSubTask(it) }
+        return task
     }
 
-    private fun multipleP(video: BilibiliVideo, data: String, type: Int, notifyType: NotifyTypeEnum,): Int {
-
-        val limit = cacheManage.getBizValue(BizConfigEnum.MAX_P_LIMIT, "35").toInt()
-
-        if (video.epid != null) {
-            val bangumiInfo = bilibiliService.getAllBangumiInfos(video.epid)
-            if (bangumiInfo.size > limit) {
-                throw BizException.buildBizException("不支持 P 数大于 $limit，联系群主/公众号解决~")
-            }
-            val task = BilibiliAudioTaskPO(
-                name = "",
-                url = "",
-                request = data,
-                type = type,
-                notifyType = notifyType,
-                openid = currentUserOpenid,
-                status = TaskStatusEnum.DEFAULT.code,
-                size = bangumiInfo.size
-            )
-            bilibiliAudioTaskPOService.save(task)
-
-            val tasks = bangumiInfo.map {
-                BilibiliAudioPO(
-                    taskId = task.id!!,
-                    openid = task.openid,
-                    bvid = it.bvid,
-                    aid = it.aid!!,
-                    cid = it.cid!!,
-                    mid = "",
-                    title = it.title!!
-                )
-            }
-            bilibiliAudioPOService.saveBatch(tasks)
-            return task.size
-        } else {
-            val view = bilibiliService.getViewByBvid(video.bvid)
-
-            if (view.pages.size > limit) {
-                throw BizException.buildBizException("不支持 P 数大于 $limit，联系群主/公众号解决~")
-            }
-
-            val task = BilibiliAudioTaskPO(
-                name = "",
-                url = "",
-                request = data,
-                type = type,
-                notifyType = notifyType,
-                openid = currentUserOpenid,
-                status = TaskStatusEnum.DEFAULT.code,
-                size = view.pages.size
-            )
-            bilibiliAudioTaskPOService.save(task)
-
-
-            val tasks = view.pages.map {
-                BilibiliAudioPO(
-                    taskId = task.id!!,
-                    openid = task.openid,
-                    bvid = view.bvid,
-                    aid = view.aid,
-                    cid = it.cid,
-                    mid = view.owner.mid,
-                    title = it.part
-                )
-            }
-            bilibiliAudioPOService.saveBatch(tasks)
-            return tasks.size
-        }
-
-
-
-
-
-    }
-
-    private fun freeType(videos: List<BilibiliVideo>, data: String, type: Int, notifyType: NotifyTypeEnum): Int {
-        val limit = cacheManage.getBizValue(BizConfigEnum.MAX_FREE_LIMIT, "10").toInt()
-        if (videos.size > limit) {
-            throw BizException.buildBizException("一次不能超过 $limit 个视频")
-        }
-        val views = videos.associateWith { bilibiliService.getViewByBvid(it.bvid) }
-
-
-
-        val task = BilibiliAudioTaskPO(
-            name = "",
-            url = "",
-            request = data,
-            type = type,
-            notifyType = notifyType,
-            openid = currentUserOpenid,
-            status = TaskStatusEnum.DEFAULT.code,
-            size = videos.size
-        )
-        bilibiliAudioTaskPOService.save(task)
-
-        val maxDurationMinute = cacheManage.getBizValue(BizConfigEnum.MAX_DURATION_MINUTE, "300").toInt()
-        var totalDuration = 0
-        val taskAudios = views.map {
-            val pageNo = it.key.page
-            val cid: String
-            val title: String
-            if (pageNo == null) {
-                cid = it.value.cid
-                title = it.value.title
-                totalDuration += it.value.duration
-            } else {
-                val pageVideo = it.value.pages.filter { page -> page.page.toString() == pageNo }.first()
-                cid = pageVideo.cid
-                title = "${it.value.title} p$pageNo ${pageVideo.part}"
-                totalDuration += pageVideo.duration
-            }
-            
-            if (totalDuration > maxDurationMinute * 60) {
-                throw BizException.buildBizException("视频总时长不能超过 $maxDurationMinute 分钟")
-            }
-            BilibiliAudioPO(
-                taskId = task.id!!,
-                openid = task.openid,
-                bvid = it.key.bvid,
-                aid = it.value.aid,
-                cid = cid,
-                mid = it.value.owner.mid,
-                title = title
-            )
-        }
-        bilibiliAudioPOService.saveBatch(taskAudios)
-        return videos.size
-    }
 
 
     @Scheduled(fixedDelay = 30_000)
@@ -222,7 +118,7 @@ class BVideo2AudioService(
         }
     }
 
-    fun processVideos(task: BilibiliAudioTaskPO): String {
+    fun processVideos(task: BilibiliTaskPO): String {
         try {
             val byId = bilibiliAudioTaskPOService.getById(task.id!!)
             if (byId.status == TaskStatusEnum.SUCCESS.code) {
@@ -230,7 +126,7 @@ class BVideo2AudioService(
                 return byId.url
             }
             // 手动恢复
-            if(byId.url.isNotBlank() && byId.name.isNotBlank()) {
+            if (byId.url.isNotBlank() && byId.name.isNotBlank()) {
                 task.status = TaskStatusEnum.SUCCESS.code
                 task.updateTime = null
                 bilibiliAudioTaskPOService.updateById(task)
@@ -241,7 +137,7 @@ class BVideo2AudioService(
             val subTasks = bilibiliAudioPOService.findByTaskId(task.id!!)
 
 
-            if(!grayService.isGrayUser(task.openid)) {
+            if (!grayService.isGrayUser(task.openid)) {
 
                 val fileIds = subTasks.map { subTask ->
 
@@ -315,8 +211,8 @@ class BVideo2AudioService(
     }
 
     private fun zipFiles(
-        task: BilibiliAudioTaskPO,
-        audios: List<BilibiliAudioPO>,
+        task: BilibiliTaskPO,
+        audios: List<BilibiliSubTaskPO>,
         audioFiles: List<File>,
     ): File {
         val name = if (task.type == BilibiliTaskTypeEnum.MULTIPLE.code) {
@@ -342,12 +238,12 @@ class BVideo2AudioService(
         return targetFile
     }
 
-    fun processBV(bilibiliAudioPO: BilibiliAudioPO, tryTime: Int): File {
+    fun processBV(bilibiliSubTaskPO: BilibiliSubTaskPO, tryTime: Int): File {
         var count = 0
         var file: File? = null
         while (file?.exists() != true && count++ < tryTime) {
             try {
-                file = processBV(bilibiliAudioPO)
+                file = processBV(bilibiliSubTaskPO)
             } catch (e: Exception) {
                 log.error(e.message, e)
             }
@@ -355,9 +251,9 @@ class BVideo2AudioService(
         return file!!
     }
 
-    fun processBV(bilibiliAudioPO: BilibiliAudioPO): File {
+    fun processBV(bilibiliSubTaskPO: BilibiliSubTaskPO): File {
 
-        var title = bilibiliAudioPO.title.replace("/", "")
+        var title = bilibiliSubTaskPO.title.replace("/", "")
         if (title.length > 40) {
             // linux 文件名最大 255 个字符，这边截取一部分
             title = title.substring(0, 20) + "..." + title.substring(title.length - 20)
@@ -370,12 +266,12 @@ class BVideo2AudioService(
             return destentFile
         }
 
-        var url = bilibiliService.getDashAudioPlayUrl(bilibiliAudioPO.aid, bilibiliAudioPO.cid)
+        var url = bilibiliService.getDashAudioPlayUrl(bilibiliSubTaskPO.aid, bilibiliSubTaskPO.cid)
         if (url == null) {
-            url = bilibiliService.getFlvPlayUrl(bilibiliAudioPO.aid, bilibiliAudioPO.cid)!!
+            url = bilibiliService.getFlvPlayUrl(bilibiliSubTaskPO.aid, bilibiliSubTaskPO.cid)!!
         }
 
-        val bvId = bilibiliAudioPO.bvid
+        val bvId = bilibiliSubTaskPO.bvid
         val headers = mapOf(
             "Accept" to "*/*",
             "Accept-Encoding" to "gzip, deflate, br",
@@ -386,11 +282,11 @@ class BVideo2AudioService(
             "User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36"
         )
 
-        val source = "${workDir}/${bilibiliAudioPO.cid}.m4s"
+        val source = "${workDir}/${bilibiliSubTaskPO.cid}.m4s"
         log.info { "====== 开始下载 $source" }
         doDownload(url, File(source), headers, 5)
 
-        val target = "${workDir}/${bilibiliAudioPO.cid}.mp3"
+        val target = "${workDir}/${bilibiliSubTaskPO.cid}.mp3"
         FileUtils.deleteQuietly(File(target))
         // CmdUtil.executeBash("ffmpeg -i $source $target")
         ffmpeg(source, target)
@@ -411,9 +307,9 @@ class BVideo2AudioService(
         // 根据不同的时长，设置合适的比特率
         val byteRate: Long = if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(10)) {
             192
-        } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(100)){
+        } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(100)) {
             128
-        } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(200)){
+        } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(200)) {
             64
         } else if (inputProbe.getFormat().duration < TimeUnit.MINUTES.toSeconds(400)) {
             32

@@ -1,6 +1,7 @@
 package net.peihuan.hera
 
 import mu.KotlinLogging
+import net.peihuan.hera.constants.BilibiliTaskTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.service.BVideo2AudioService
 import net.peihuan.hera.service.BilibiliService
@@ -32,13 +33,15 @@ class BilibiliServiceTest : HeraApplicationTests() {
     @Test
     fun testSaveDB() {
         SecurityContextHolder.getContext().authentication = PreAuthenticatedAuthenticationToken("fake-3","",null)
-        bVideo2AudioService.saveTask2DB("""【《大理寺日志》 《少卿游》MV-哔哩哔哩国创】https://b23.tv/ep320711
+        bVideo2AudioService.saveTask("""
             |
+            |大理寺日记  https://www.bilibili.com/bangumi/play/ep317088?from_spmid=666.25.episode.0
+            |
+            |多p中的一个p  https://www.bilibili.com/video/BV1E5411W7iH?p=2
             |https://www.bilibili.com/video/BV1bh411z7yF
-            |            ！《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W
-            |            https://www.bilibili.com/bangumi/play/ep317089
+            |短链接 《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W
             |            
-        """.trimMargin(), 1,NotifyTypeEnum.MP_REPLY)
+        """.trimMargin(), BilibiliTaskTypeEnum.FREE,NotifyTypeEnum.MP_REPLY)
     }
 
     @Test
@@ -137,7 +140,7 @@ class BilibiliServiceTest : HeraApplicationTests() {
             https://www.bilibili.com/video/BV1ua411872R
         """.trimIndent())
         val bvFromPram =
-            bilibiliService.getBVFromPram("https://www.bilibili.com/video/BV12321?p=1&a=1 https://www.bilibili.com/festival/2021bnj?bvid=1&p=1&share_m=1    https://www.bil")
+            bilibiliService.resolveBvSimpleInfoFromPram("https://www.bilibili.com/video/BV12321?p=1&a=1 https://www.bilibili.com/festival/2021bnj?bvid=1&p=1&share_m=1    https://www.bil")
         println(x)
     }
 

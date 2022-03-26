@@ -1,5 +1,6 @@
 package net.peihuan.hera.web.controller
 
+import net.peihuan.hera.constants.BilibiliTaskTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.domain.JsonResult
 import net.peihuan.hera.service.BVideo2AudioService
@@ -22,6 +23,7 @@ class BilibiliController(private val bVideo2AudioService: BVideo2AudioService) {
     @PostMapping("/audio")
     @PreAuthorize("hasAnyAuthority(@userAuthorities.NORMAL_USER)")
     fun convert2Audio(@RequestBody body:AudioRequest): JsonResult {
-        return JsonResult.success(bVideo2AudioService.saveTask2DB(body.data, body.type, NotifyTypeEnum.MESSAGE_TEMPLATE))
+        return JsonResult.success(bVideo2AudioService.saveTask(body.data,
+            BilibiliTaskTypeEnum.getTypeEnum(body.type)!!, NotifyTypeEnum.MESSAGE_TEMPLATE))
     }
 }
