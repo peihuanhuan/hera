@@ -6,15 +6,14 @@ import net.peihuan.hera.constants.TaskStatusEnum
 import net.peihuan.hera.exception.BizException
 
 class BilibiliTask(
+    var id: Long ?= null,
     var openid: String,
     var request: String,
     val type: BilibiliTaskTypeEnum,
     val notifyType: NotifyTypeEnum,
-    var id: Long ?= null,
-
 
     var status: TaskStatusEnum = TaskStatusEnum.DEFAULT,
-    var result: String? = null,
+    var result: String = "",
     var name: String? = null
 ) {
 
@@ -26,8 +25,14 @@ class BilibiliTask(
     val subTaskSize: Int
         get() = subTasks.size
 
-    fun addSubTask(task: BilibiliSubTask) {
-        subTasks.add(task)
+    fun trimName() {
+        if (name!!.length >= 20) {
+            name = name!!.substring(0, 8) + "..." + name!!.substring(name!!.length - 8)
+        }
+    }
+
+    fun addSubTasks(tasks: List<BilibiliSubTask>) {
+        subTasks.addAll(tasks)
     }
 
     fun setId(id: Long) {

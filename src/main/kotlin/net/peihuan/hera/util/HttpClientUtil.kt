@@ -12,6 +12,7 @@ import org.apache.http.impl.client.HttpClients
 import org.apache.http.protocol.HTTP
 import java.io.File
 import java.io.IOException
+import kotlin.system.measureTimeMillis
 
 private val log = KotlinLogging.logger {}
 
@@ -48,6 +49,24 @@ fun getLocationUrl(url: String): String? {
 
 
 val downloadHttpClient = HttpClients.custom().setDefaultRequestConfig(config).build()
+
+fun doDownloadBilibiliVideo(url: String, descFile: File, bvid: String, retryTime: Int = 3) {
+    val headers = mapOf(
+        "Accept" to "*/*",
+        "Accept-Encoding" to "gzip, deflate, br",
+        "Accept-Language" to "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Connection" to "keep-alive",
+        "origin" to "https://www.bilibili.com",
+        "referer" to "https://www.bilibili.com/video/$bvid",
+        "User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36"
+    )
+    var retry = 0;
+    log.info { "====== 开始下载 ${descFile.absolutePath}" }
+    while (retry++ < retryTime && !descFile.exists()) {
+        val measureTimeMillis = measureTimeMillis { doDownload(url, descFile, headers) }
+        log.info("下载完成，耗时 {} 秒", measureTimeMillis / 1000)
+    }
+}
 
 fun doDownload(url: String, descFile: File, header: Map<String, String>, retryTime: Int) {
     var retry = 0;

@@ -11,6 +11,7 @@ import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.YYYY_MM_DD_HH_MM_SS
 import net.peihuan.hera.constants.ZyOrderSourceEnum
 import net.peihuan.hera.constants.ZyOrderSourceEnum.Companion.getSourceEnum
+import net.peihuan.hera.domain.BilibiliTask
 import net.peihuan.hera.feign.service.PushPlusService
 import net.peihuan.hera.persistent.po.BilibiliTaskPO
 import net.peihuan.hera.persistent.po.ZyOrderPO
@@ -119,21 +120,21 @@ class NotifyService(
         val send = pushPlusService.send(request)
     }
 
-    fun notifyTaskFail(task: BilibiliTaskPO) {
+    fun notifyTaskFail(task: BilibiliTask) {
         val request = PushPlusService.SendRequest(
             token = pushPlustoken,
             title = "任务处理失败：${task.name}",
             channel = "webhook",
             webhook = "pushplus",
             content = """
-                    创建时间：${DateTime(task.createTime).toString(YYYY_MM_DD_HH_MM_SS)}
-                    个数：${task.size}
+                    名称：${task.name}
+                    个数：${task.subTaskSize}
                     """.trimMargin()
         )
         val send = pushPlusService.send(request)
     }
 
-    fun notifyTaskResult(task: BilibiliTaskPO) {
+    fun notifyTaskResult(task: BilibiliTask) {
         if (task.notifyType == NotifyTypeEnum.MESSAGE_TEMPLATE) {
             val templateMessage = WxMpSubscribeMessage.builder()
                 .toUser(task.openid)
@@ -150,7 +151,7 @@ class NotifyService(
 
             wxMpService.subscribeMsgService.send(templateMessage)
         } else if (task.notifyType == NotifyTypeEnum.MP_REPLY){
-            task.openid.replyKfMessage(task.url)
+            task.openid.replyKfMessage(task.result)
         }
     }
 

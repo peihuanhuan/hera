@@ -37,10 +37,11 @@ class AliyundriveService(
     var tokeType = "Bearer"
 
     // 根目录
-    val parentId = "61b5b695fa43037eca8d44cb85bb457b299b5005"
+
 
     companion object {
         var ALIYUN_DRIVER_TOKEN = ""
+        const val DEFAULT_ROOT_ID = "61b5b695fa43037eca8d44cb85bb457b299b5005"
     }
 
     private val part_max_size: Long = 10 * 1024 * 1024L
@@ -57,6 +58,15 @@ class AliyundriveService(
             log.error(e.message)
             null
         }
+    }
+
+    fun checkFileExisted(fileId: String): Boolean {
+        val fileDTO = get(fileId)
+        if (fileDTO != null && !fileDTO.trashed) {
+            //检查是否被删除等情况
+            return true
+        }
+        return false
     }
 
     fun share(fileId: String): ShareDTO {
@@ -81,18 +91,18 @@ class AliyundriveService(
         throw BizException.buildBizException("阿里云盘分享失败")
     }
 
-    fun uploadFile(file: File , retry: Int): CreateWithFoldersDTO {
+    fun uploadFile(file: File , retry: Int, parentId: String = DEFAULT_ROOT_ID): CreateWithFoldersDTO {
         var time = 0
         while (time++ < retry) {
             try {
-                return uploadFile(file)
+                return uploadFile(file, parentId)
             } catch (e: Exception) {
                 log.error(e.message, e)
             }
         }
         throw BizException.buildBizException("阿里云盘上传失败")
     }
-    fun uploadFile(file: File): CreateWithFoldersDTO {
+    fun uploadFile(file: File, parentId: String = DEFAULT_ROOT_ID): CreateWithFoldersDTO {
 
         val fakeFile = buildFakeFile(file)
 
@@ -161,6 +171,32 @@ class AliyundriveService(
         return createWithFoldersDTO
     }
 
+    fun getFolderOrCreate(parentId: String, name: String): String {
+        val createWithFoldersRequest = CreateWithFoldersRequest(
+            drive_id = driveId,
+            check_name_mode = "refuse",
+            parent_file_id = parentId,
+            name = name,
+            type = "folder",
+        )
+        log.info { "createWithFolders 参数: ${createWithFoldersRequest.toJson()}" }
+        val createWithFoldersDTO = aliyundriveFeignService.createWithFolders(createWithFoldersRequest)
+        return createWithFoldersDTO.file_id
+    }
+
+    fun createFolder(parentId: String, name: String): String {
+        val createWithFoldersRequest = CreateWithFoldersRequest(
+            drive_id = driveId,
+            check_name_mode = "auto_rename",
+            parent_file_id = parentId,
+            name = name,
+            type = "folder",
+        )
+        log.info { "createWithFolders 参数: ${createWithFoldersRequest.toJson()}" }
+        val createWithFoldersDTO = aliyundriveFeignService.createWithFolders(createWithFoldersRequest)
+        return createWithFoldersDTO.file_id
+    }
+
     // https://www.garykessler.net/library/file_sigs.html
     // https://en.wikipedia.org/wiki/List_of_file_signatures
     fun buildFakeFile(file: File): File {
@@ -199,7 +235,7 @@ class AliyundriveService(
             ListFileRequest(
                 limit = 100,
                 drive_id = driveId,
-                parent_file_id = parentId
+                parent_file_id = DEFAULT_ROOT_ID
             )
         )
     }

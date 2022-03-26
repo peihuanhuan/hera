@@ -13,6 +13,7 @@ data class BilibiliSubTaskPO (
     var taskId: Long,
     var openid: String,
     val bvid: String,
+    val duration: Int,
     val aid: String,
     val cid: String,
     val title: String,
