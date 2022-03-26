@@ -162,7 +162,7 @@ class AliyundriveService(
         val completeUploadRequest = CompleteUploadRequest(
             drive_id = driveId,
             file_id = createWithFoldersDTO.file_id,
-            upload_id = createWithFoldersDTO.upload_id
+            upload_id = createWithFoldersDTO.upload_id!!
         )
         aliyundriveFeignService.completeUpload(completeUploadRequest)
 

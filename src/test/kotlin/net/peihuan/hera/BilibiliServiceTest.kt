@@ -27,21 +27,15 @@ class BilibiliServiceTest : HeraApplicationTests() {
 
     @Test
     fun testProcessVideos(){
-        bVideo2AudioService.ffmpeg("/Users/peihuan/Downloads/479516842_nb2-1-30280.m4s", "/Users/peihuan/Downloads/b3.mp3")
+        bVideo2AudioService.ffmpeg("/Users/peihuan/Downloads/479516842_nb2-1-30280.m4s", "/Users/peihuan/Downloads/b3.mp3",11)
     }
 
     @Test
     fun testSaveDB() {
         SecurityContextHolder.getContext().authentication = PreAuthenticatedAuthenticationToken("fake-3","",null)
         bVideo2AudioService.saveTask("""
-            |
-            |大理寺日记  https://www.bilibili.com/bangumi/play/ep317088?from_spmid=666.25.episode.0
-            |
-            |多p中的一个p  https://www.bilibili.com/video/BV1E5411W7iH?p=2
-            |https://www.bilibili.com/video/BV1bh411z7yF
-            |短链接 《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W
-            |            
-        """.trimMargin(), BilibiliTaskTypeEnum.FREE,NotifyTypeEnum.MP_REPLY)
+|https://www.bilibili.com/video/BV1134y1278Y?from=search&seid=16667242062709473363&spm_id_from=333.337.0.0            |            
+        """.trimMargin(), BilibiliTaskTypeEnum.MULTIPLE,NotifyTypeEnum.MP_REPLY)
     }
 
     @Test

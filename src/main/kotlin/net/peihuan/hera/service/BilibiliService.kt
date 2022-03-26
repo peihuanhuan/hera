@@ -57,7 +57,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
             bilibiliVideo.cid = view.cid
             bilibiliVideo.title = view.title
         } else {
-            val pageVideo = view.pages.filter { page -> page.page.toString() == bilibiliVideo.page }.first()
+            val pageVideo = view.pages.first { page -> page.page.toString() == bilibiliVideo.page }
             bilibiliVideo.duration = pageVideo.duration
             bilibiliVideo.cid = pageVideo.cid
             bilibiliVideo.title = "${view.title} p${bilibiliVideo.page} ${pageVideo.part}"
@@ -73,7 +73,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         bilibiliVideo.mid = view.owner.mid
         bilibiliVideo.duration = page.duration
         bilibiliVideo.cid = page.cid
-        bilibiliVideo.title = "${view.title} p${bilibiliVideo.page} ${page.part}"
+        bilibiliVideo.title = "${view.title} p${page.page} ${page.part}"
         return bilibiliVideo
     }
 
