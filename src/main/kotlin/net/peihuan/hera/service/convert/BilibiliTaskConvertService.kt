@@ -24,6 +24,7 @@ class BilibiliTaskConvertService() {
         return BilibiliSubTask(
             taskId = po.taskId,
             openid = po.openid,
+            id = po.id,
             bilibiliVideo = bilibiliVideo,
             aliyundriverFileId = po.fileId
         )
@@ -44,6 +45,7 @@ class BilibiliTaskConvertService() {
 
     fun convert2BilibiliSubTaskPO(bilibiliSubTask: BilibiliSubTask): BilibiliSubTaskPO {
         return BilibiliSubTaskPO(
+            id = bilibiliSubTask.id,
             taskId = bilibiliSubTask.taskId!!,
             openid = bilibiliSubTask.openid,
             title = bilibiliSubTask.originalTitle,
@@ -58,6 +60,7 @@ class BilibiliTaskConvertService() {
 
     fun convert2BilibiliTaskPO(bilibiliTask: BilibiliTask): BilibiliTaskPO {
         return BilibiliTaskPO(
+            id = bilibiliTask.id,
             openid = bilibiliTask.openid,
             request = bilibiliTask.request,
             name = bilibiliTask.name ?: "",

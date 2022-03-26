@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit
 
 class BilibiliSubTask(
     private val bilibiliVideo: BilibiliVideo,
+    var id: Long? = null,
     var taskId: Long? = null,
     var openid: String,
     var aliyundriverFileId: String? = null
