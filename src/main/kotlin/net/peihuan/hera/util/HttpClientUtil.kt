@@ -66,6 +66,9 @@ fun doDownloadBilibiliVideo(url: String, descFile: File, bvid: String, retryTime
         val measureTimeMillis = measureTimeMillis { doDownload(url, descFile, headers) }
         log.info("下载完成，耗时 {} 秒", measureTimeMillis / 1000)
     }
+    if (!descFile.exists()) {
+        log.error { "下载失败，没有文件 $bvid $url  " }
+    }
 }
 
 fun doDownload(url: String, descFile: File, header: Map<String, String>, retryTime: Int) {

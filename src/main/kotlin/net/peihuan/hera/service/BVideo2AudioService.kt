@@ -183,9 +183,6 @@ class BVideo2AudioService(
     fun handleTask(task: BilibiliTask): String {
         try {
 
-            task.trimName()
-
-
             if (!grayService.isGrayUser(task.openid)) {
                 val successSubTask = findAliyunDriverSuccessSubTask(task)
 
@@ -248,9 +245,8 @@ class BVideo2AudioService(
                 }
             }
 
-
+            task.trimName()
             updateTaskStatus(task, TaskStatusEnum.SUCCESS)
-
             task.name = blackKeywordService.replaceBlackKeyword(task.name!!)
             notifyService.notifyTaskResult(task)
 
@@ -310,14 +306,19 @@ class BVideo2AudioService(
         }
 
         // 获取视频下载链接
-        var url = bilibiliService.getDashAudioPlayUrl(subTask.aid, subTask.cid)
-        if (url == null) {
-            url = bilibiliService.getFlvPlayUrl(subTask.aid, subTask.cid)!!
+        var downloadUrls = bilibiliService.getDashAudioPlayUrl(subTask.aid, subTask.cid)
+        if (downloadUrls.isEmpty()) {
+            downloadUrls = bilibiliService.getFlvPlayUrl(subTask.aid, subTask.cid)
         }
 
         // 下载视频到本地
         val source = "${workDir}/${subTask.cid}.m4s"
-        doDownloadBilibiliVideo(url, File(source), subTask.bvid, 3)
+        val sourceFile = File(source)
+        downloadUrls.takeWhile { !sourceFile.exists() }
+            .forEach {
+                doDownloadBilibiliVideo(it, sourceFile, subTask.bvid, 3)
+            }
+
 
 
         // ffmpeg 文件如果是中文，可能会有些奇怪问题，使用 cid 作为唯一标识
@@ -329,7 +330,7 @@ class BVideo2AudioService(
         // 最后恢复原本的文件名
         File(target).renameTo(destinationFile)
         FileUtils.deleteQuietly(File(target))
-        FileUtils.deleteQuietly(File(source))
+        FileUtils.deleteQuietly(sourceFile)
         return destinationFile
     }
 

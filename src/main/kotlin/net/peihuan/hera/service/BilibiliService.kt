@@ -144,20 +144,27 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         return bilibiliFeignService.getView(bvid = bvid).data
     }
 
-    fun getDashAudioPlayUrl(avid: String, cid: String): String? {
+    fun getDashAudioPlayUrl(avid: String, cid: String): List<String> {
         val dashPlayurl =
             bilibiliFeignService.dashPlayurl(avid = avid, cid = cid, Quality.P_360.code)
         val audios = dashPlayurl.data.dash?.audio
         if (audios.isNullOrEmpty()) {
-            return null
+            return emptyList()
         }
-        return audios.maxByOrNull { it.bandwidth }!!.base_url
+        val allUrls = mutableListOf<String>()
+        audios.sortedBy { it.bandwidth }
+        audios.forEach {
+            allUrls.add(it.baseUrl)
+            allUrls.addAll(it.backupUrl)
+        }
+        return allUrls
+        // return audios.maxByOrNull { it.bandwidth }!!.base_url
     }
 
-    fun getFlvPlayUrl(avid: String, cid: String): String? {
+    fun getFlvPlayUrl(avid: String, cid: String): List<String> {
         val dashPlayurl =
             bilibiliFeignService.flvPlayurl(avid = avid, cid = cid, Quality.P_360.code)
-        return dashPlayurl.data.durl?.first()?.url
+        return listOf(dashPlayurl.data.durl?.first()?.url!!)
     }
 
     fun getBangumiInfo(epId: Int): BilibiliVideo? {

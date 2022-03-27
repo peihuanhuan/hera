@@ -25,6 +25,7 @@ class BilibiliTask(
     val subTaskSize: Int
         get() = subTasks.size
 
+    // 消息模板最多20个字符
     fun trimName() {
         if (name!!.length >= 20) {
             name = name!!.substring(0, 8) + "..." + name!!.substring(name!!.length - 8)

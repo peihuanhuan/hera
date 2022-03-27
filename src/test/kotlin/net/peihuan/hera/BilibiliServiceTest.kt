@@ -7,6 +7,7 @@ import net.peihuan.hera.service.BVideo2AudioService
 import net.peihuan.hera.service.BilibiliService
 import net.peihuan.hera.util.CmdUtil
 import net.peihuan.hera.util.doDownload
+import net.peihuan.hera.util.doDownloadBilibiliVideo
 import net.peihuan.hera.util.getLocationUrl
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,7 +65,7 @@ class BilibiliServiceTest : HeraApplicationTests() {
 
         val source = "/Users/peihuan/Downloads/test-audio.m4s"
         log.info { "====== 开始下载 m4s" }
-        doDownload(dashPlayurl!!, File(source), headers)
+        doDownload(dashPlayurl.first()!!, File(source), headers)
 
         val target = "/Users/peihuan/Downloads/test-audio.mp3"
         File(target).delete()
@@ -144,4 +145,12 @@ class BilibiliServiceTest : HeraApplicationTests() {
         log.info { "==== bv 为 $resolveBV" }
     }
 
+
+    @Test
+    fun download() {
+        var url = bilibiliService.getDashAudioPlayUrl("96649838", "164996045")
+        doDownloadBilibiliVideo(url.first()!!,
+            File("/Users/peihuan/Downloads/aa.m4s"),
+            "BV117411f73L")
+    }
 }
