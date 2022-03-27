@@ -192,7 +192,7 @@ class BVideo2AudioService(
                 val parentId = if (task.type == BilibiliTaskTypeEnum.MULTIPLE) {
                     task.subTasks
                     val userRootFolder = aliyundriveService.getFolderOrCreate(DEFAULT_ROOT_ID, task.openid)
-                    aliyundriveService.createFolder(userRootFolder, task.name!!)
+                    aliyundriveService.getFolderOrCreate(userRootFolder, task.name!!)
                 } else {
                     DEFAULT_ROOT_ID
                 }
