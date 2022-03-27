@@ -183,6 +183,9 @@ class BVideo2AudioService(
     fun handleTask(task: BilibiliTask): String {
         try {
 
+            task.trimName()
+
+
             if (!grayService.isGrayUser(task.openid)) {
                 val successSubTask = findAliyunDriverSuccessSubTask(task)
 
@@ -245,7 +248,6 @@ class BVideo2AudioService(
                 }
             }
 
-            task.trimName()
 
             updateTaskStatus(task, TaskStatusEnum.SUCCESS)
 
