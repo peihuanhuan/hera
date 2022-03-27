@@ -84,7 +84,11 @@ class BVideo2AudioService(
         return task.subTaskSize
     }
 
-    fun generateBilibiliTask(requestData: String, type: BilibiliTaskTypeEnum, notifyType: NotifyTypeEnum): BilibiliTask {
+    fun generateBilibiliTask(
+        requestData: String,
+        type: BilibiliTaskTypeEnum,
+        notifyType: NotifyTypeEnum
+    ): BilibiliTask {
         var bilibiliVideos = bilibiliService.resolve2BilibiliVideos(requestData)
         if (bilibiliVideos.isEmpty()) {
             throw BizException.buildBizException("没解析到B站视频~")
@@ -97,12 +101,17 @@ class BVideo2AudioService(
             taskName = bilibiliService.getViewByBvid(firstVideo.bvid).title
         }
 
-        val task = BilibiliTask(request = requestData, name = taskName, type = type, notifyType = notifyType, openid = currentUserOpenid)
+        val task = BilibiliTask(
+            request = requestData,
+            name = taskName,
+            type = type,
+            notifyType = notifyType,
+            openid = currentUserOpenid
+        )
         val subTasks = bilibiliVideos.map { BilibiliSubTask(bilibiliVideo = it, openid = currentUserOpenid) }
         task.addSubTasks(subTasks)
         return task
     }
-
 
 
     @Scheduled(fixedDelay = 30_000)
@@ -120,7 +129,6 @@ class BVideo2AudioService(
             }
         }
     }
-
 
 
     fun handleTask(taskPO: BilibiliTaskPO): String {
@@ -259,7 +267,7 @@ class BVideo2AudioService(
         return "处理失败"
     }
 
-    private fun zipFiles(task: BilibiliTask, audioFiles: List<File>, ): File {
+    private fun zipFiles(task: BilibiliTask, audioFiles: List<File>): File {
         val name = if (task.type == BilibiliTaskTypeEnum.MULTIPLE) {
             task.name!!
         } else {
@@ -297,6 +305,7 @@ class BVideo2AudioService(
         }
         return file!!
     }
+
     fun convertSubTask(subTask: BilibiliSubTask): File {
 
         val destinationFile = File("${workDir}/${subTask.trimTitle}.mp3")
@@ -314,11 +323,14 @@ class BVideo2AudioService(
         // 下载视频到本地
         val source = "${workDir}/${subTask.cid}.m4s"
         val sourceFile = File(source)
-        downloadUrls.takeWhile { !sourceFile.exists() }
-            .forEach {
+        run downloadFile@ {
+            downloadUrls.forEach {
                 doDownloadBilibiliVideo(it, sourceFile, subTask.bvid, 3)
+                if (sourceFile.exists()) {
+                    return@downloadFile
+                }
             }
-
+        }
 
 
         // ffmpeg 文件如果是中文，可能会有些奇怪问题，使用 cid 作为唯一标识
