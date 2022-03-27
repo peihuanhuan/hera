@@ -60,8 +60,9 @@ fun doDownloadBilibiliVideo(url: String, descFile: File, bvid: String, retryTime
         "referer" to "https://www.bilibili.com/video/$bvid",
         "User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36"
     )
+    FileUtils.deleteQuietly(descFile);
     var retry = 0;
-    log.info { "====== 开始下载 ${descFile.absolutePath}" }
+    log.info { "====== 开始下载 ${descFile.absolutePath}  $url" }
     while (retry++ < retryTime && !descFile.exists()) {
         val measureTimeMillis = measureTimeMillis { doDownload(url, descFile, headers) }
         log.info("下载完成，耗时 {} 秒", measureTimeMillis / 1000)
