@@ -147,12 +147,12 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
     fun getDashAudioPlayUrl(avid: String, cid: String): List<String> {
         val dashPlayurl =
             bilibiliFeignService.dashPlayurl(avid = avid, cid = cid, Quality.P_360.code)
-        val audios = dashPlayurl.data.dash?.audio
+        var audios = dashPlayurl.data.dash?.audio
         if (audios.isNullOrEmpty()) {
             return emptyList()
         }
         val allUrls = mutableListOf<String>()
-        audios.sortedBy { it.bandwidth }
+        audios = audios.sortedByDescending { it.bandwidth }
         audios.forEach {
             allUrls.add(it.baseUrl)
             allUrls.addAll(it.backupUrl)
