@@ -155,7 +155,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         audios = audios.sortedByDescending { it.bandwidth }
         audios.forEach {
             allUrls.add(it.baseUrl)
-            allUrls.addAll(it.backupUrl)
+            allUrls.addAll(it.backupUrl?: emptyList())
         }
         return allUrls
         // return audios.maxByOrNull { it.bandwidth }!!.base_url

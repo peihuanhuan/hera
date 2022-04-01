@@ -2,7 +2,7 @@ package net.peihuan.hera.feign.dto.bilibili
 
 data class Video(
     val SegmentBase: SegmentBaseXX,
-    val backupUrl: List<String>,
+    val backupUrl: List<String>?,
     val backup_url: List<String>,
     val bandwidth: Int,
     val baseUrl: String,

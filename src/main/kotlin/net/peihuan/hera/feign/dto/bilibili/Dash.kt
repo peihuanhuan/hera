@@ -5,5 +5,5 @@ data class Dash(
     val duration: Int,
     val minBufferTime: Double,
     val min_buffer_time: Double,
-    val video: List<Video>
+    val video: List<Video>?
 )
