@@ -27,6 +27,11 @@ class BilibiliServiceTest : HeraApplicationTests() {
     lateinit var bVideo2AudioService: BVideo2AudioService
 
     @Test
+    fun xx() {
+        val dashAudioPlayUrl = bilibiliService.getDashAudioPlayUrl("26587943", "45721859")
+    }
+
+    @Test
     fun testProcessVideos(){
         bVideo2AudioService.ffmpeg("/Users/peihuan/Downloads/479516842_nb2-1-30280.m4s", "/Users/peihuan/Downloads/b3.mp3",11)
     }
