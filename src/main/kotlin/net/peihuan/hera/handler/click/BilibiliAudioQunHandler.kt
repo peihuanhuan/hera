@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 class BilibiliAudioQunHandler(val cacheManage: CacheManage) : AbstractMessageHandler {
 
     override fun receivedMessages(): List<String> {
-        return listOf("BiliBili玩梗闲聊群")
+        return listOf("阿烫的粉丝群")
     }
 
     override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
