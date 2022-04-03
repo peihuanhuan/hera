@@ -3,7 +3,7 @@ package net.peihuan.hera.feign.dto.bilibili
 data class Audio(
     val SegmentBase: SegmentBase,
     val backupUrl: List<String>?,
-    val backup_url: List<String>,
+    val backup_url: List<String>?,
     val bandwidth: Int,
     val baseUrl: String,
     val base_url: String,
