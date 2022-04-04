@@ -40,7 +40,7 @@ class BilibiliServiceTest : HeraApplicationTests() {
     fun testSaveDB() {
         SecurityContextHolder.getContext().authentication = PreAuthenticatedAuthenticationToken("fake-3","",null)
         bVideo2AudioService.saveTask("""
-|https://www.bilibili.com/video/BV1134y1278Y?from=search&seid=16667242062709473363&spm_id_from=333.337.0.0            |            
+【《大理寺日志》 《少卿游》MV-哔哩哔哩国创】https://b23.tv/ep320711        
         """.trimMargin(), BilibiliTaskTypeEnum.MULTIPLE,NotifyTypeEnum.MP_REPLY)
     }
 

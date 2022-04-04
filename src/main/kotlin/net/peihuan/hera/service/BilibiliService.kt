@@ -171,13 +171,14 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         val bangumiIbfo: BilibiliFeignService.Result<BangumiInfo> = bilibiliFeignService.getBangumiIbfo(epId)
         val allEpisodes = getAllEpisodes(bangumiIbfo)
 
-        val ep = allEpisodes.first { it.id == epId }
+        val ep: Episode = allEpisodes.first { it.id == epId }
         checkNeedVip(ep)
         return BilibiliVideo(
             aid = ep.aid.toString(),
             bvid = ep.bvid!!,
             epid = epId,
             title = ep.share_copy,
+            mid = "",
             // ep 时长单位为毫秒
             duration = ep.duration?.div(1000),
             cid = ep.cid.toString(),

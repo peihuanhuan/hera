@@ -9,7 +9,7 @@ data class UpInfo(
     val theme_type: Int,
     val uname: String,
     val verify_type: Int,
-    val vip_label: VipLabel,
+    val vip_label: VipLabel?,
     val vip_status: Int,
     val vip_type: Int
 )
