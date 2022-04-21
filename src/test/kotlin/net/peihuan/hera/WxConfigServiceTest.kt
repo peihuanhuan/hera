@@ -7,7 +7,8 @@ import me.chanjar.weixin.mp.bean.material.WxMpMaterial
 import mu.KotlinLogging
 import net.peihuan.hera.config.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
-import net.peihuan.hera.constants.BilibiliTaskTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.TaskStatusEnum
 import net.peihuan.hera.domain.BilibiliTask
@@ -77,7 +78,8 @@ class WxConfigServiceTest : HeraApplicationTests() {
             request = "adasdasdasd",
             openid = "oIWc_51xYURq_7jNCfrr40dc0q3Q",
             status = TaskStatusEnum.DEFAULT,
-            type = BilibiliTaskTypeEnum.MULTIPLE,
+            type = BilibiliTaskSourceTypeEnum.MULTIPLE,
+            outputType = BilibiliTaskOutputTypeEnum.AUDIO,
             notifyType = NotifyTypeEnum.MP_REPLY
         )
         notifyService.notifyTaskResult(task)

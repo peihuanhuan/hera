@@ -36,5 +36,8 @@ enum class BizConfigEnum(val key: String, val desc: String) {
 
     GRAY_USER_PERCENTAGE("gray_user_percentage", "用户灰度比例 0-100"),
     GRAY_USER("gray_user", "指定灰度用户"),
+
+
+    VIDEO_USERS("video_users", "是否能使用视频功能")
     ;
 }

@@ -10,6 +10,7 @@ data class BilibiliVideo (
     val epid: Int? = null,
     var page: String? = null,
     var title: String? = null,
+    var partTitle: String? = null,
     var duration: Int? = null,
     var mid: String? = null
 ) {

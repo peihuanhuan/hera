@@ -104,12 +104,15 @@ class AliyundriveService(
     }
     fun uploadFile(file: File, parentId: String = DEFAULT_ROOT_ID): CreateWithFoldersDTO {
 
-        val fakeFile = buildFakeFile(file)
+        var uploadFile = file
+        if (file.absolutePath.endsWith(".mp3")) {
+            uploadFile = buildFakeFile(file)
+        }
 
-        val part: Int = if (fakeFile.length() / part_max_size == 0L) {
-            (fakeFile.length() / part_max_size).toInt()
+        val part: Int = if (uploadFile.length() / part_max_size == 0L) {
+            (uploadFile.length() / part_max_size).toInt()
         } else {
-            (fakeFile.length() / part_max_size).toInt() + 1
+            (uploadFile.length() / part_max_size).toInt() + 1
         }
         val mutableListOf = mutableListOf<PartInfo>()
         for (i in 0..part) {
@@ -117,26 +120,26 @@ class AliyundriveService(
         }
 
         val execJs = JsUtil.execJs(accassToken).substring(0, 16)
-        val left = if (fakeFile.length() == 0L) {
+        val left = if (uploadFile.length() == 0L) {
             0L
         } else {
-            (execJs.toBigInteger(16).mod(fakeFile.length().toBigInteger())).toLong()
+            (execJs.toBigInteger(16).mod(uploadFile.length().toBigInteger())).toLong()
         }
-        val right = minOf(left + 8, fakeFile.length())
+        val right = minOf(left + 8, uploadFile.length())
 
         val pRoofCode =
-            Base64.getEncoder().encodeToString(fakeFile.readBytes().copyOfRange(left.toInt(), right.toInt()))
+            Base64.getEncoder().encodeToString(uploadFile.readBytes().copyOfRange(left.toInt(), right.toInt()))
         val createWithFoldersRequest = CreateWithFoldersRequest(
             drive_id = driveId,
             parent_file_id = parentId,
             part_info_list = mutableListOf,
             name = blackKeywordService.replaceBlackKeyword(file.name),
             type = "file",
-            size = fakeFile.length().toInt(),
+            size = uploadFile.length().toInt(),
             proof_version = "v1",
             content_hash_name = "sha1",
             check_name_mode = "auto_rename",
-            content_hash = DigestUtils.sha1Hex(fakeFile.inputStream()),
+            content_hash = DigestUtils.sha1Hex(uploadFile.inputStream()),
             proof_code = pRoofCode
         )
         log.info { "createWithFolders 参数: ${createWithFoldersRequest.toJson()}" }
@@ -147,7 +150,7 @@ class AliyundriveService(
         }
 
         // 分段上传
-        val fileInputStream = FileInputStream(fakeFile)
+        val fileInputStream = FileInputStream(uploadFile)
         val buf = ByteArray(part_max_size.toInt())
         var partNo = 0
         var length: Int
@@ -166,7 +169,7 @@ class AliyundriveService(
         )
         aliyundriveFeignService.completeUpload(completeUploadRequest)
 
-        FileUtils.deleteQuietly(fakeFile)
+        FileUtils.deleteQuietly(uploadFile)
 
         return createWithFoldersDTO
     }

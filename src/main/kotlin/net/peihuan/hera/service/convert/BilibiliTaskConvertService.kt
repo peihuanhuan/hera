@@ -1,6 +1,6 @@
 package net.peihuan.hera.service.convert
 
-import net.peihuan.hera.constants.BilibiliTaskTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.TaskStatusEnum
 import net.peihuan.hera.domain.BilibiliSubTask
 import net.peihuan.hera.domain.BilibiliTask
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 class BilibiliTaskConvertService() {
 
-    fun convert2BilibiliSubTask(po: BilibiliSubTaskPO): BilibiliSubTask {
+    fun convert2BilibiliSubTask(task: BilibiliTask, po: BilibiliSubTaskPO): BilibiliSubTask {
         val bilibiliVideo = BilibiliVideo(
             title = po.title,
             aid = po.aid,
@@ -26,7 +26,8 @@ class BilibiliTaskConvertService() {
             openid = po.openid,
             id = po.id,
             bilibiliVideo = bilibiliVideo,
-            aliyundriverFileId = po.fileId
+            aliyundriverFileId = po.fileId,
+            parentTask = task
         )
     }
 
@@ -36,10 +37,11 @@ class BilibiliTaskConvertService() {
             openid = po.openid,
             request = po.request,
             name = po.name,
-            type = BilibiliTaskTypeEnum.getTypeEnum(po.type)!!,
+            type = BilibiliTaskSourceTypeEnum.getTypeEnum(po.type)!!,
             notifyType = po.notifyType,
             status = TaskStatusEnum.getTypeEnum(po.status)!!,
-            result = po.url
+            result = po.url,
+            outputType = po.outputType
         )
     }
 
@@ -69,6 +71,7 @@ class BilibiliTaskConvertService() {
             size = bilibiliTask.subTaskSize,
             status = bilibiliTask.status.code,
             url = bilibiliTask.result ?: "",
+            outputType = bilibiliTask.outputType
         )
     }
 }

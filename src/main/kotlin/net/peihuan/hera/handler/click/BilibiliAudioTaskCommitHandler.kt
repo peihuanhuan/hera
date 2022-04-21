@@ -2,7 +2,8 @@ package net.peihuan.hera.handler.click
 
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
-import net.peihuan.hera.constants.BilibiliTaskTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.service.BVideo2AudioService
 import net.peihuan.hera.util.removeCurrentUser
@@ -26,7 +27,8 @@ class BilibiliAudioTaskCommitHandler(val bVideo2AudioService: BVideo2AudioServic
             setCurrentUser(wxMpXmlMessage.fromUser)
             val cnt = bVideo2AudioService.saveTask(
                 wxMpXmlMessage.content,
-                BilibiliTaskTypeEnum.FREE,
+                BilibiliTaskSourceTypeEnum.FREE,
+                BilibiliTaskOutputTypeEnum.AUDIO,
                 NotifyTypeEnum.MP_REPLY
             )
             wxMpXmlMessage.replyKfMessage("解析到了 $cnt 个视频，请静候佳音。")

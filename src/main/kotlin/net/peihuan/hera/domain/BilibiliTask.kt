@@ -1,6 +1,7 @@
 package net.peihuan.hera.domain
 
-import net.peihuan.hera.constants.BilibiliTaskTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.TaskStatusEnum
 import net.peihuan.hera.exception.BizException
@@ -9,7 +10,8 @@ class BilibiliTask(
     var id: Long ?= null,
     var openid: String,
     var request: String,
-    val type: BilibiliTaskTypeEnum,
+    val type: BilibiliTaskSourceTypeEnum,
+    val outputType: BilibiliTaskOutputTypeEnum,
     val notifyType: NotifyTypeEnum,
 
     var status: TaskStatusEnum = TaskStatusEnum.DEFAULT,
@@ -47,7 +49,7 @@ class BilibiliTask(
         if (totalDurationMinutes > allowMaxDurationMinutes) {
             throw BizException.buildBizException("视频总时长不能超过 $allowMaxDurationMinutes 分钟，如有需要请联系群主")
         }
-        if (type == BilibiliTaskTypeEnum.FREE) {
+        if (type == BilibiliTaskSourceTypeEnum.FREE) {
             if (subTasks.size > freeLimit) {
                 throw BizException.buildBizException("一次不能超过 $freeLimit 个视频，如有需要请联系群主")
             }

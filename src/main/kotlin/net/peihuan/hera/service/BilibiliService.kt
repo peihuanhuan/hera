@@ -55,12 +55,11 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         if (bilibiliVideo.page == null) {
             bilibiliVideo.duration = view.duration
             bilibiliVideo.cid = view.cid
-            bilibiliVideo.title = view.title
         } else {
             val pageVideo = view.pages.first { page -> page.page.toString() == bilibiliVideo.page }
             bilibiliVideo.duration = pageVideo.duration
             bilibiliVideo.cid = pageVideo.cid
-            bilibiliVideo.title = "${view.title} p${bilibiliVideo.page} ${pageVideo.part}"
+            bilibiliVideo.partTitle = pageVideo.part
         }
     }
 
@@ -72,8 +71,10 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         bilibiliVideo.bvid = view.bvid
         bilibiliVideo.mid = view.owner.mid
         bilibiliVideo.duration = page.duration
+        // bilibiliVideo.page = page.page.toString()
+        // bilibiliVideo.partTitle = page.part
         bilibiliVideo.cid = page.cid
-        bilibiliVideo.title = "${view.title} p${page.page} ${page.part}"
+        bilibiliVideo.title = "P${page.page} ${page.part}"
         return bilibiliVideo
     }
 
@@ -155,16 +156,22 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         audios = audios.sortedByDescending { it.bandwidth }
         audios.forEach {
             allUrls.add(it.baseUrl)
-            allUrls.addAll(it.backupUrl?: emptyList())
+            allUrls.addAll(it.backupUrl ?: emptyList())
         }
         return allUrls
-        // return audios.maxByOrNull { it.bandwidth }!!.base_url
     }
 
-    fun getFlvPlayUrl(avid: String, cid: String): List<String> {
-        val dashPlayurl =
-            bilibiliFeignService.flvPlayurl(avid = avid, cid = cid, Quality.P_360.code)
-        return listOf(dashPlayurl.data.durl?.first()?.url!!)
+    fun getFlvPlayUrl(avid: String, cid: String, quality: Quality): List<String> {
+        val response = bilibiliFeignService.flvPlayurl(avid = avid, cid = cid, quality = quality.code)
+        if (response.data.durl == null) {
+            return emptyList()
+        }
+        val urls = mutableListOf<String>()
+        response.data.durl.forEach {
+            urls.add(it.url)
+            urls.addAll(it.backup_url ?: emptyList())
+        }
+        return urls
     }
 
     fun getBangumiInfo(epId: Int): BilibiliVideo? {
@@ -186,7 +193,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
     }
 
     private fun checkNeedVip(ep: Episode) {
-        if ((ep.badge?:"").contains("会员")) {
+        if ((ep.badge ?: "").contains("会员")) {
             throw BizException.buildBizException("视频需要大会员，拒绝执行。")
         }
     }

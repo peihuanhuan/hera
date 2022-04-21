@@ -6,14 +6,12 @@ import net.bramp.ffmpeg.FFmpegExecutor
 import net.bramp.ffmpeg.FFmpegUtils
 import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.builder.FFmpegBuilder
-import net.peihuan.hera.constants.BilibiliTaskTypeEnum
-import net.peihuan.hera.constants.BizConfigEnum
-import net.peihuan.hera.constants.NotifyTypeEnum
-import net.peihuan.hera.constants.TaskStatusEnum
+import net.peihuan.hera.constants.*
 import net.peihuan.hera.domain.BilibiliSubTask
 import net.peihuan.hera.domain.BilibiliTask
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.exception.BizException
+import net.peihuan.hera.feign.dto.bilibili.Quality
 import net.peihuan.hera.persistent.po.BilibiliTaskPO
 import net.peihuan.hera.persistent.service.BilibiliAudioPOService
 import net.peihuan.hera.persistent.service.BilibiliAudioTaskPOService
@@ -60,14 +58,21 @@ class BVideo2AudioService(
 
 
     @Transactional
-    fun saveTask(data: String, type: BilibiliTaskTypeEnum, notifyType: NotifyTypeEnum): Int {
+    fun saveTask(data: String, type: BilibiliTaskSourceTypeEnum, outputTypeEnum: BilibiliTaskOutputTypeEnum, notifyType: NotifyTypeEnum): Int {
+
+        if(outputTypeEnum == BilibiliTaskOutputTypeEnum.VIDEO) {
+            val allowUsers = cacheManage.getBizValue(BizConfigEnum.VIDEO_USERS, "")
+            if (!allowUsers.contains(currentUserOpenid) && !allowUsers.contains("all_users")) {
+                throw BizException.buildBizException("暂不是内测者，进群开通权限")
+            }
+        }
 
         val notHandleTask = bilibiliAudioTaskPOService.findByOpenidAndStatus(currentUserOpenid, TaskStatusEnum.DEFAULT)
         if (notHandleTask.isNotEmpty()) {
             throw BizException.buildBizException("请等待上一个任务执行完成~")
         }
 
-        val task: BilibiliTask = generateBilibiliTask(data, type, notifyType)
+        val task: BilibiliTask = generateBilibiliTask(data, type, outputTypeEnum, notifyType)
 
         val freeLimit = cacheManage.getBizValue(BizConfigEnum.MAX_FREE_LIMIT, "10").toInt()
         val multiPLimit = cacheManage.getBizValue(BizConfigEnum.MAX_P_LIMIT, "35").toInt()
@@ -86,7 +91,8 @@ class BVideo2AudioService(
 
     fun generateBilibiliTask(
         requestData: String,
-        type: BilibiliTaskTypeEnum,
+        type: BilibiliTaskSourceTypeEnum,
+        outputTypeEnum: BilibiliTaskOutputTypeEnum,
         notifyType: NotifyTypeEnum
     ): BilibiliTask {
         var bilibiliVideos = bilibiliService.resolve2BilibiliVideos(requestData)
@@ -95,7 +101,7 @@ class BVideo2AudioService(
         }
 
         var taskName = ""
-        if (type == BilibiliTaskTypeEnum.MULTIPLE) {
+        if (type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
             val firstVideo = bilibiliVideos.first()
             bilibiliVideos = bilibiliService.findAllBilibiliVideos(firstVideo)
             taskName = bilibiliService.getViewByBvid(firstVideo.bvid).title
@@ -106,9 +112,10 @@ class BVideo2AudioService(
             name = taskName,
             type = type,
             notifyType = notifyType,
-            openid = currentUserOpenid
+            openid = currentUserOpenid,
+            outputType = outputTypeEnum
         )
-        val subTasks = bilibiliVideos.map { BilibiliSubTask(bilibiliVideo = it, openid = currentUserOpenid) }
+        val subTasks = bilibiliVideos.map { BilibiliSubTask(parentTask = task, bilibiliVideo = it, openid = currentUserOpenid) }
         task.addSubTasks(subTasks)
         return task
     }
@@ -141,7 +148,7 @@ class BVideo2AudioService(
         val subTaskPOs = bilibiliAudioPOService.findByTaskId(taskPO.id!!)
 
         val task = bilibiliTaskConvertService.convert2BilibiliTask(taskPO)
-        val subTasks = subTaskPOs.map { bilibiliTaskConvertService.convert2BilibiliSubTask(it) }
+        val subTasks = subTaskPOs.map { bilibiliTaskConvertService.convert2BilibiliSubTask(task, it) }
         task.addSubTasks(subTasks)
 
         return handleTask(task)
@@ -197,7 +204,7 @@ class BVideo2AudioService(
 
                 val needHandleSubTask = task.subTasks.filter { !successSubTask.contains(it) }
 
-                val parentId = if (task.type == BilibiliTaskTypeEnum.MULTIPLE) {
+                val parentId = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
                     task.subTasks
                     val userRootFolder = aliyundriveService.getFolderOrCreate(DEFAULT_ROOT_ID, task.openid)
                     aliyundriveService.getFolderOrCreate(userRootFolder, task.name!!)
@@ -206,7 +213,7 @@ class BVideo2AudioService(
                 }
 
                 needHandleSubTask.forEach { subTask ->
-                    val targetFile = convertSubTask(subTask, 3)
+                    val targetFile = convertSubTask(task, subTask, 3)
                     val uploadDTO = aliyundriveService.uploadFile(targetFile, 5, parentId)
 
                     subTask.aliyundriverFileId = uploadDTO.file_id
@@ -215,7 +222,7 @@ class BVideo2AudioService(
 
                 }
 
-                val shareFileIds: List<String> = if (task.type == BilibiliTaskTypeEnum.MULTIPLE) {
+                val shareFileIds: List<String> = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
                     listOf(parentId)
                 } else {
                     task.subTasks.map { it.aliyundriverFileId!! }
@@ -225,12 +232,12 @@ class BVideo2AudioService(
                 val share = aliyundriveService.share(shareFileIds, 5)
 
                 task.result = share.full_share_msg
-                if (task.type == BilibiliTaskTypeEnum.FREE) {
+                if (task.type == BilibiliTaskSourceTypeEnum.FREE) {
                     task.name = share.share_name
                 }
 
             } else {
-                val audioFiles = task.subTasks.map { convertSubTask(it, 5) }
+                val audioFiles = task.subTasks.map { convertSubTask(task, it, 5) }
 
                 val targetFile: File
                 if (task.subTasks.size == 1) {
@@ -268,7 +275,7 @@ class BVideo2AudioService(
     }
 
     private fun zipFiles(task: BilibiliTask, audioFiles: List<File>): File {
-        val name = if (task.type == BilibiliTaskTypeEnum.MULTIPLE) {
+        val name = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
             task.name!!
         } else {
             "「${audioFiles[0].name}」等${audioFiles.size}个文件"
@@ -293,12 +300,12 @@ class BVideo2AudioService(
     }
 
 
-    fun convertSubTask(subTask: BilibiliSubTask, retry: Int): File {
+    fun convertSubTask(task: BilibiliTask, subTask: BilibiliSubTask, retry: Int): File {
         var count = 0
         var file: File? = null
         while (file?.exists() != true && count++ < retry) {
             try {
-                file = convertSubTask(subTask)
+                file = convertSubTask(task, subTask)
             } catch (e: Exception) {
                 log.error(e.message, e)
             }
@@ -306,18 +313,24 @@ class BVideo2AudioService(
         return file!!
     }
 
-    fun convertSubTask(subTask: BilibiliSubTask): File {
+    fun convertSubTask(task: BilibiliTask, subTask: BilibiliSubTask): File {
+        val extension = if (task.outputType == BilibiliTaskOutputTypeEnum.VIDEO ) "mp4" else "mp3"
 
-        val destinationFile = File("${workDir}/${subTask.trimTitle}.mp3")
+        val destinationFile = File("${workDir}/${subTask.trimTitle}.$extension")
         if (destinationFile.exists()) {
             log.info { "已存在 ${destinationFile.absolutePath} 直接使用" }
             return destinationFile
         }
 
         // 获取视频下载链接
-        var downloadUrls = bilibiliService.getDashAudioPlayUrl(subTask.aid, subTask.cid)
-        if (downloadUrls.isEmpty()) {
-            downloadUrls = bilibiliService.getFlvPlayUrl(subTask.aid, subTask.cid)
+        var downloadUrls: List<String>
+        if (task.outputType == BilibiliTaskOutputTypeEnum.VIDEO) {
+            downloadUrls = bilibiliService.getFlvPlayUrl(subTask.aid, subTask.cid, Quality.P_1080)
+        } else {
+            downloadUrls = bilibiliService.getDashAudioPlayUrl(subTask.aid, subTask.cid)
+            if (downloadUrls.isEmpty()) {
+                downloadUrls = bilibiliService.getFlvPlayUrl(subTask.aid, subTask.cid, Quality.P_360)
+            }
         }
 
         // 下载视频到本地
@@ -334,7 +347,7 @@ class BVideo2AudioService(
 
 
         // ffmpeg 文件如果是中文，可能会有些奇怪问题，使用 cid 作为唯一标识
-        val target = "${workDir}/${subTask.cid}.mp3"
+        val target = "${workDir}/${subTask.cid}.$extension"
         FileUtils.deleteQuietly(File(target))
         ffmpeg(source, target, subTask.byteRate)
 

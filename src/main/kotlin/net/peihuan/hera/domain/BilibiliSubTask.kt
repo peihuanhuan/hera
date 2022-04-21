@@ -1,8 +1,10 @@
 package net.peihuan.hera.domain
 
+import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import java.util.concurrent.TimeUnit
 
 class BilibiliSubTask(
+    private val parentTask: BilibiliTask,
     private val bilibiliVideo: BilibiliVideo,
     var id: Long? = null,
     var taskId: Long? = null,
@@ -25,7 +27,21 @@ class BilibiliSubTask(
         get() = bilibiliVideo.mid!!
 
     val originalTitle: String
-        get() = bilibiliVideo.title ?: "无标题"
+        get() {
+            return if (parentTask.type == BilibiliTaskSourceTypeEnum.FREE) {
+                if (bilibiliVideo.page.isNullOrBlank() || bilibiliVideo.page == "1") {
+                    bilibiliVideo.title ?: "无标题"
+                } else {
+                    "${bilibiliVideo.title} P${bilibiliVideo.page} ${bilibiliVideo.partTitle}"
+                }
+            } else if (parentTask.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
+                // 多p模式 再转换的时候拼好了
+                bilibiliVideo.title!!
+            } else {
+                "up主"
+            }
+        }
+
 
     val trimTitle: String
         get() {

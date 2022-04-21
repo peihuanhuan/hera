@@ -1,7 +1,8 @@
 package net.peihuan.hera
 
 import mu.KotlinLogging
-import net.peihuan.hera.constants.BilibiliTaskTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.service.BVideo2AudioService
 import net.peihuan.hera.service.BilibiliService
@@ -40,8 +41,9 @@ class BilibiliServiceTest : HeraApplicationTests() {
     fun testSaveDB() {
         SecurityContextHolder.getContext().authentication = PreAuthenticatedAuthenticationToken("fake-3","",null)
         bVideo2AudioService.saveTask("""
-【《大理寺日志》 《少卿游》MV-哔哩哔哩国创】https://b23.tv/ep320711        
-        """.trimMargin(), BilibiliTaskTypeEnum.MULTIPLE,NotifyTypeEnum.MP_REPLY)
+            【我和我妹一起唱了首歌哈哈哈～～首次合作， 轻喷……-哔哩哔哩】 https://b23.tv/H2MEF5Y
+
+        """.trimMargin(), BilibiliTaskSourceTypeEnum.FREE, BilibiliTaskOutputTypeEnum.VIDEO, NotifyTypeEnum.MP_REPLY)
     }
 
     @Test

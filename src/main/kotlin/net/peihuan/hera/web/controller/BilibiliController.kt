@@ -1,6 +1,7 @@
 package net.peihuan.hera.web.controller
 
-import net.peihuan.hera.constants.BilibiliTaskTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
+import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.domain.JsonResult
 import net.peihuan.hera.service.BVideo2AudioService
@@ -14,16 +15,22 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("bilibili")
 class BilibiliController(private val bVideo2AudioService: BVideo2AudioService) {
 
-    data class AudioRequest (
+    data class AudioRequest(
         val data: String,
         val type: Int,
+        val outputType: Int = 0
     )
 
 
     @PostMapping("/audio")
     @PreAuthorize("hasAnyAuthority(@userAuthorities.NORMAL_USER)")
-    fun convert2Audio(@RequestBody body:AudioRequest): JsonResult {
-        return JsonResult.success(bVideo2AudioService.saveTask(body.data,
-            BilibiliTaskTypeEnum.getTypeEnum(body.type)!!, NotifyTypeEnum.MESSAGE_TEMPLATE))
+    fun convert2Audio(@RequestBody body: AudioRequest): JsonResult {
+        val data = bVideo2AudioService.saveTask(
+            body.data,
+            BilibiliTaskSourceTypeEnum.getTypeEnum(body.type)!!,
+            BilibiliTaskOutputTypeEnum.getTypeEnum(body.outputType)!!,
+            NotifyTypeEnum.MESSAGE_TEMPLATE
+        )
+        return JsonResult.success(data)
     }
 }
