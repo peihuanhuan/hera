@@ -12,7 +12,6 @@ class GrayService(private val cacheManage: CacheManage) {
     companion object val MAX_PERCENTAGE = 100
 
     fun isGrayUser(openid: String): Boolean {
-
         val openidHash = openid.hashCode().absoluteValue % MAX_PERCENTAGE
 
         val grayPercentage = cacheManage.getBizValue(BizConfigEnum.GRAY_USER_PERCENTAGE, "0").toInt()
@@ -21,5 +20,15 @@ class GrayService(private val cacheManage: CacheManage) {
 
 
     }
+
+    fun isGrayVideoUser(openid: String): Boolean {
+        val openidHash = openid.hashCode().absoluteValue % MAX_PERCENTAGE
+
+        val grayPercentage = cacheManage.getBizValue(BizConfigEnum.VIDEO_GRAY_PERCENTAGE, "0").toInt()
+        val grayUsers = cacheManage.getBizValue(BizConfigEnum.VIDEO_USERS, "").split("\n")
+        return grayUsers.contains(openid) || openidHash < grayPercentage
+
+    }
+
 
 }

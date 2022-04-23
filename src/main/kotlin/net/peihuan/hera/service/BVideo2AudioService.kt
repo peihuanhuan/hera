@@ -61,9 +61,9 @@ class BVideo2AudioService(
     fun saveTask(data: String, type: BilibiliTaskSourceTypeEnum, outputTypeEnum: BilibiliTaskOutputTypeEnum, notifyType: NotifyTypeEnum): Int {
 
         if(outputTypeEnum == BilibiliTaskOutputTypeEnum.VIDEO) {
-            val allowUsers = cacheManage.getBizValue(BizConfigEnum.VIDEO_USERS, "")
-            if (!allowUsers.contains(currentUserOpenid) && !allowUsers.contains("all_users")) {
-                throw BizException.buildBizException("暂不是内测者，进群开通权限")
+
+            if (!grayService.isGrayVideoUser(currentUserOpenid)) {
+                throw BizException.buildBizException("暂不是内测者，进群临时开通权限")
             }
         }
 

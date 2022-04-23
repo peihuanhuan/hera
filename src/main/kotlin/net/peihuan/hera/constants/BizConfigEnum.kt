@@ -38,6 +38,8 @@ enum class BizConfigEnum(val key: String, val desc: String) {
     GRAY_USER("gray_user", "指定灰度用户"),
 
 
-    VIDEO_USERS("video_users", "是否能使用视频功能")
+    VIDEO_GRAY_PERCENTAGE("video_gray_user", "视频指定灰度用户"),
+    VIDEO_USERS("video_users", "是否能使用视频功能"),
+
     ;
 }
