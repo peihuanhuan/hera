@@ -1,17 +1,15 @@
 package net.peihuan.hera.feign.service
 
-import net.peihuan.hera.feign.dto.bilibili.BangumiInfo
-import net.peihuan.hera.feign.dto.bilibili.DashPlayUrl
-import net.peihuan.hera.feign.dto.bilibili.View
+import net.peihuan.hera.feign.dto.bilibili.*
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 
 @FeignClient(
-    name = "bilibili",
+    name = "api.bilibili",
     url = "https://api.bilibili.com",
 )
-interface BilibiliFeignService {
+interface ApiBilibiliFeignService {
 
 
     data class Response<T>(

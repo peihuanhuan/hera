@@ -314,7 +314,7 @@ class BVideo2AudioService(
     }
 
     fun convertSubTask(task: BilibiliTask, subTask: BilibiliSubTask): File {
-        val extension = if (task.outputType == BilibiliTaskOutputTypeEnum.VIDEO ) "mp4" else "mp3"
+        val extension = if (subTask.outputType == BilibiliTaskOutputTypeEnum.VIDEO ) "mp4" else "mp3"
 
         val destinationFile = File("${workDir}/${subTask.trimTitle}.$extension")
         if (destinationFile.exists()) {
@@ -324,7 +324,9 @@ class BVideo2AudioService(
 
         // 获取视频下载链接
         var downloadUrls: List<String>
-        if (task.outputType == BilibiliTaskOutputTypeEnum.VIDEO) {
+        if (subTask.sid != null) {
+            downloadUrls = bilibiliService.getMusicUrl(subTask.sid!!)
+        } else if (subTask.outputType == BilibiliTaskOutputTypeEnum.VIDEO) {
             downloadUrls = bilibiliService.getFlvPlayUrl(subTask.aid, subTask.cid, Quality.P_1080)
         } else {
             downloadUrls = bilibiliService.getDashAudioPlayUrl(subTask.aid, subTask.cid)

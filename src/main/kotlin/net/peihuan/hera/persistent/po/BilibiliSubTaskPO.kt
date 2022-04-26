@@ -16,6 +16,7 @@ data class BilibiliSubTaskPO (
     val duration: Int,
     val aid: String,
     val cid: String,
+    val sid: String?=null,
     val title: String,
     val mid: String,
     var fileId: String? = null,   // 阿里云盘fileId

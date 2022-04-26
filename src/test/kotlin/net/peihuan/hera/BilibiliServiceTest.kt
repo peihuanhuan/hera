@@ -41,8 +41,7 @@ class BilibiliServiceTest : HeraApplicationTests() {
     fun testSaveDB() {
         SecurityContextHolder.getContext().authentication = PreAuthenticatedAuthenticationToken("fake-3","",null)
         bVideo2AudioService.saveTask("""
-            【我和我妹一起唱了首歌哈哈哈～～首次合作， 轻喷……-哔哩哔哩】 https://b23.tv/H2MEF5Y
-
+            https://m.bilibili.com/audio/au2831765?xxx=1
         """.trimMargin(), BilibiliTaskSourceTypeEnum.FREE, BilibiliTaskOutputTypeEnum.VIDEO, NotifyTypeEnum.MP_REPLY)
     }
 
@@ -136,13 +135,14 @@ class BilibiliServiceTest : HeraApplicationTests() {
     fun test1() {
         val x = bilibiliService.resolve2BilibiliVideos("""
             【开场一句就能俘获你芳心！《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W
+            
+            https://www.bilibili.com/audio/au2831765?xxx=1
 
             https://www.bilibili.com/festival/2022bnj?bvid=BV1Ga41127eH&spm_id_from=333.788.top_right_bar_window_custom_collection.content.click
 
             https://www.bilibili.com/video/BV1ua411872R
         """.trimIndent())
-        val bvFromPram =
-            bilibiliService.resolveBvSimpleInfoFromPram("https://www.bilibili.com/video/BV12321?p=1&a=1 https://www.bilibili.com/festival/2021bnj?bvid=1&p=1&share_m=1    https://www.bil")
+        println("====")
         println(x)
     }
 

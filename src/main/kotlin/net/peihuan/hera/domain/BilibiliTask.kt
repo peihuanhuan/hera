@@ -11,7 +11,7 @@ class BilibiliTask(
     var openid: String,
     var request: String,
     val type: BilibiliTaskSourceTypeEnum,
-    val outputType: BilibiliTaskOutputTypeEnum,
+    var outputType: BilibiliTaskOutputTypeEnum,
     val notifyType: NotifyTypeEnum,
 
     var status: TaskStatusEnum = TaskStatusEnum.DEFAULT,

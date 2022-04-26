@@ -1,5 +1,6 @@
 package net.peihuan.hera.domain
 
+import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
 import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import java.util.concurrent.TimeUnit
 
@@ -11,6 +12,15 @@ class BilibiliSubTask(
     var openid: String,
     var aliyundriverFileId: String? = null
 ) {
+
+    val outputType: BilibiliTaskOutputTypeEnum
+        get() {
+            if (bilibiliVideo.sid != null) {
+                return BilibiliTaskOutputTypeEnum.AUDIO
+            }
+            return parentTask.outputType
+        }
+
     val aid: String
         get() = bilibiliVideo.aid!!
 
@@ -23,8 +33,11 @@ class BilibiliSubTask(
     val duration: Int
         get() = bilibiliVideo.duration!!
 
+    val sid: String?
+        get() = bilibiliVideo.sid
+
     val mid: String
-        get() = bilibiliVideo.mid!!
+        get() = bilibiliVideo.mid?:""
 
     val originalTitle: String
         get() {

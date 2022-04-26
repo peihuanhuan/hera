@@ -3,7 +3,8 @@ package net.peihuan.hera.service
 import net.peihuan.hera.domain.BilibiliVideo
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.feign.dto.bilibili.*
-import net.peihuan.hera.feign.service.BilibiliFeignService
+import net.peihuan.hera.feign.service.ApiBilibiliFeignService
+import net.peihuan.hera.feign.service.WwwBilibiliFeignService
 import net.peihuan.hera.util.getLocationUrl
 import net.peihuan.hera.util.getUrlParams
 import org.springframework.stereotype.Service
@@ -11,7 +12,16 @@ import java.util.regex.Pattern
 
 
 @Service
-class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
+class BilibiliService(
+    private val apiBilibiliFeignService: ApiBilibiliFeignService,
+    private val wwwBilibiliFeignService: WwwBilibiliFeignService,
+    ) {
+
+    fun getMusicUrl(sid: String) : List<String> {
+        val musicUrlResp = wwwBilibiliFeignService.getMusicUrl(sid = sid, quality = "2", privilege = "2")
+        return musicUrlResp.data.cdns
+    }
+
 
     fun resolve2BilibiliVideos(data: String): List<BilibiliVideo> {
         val shortUrls = resolveShortUrls(data)
@@ -27,10 +37,11 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         videos.addAll(resolveBvSimpleInfo(newData))
         videos.addAll(getEpCompleteInfo(newData))
         videos.addAll(resolveBvSimpleInfoFromPram(newData))
+        videos.addAll(resolveMusicFullInfo(newData))
 
         videos.forEach { bilibiliVideo ->
-            if (bilibiliVideo.epid != null) {
-                // ep 已经填充过属性
+            if (bilibiliVideo.epid != null || bilibiliVideo.sid != null) {
+                // 音频、ep 已经填充过属性
                 return@forEach
             }
             val view = getViewByBvid(bilibiliVideo.bvid)
@@ -103,6 +114,31 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         return bvids
     }
 
+    //  https://www.bilibili.com/audio/au2831765?xxx=1
+    private fun resolveMusicFullInfo(data: String): MutableList<BilibiliVideo> {
+        val videos = mutableListOf<BilibiliVideo>()
+        val regex =
+            Pattern.compile("(m|www)\\.bilibili\\.com\\/audio\\/au(\\d*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*")
+                .matcher(data)
+        var matchStart = 0
+        while (regex.find(matchStart)) {
+            val sid = regex.group(2)
+            val musicInfoResp = wwwBilibiliFeignService.getMusicInfo(sid)
+
+            val musicInfo = musicInfoResp.data
+            val bv = BilibiliVideo(
+                aid = musicInfo.aid.toString(),
+                bvid = musicInfo.bvid?:"",
+                sid = sid,
+                cid = musicInfo.cid.toString(),
+                title = musicInfo.title,
+                duration = musicInfo.duration)
+            videos.add(bv)
+            matchStart = regex.end()
+        }
+        return videos
+    }
+
     private fun getEpCompleteInfo(data: String): List<BilibiliVideo> {
         val epids = mutableListOf<Int>()
         val regex =
@@ -138,16 +174,16 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
 
 
     fun getViewByAid(aid: String): View {
-        return bilibiliFeignService.getView(aid = aid).data
+        return apiBilibiliFeignService.getView(aid = aid).data
     }
 
     fun getViewByBvid(bvid: String): View {
-        return bilibiliFeignService.getView(bvid = bvid).data
+        return apiBilibiliFeignService.getView(bvid = bvid).data
     }
 
     fun getDashAudioPlayUrl(avid: String, cid: String): List<String> {
         val dashPlayurl =
-            bilibiliFeignService.dashPlayurl(avid = avid, cid = cid, Quality.P_360.code)
+            apiBilibiliFeignService.dashPlayurl(avid = avid, cid = cid, Quality.P_360.code)
         var audios = dashPlayurl.data.dash?.audio
         if (audios.isNullOrEmpty()) {
             return emptyList()
@@ -162,7 +198,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
     }
 
     fun getFlvPlayUrl(avid: String, cid: String, quality: Quality): List<String> {
-        val response = bilibiliFeignService.flvPlayurl(avid = avid, cid = cid, quality = quality.code)
+        val response = apiBilibiliFeignService.flvPlayurl(avid = avid, cid = cid, quality = quality.code)
         if (response.data.durl == null) {
             return emptyList()
         }
@@ -175,7 +211,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
     }
 
     fun getBangumiInfo(epId: Int): BilibiliVideo? {
-        val bangumiIbfo: BilibiliFeignService.Result<BangumiInfo> = bilibiliFeignService.getBangumiIbfo(epId)
+        val bangumiIbfo: ApiBilibiliFeignService.Result<BangumiInfo> = apiBilibiliFeignService.getBangumiIbfo(epId)
         val allEpisodes = getAllEpisodes(bangumiIbfo)
 
         val ep: Episode = allEpisodes.first { it.id == epId }
@@ -198,7 +234,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
         }
     }
 
-    private fun getAllEpisodes(bangumiIbfo: BilibiliFeignService.Result<BangumiInfo>): MutableList<Episode> {
+    private fun getAllEpisodes(bangumiIbfo: ApiBilibiliFeignService.Result<BangumiInfo>): MutableList<Episode> {
         val allEpisodes = mutableListOf<Episode>()
         allEpisodes.addAll(bangumiIbfo.result.episodes ?: emptyList())
         bangumiIbfo.result.section?.forEach {
@@ -208,7 +244,7 @@ class BilibiliService(private val bilibiliFeignService: BilibiliFeignService) {
     }
 
     fun getAllBangumiInfos(epId: Int): List<BilibiliVideo> {
-        val bangumiIbfo = bilibiliFeignService.getBangumiIbfo(epId)
+        val bangumiIbfo = apiBilibiliFeignService.getBangumiIbfo(epId)
         val allEpisodes = getAllEpisodes(bangumiIbfo)
 
         return allEpisodes.map { ep ->

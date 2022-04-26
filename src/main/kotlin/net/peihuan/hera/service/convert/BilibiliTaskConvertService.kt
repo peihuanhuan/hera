@@ -18,6 +18,7 @@ class BilibiliTaskConvertService() {
             aid = po.aid,
             bvid = po.bvid,
             cid = po.cid,
+            sid = po.sid,
             duration = po.duration,
             mid = po.mid
         )
@@ -53,6 +54,7 @@ class BilibiliTaskConvertService() {
             title = bilibiliSubTask.originalTitle,
             aid = bilibiliSubTask.aid,
             bvid = bilibiliSubTask.bvid,
+            sid = bilibiliSubTask.sid,
             cid = bilibiliSubTask.cid,
             duration = bilibiliSubTask.duration,
             mid = bilibiliSubTask.mid,

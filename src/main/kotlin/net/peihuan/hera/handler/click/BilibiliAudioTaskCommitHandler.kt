@@ -18,7 +18,7 @@ class BilibiliAudioTaskCommitHandler(val bVideo2AudioService: BVideo2AudioServic
     }
 
     override fun canHandle(message: String): Boolean {
-        return message.contains("www.bilibili.com") || message.contains("b23.tv")
+        return message.contains("bilibili.com") || message.contains("b23.tv")
     }
 
 
