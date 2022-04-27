@@ -72,7 +72,7 @@ class BilibiliTaskConvertService() {
             notifyType = bilibiliTask.notifyType,
             size = bilibiliTask.subTaskSize,
             status = bilibiliTask.status.code,
-            url = bilibiliTask.result ?: "",
+            url = bilibiliTask.result,
             outputType = bilibiliTask.outputType
         )
     }

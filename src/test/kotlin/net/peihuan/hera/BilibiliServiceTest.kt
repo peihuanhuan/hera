@@ -41,7 +41,7 @@ class BilibiliServiceTest : HeraApplicationTests() {
     fun testSaveDB() {
         SecurityContextHolder.getContext().authentication = PreAuthenticatedAuthenticationToken("fake-3","",null)
         bVideo2AudioService.saveTask("""
-            https://m.bilibili.com/audio/au2831765?xxx=1
+            【Bet On Me-哔哩哔哩】 https://b23.tv/w3bNLw9
         """.trimMargin(), BilibiliTaskSourceTypeEnum.FREE, BilibiliTaskOutputTypeEnum.VIDEO, NotifyTypeEnum.MP_REPLY)
     }
 

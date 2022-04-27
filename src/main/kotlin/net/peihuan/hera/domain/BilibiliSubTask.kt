@@ -15,7 +15,7 @@ class BilibiliSubTask(
 
     val outputType: BilibiliTaskOutputTypeEnum
         get() {
-            if (bilibiliVideo.sid != null) {
+            if (bilibiliVideo.sid != null && bilibiliVideo.sid!!.isNotBlank()) {
                 return BilibiliTaskOutputTypeEnum.AUDIO
             }
             return parentTask.outputType

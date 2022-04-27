@@ -324,7 +324,7 @@ class BVideo2AudioService(
 
         // 获取视频下载链接
         var downloadUrls: List<String>
-        if (subTask.sid != null) {
+        if ((subTask.sid?:"").isNotBlank()) {
             downloadUrls = bilibiliService.getMusicUrl(subTask.sid!!)
         } else if (subTask.outputType == BilibiliTaskOutputTypeEnum.VIDEO) {
             downloadUrls = bilibiliService.getFlvPlayUrl(subTask.aid, subTask.cid, Quality.P_1080)
