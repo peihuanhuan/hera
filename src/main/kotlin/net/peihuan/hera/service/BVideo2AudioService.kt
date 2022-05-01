@@ -17,6 +17,7 @@ import net.peihuan.hera.persistent.service.BilibiliAudioPOService
 import net.peihuan.hera.persistent.service.BilibiliAudioTaskPOService
 import net.peihuan.hera.service.AliyundriveService.Companion.DEFAULT_ROOT_ID
 import net.peihuan.hera.service.convert.BilibiliTaskConvertService
+import net.peihuan.hera.service.remote.ShortUrlRemoteServiceWrapper
 import net.peihuan.hera.service.storage.StorageService
 import net.peihuan.hera.util.currentUserOpenid
 import net.peihuan.hera.util.doDownloadBilibiliVideo
@@ -45,6 +46,7 @@ class BVideo2AudioService(
     private val storageService: StorageService,
     private val bilibiliTaskConvertService: BilibiliTaskConvertService,
     private val grayService: GrayService,
+    private val shortUrlRemoteServiceWrapper: ShortUrlRemoteServiceWrapper,
     private val blackKeywordService: BlackKeywordService
 ) {
 
@@ -275,7 +277,13 @@ class BVideo2AudioService(
         log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}M" }
         storageService.upload(objectName, targetFile.absolutePath)
         FileUtils.deleteQuietly(targetFile)
-        val downloadUrl = storageService.getDownloadUrl(objectName)
+        var downloadUrl = storageService.getDownloadUrl(objectName)
+
+        val shortUrl = shortUrlRemoteServiceWrapper.getShortUrl(downloadUrl)
+        if (!shortUrl.isNullOrBlank()) {
+            // 尝试替换为短链
+            downloadUrl = shortUrl
+        }
 
         task.name = FilenameUtils.getBaseName(targetFile.name)
         task.result = downloadUrl
