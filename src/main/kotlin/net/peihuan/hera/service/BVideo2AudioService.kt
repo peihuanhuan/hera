@@ -198,66 +198,15 @@ class BVideo2AudioService(
     fun handleTask(task: BilibiliTask): String {
         try {
 
-            if (!grayService.isGrayUser(task.openid)) {
-                val successSubTask = findAliyunDriverSuccessSubTask(task)
-
-
-                val needHandleSubTask = task.subTasks.filter { !successSubTask.contains(it) }
-
-                val parentId = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
-                    task.subTasks
-                    val userRootFolder = aliyundriveService.getFolderOrCreate(DEFAULT_ROOT_ID, task.openid)
-                    aliyundriveService.getFolderOrCreate(userRootFolder, task.name!!)
-                } else {
-                    DEFAULT_ROOT_ID
+            if (!grayService.isDirDownloadUser(task.openid)) {
+                try {
+                    aliyunShare(task)
+                } catch (e: Exception) {
+                    log.info { "===== 阿里云盘失败，降级为链接直下" }
+                    dirDownload(task)
                 }
-
-                needHandleSubTask.forEach { subTask ->
-                    val targetFile = convertSubTask(task, subTask, 3)
-                    val uploadDTO = aliyundriveService.uploadFile(targetFile, 5, parentId)
-
-                    subTask.aliyundriverFileId = uploadDTO.file_id
-                    updateSubTask(subTask)
-                    FileUtils.deleteQuietly(targetFile)
-
-                }
-
-                val shareFileIds: List<String> = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
-                    listOf(parentId)
-                } else {
-                    task.subTasks.map { it.aliyundriverFileId!! }
-                }
-
-
-                val share = aliyundriveService.share(shareFileIds, 5)
-
-                task.result = share.full_share_msg
-                if (task.type == BilibiliTaskSourceTypeEnum.FREE) {
-                    task.name = share.share_name
-                }
-
             } else {
-                val audioFiles = task.subTasks.map { convertSubTask(task, it, 5) }
-
-                val targetFile: File
-                if (task.subTasks.size == 1) {
-                    targetFile = audioFiles[0]
-                } else {
-                    targetFile = zipFiles(task, audioFiles)
-                }
-
-                val objectName = targetFile.name
-                log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}M" }
-                storageService.upload(objectName, targetFile.absolutePath)
-                FileUtils.deleteQuietly(targetFile)
-                val downloadUrl = storageService.getDownloadUrl(objectName)
-
-                task.name = FilenameUtils.getBaseName(targetFile.name)
-                task.result = downloadUrl
-
-                audioFiles.forEach {
-                    FileUtils.deleteQuietly(it)
-                }
+                dirDownload(task)
             }
 
             task.trimName()
@@ -272,6 +221,68 @@ class BVideo2AudioService(
             updateTaskStatus(task, TaskStatusEnum.FAIL)
         }
         return "处理失败"
+    }
+
+    private fun aliyunShare(task: BilibiliTask) {
+        val successSubTask = findAliyunDriverSuccessSubTask(task)
+
+        val needHandleSubTask = task.subTasks.filter { !successSubTask.contains(it) }
+
+        val parentId = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
+            task.subTasks
+            val userRootFolder = aliyundriveService.getFolderOrCreate(DEFAULT_ROOT_ID, task.openid)
+            aliyundriveService.getFolderOrCreate(userRootFolder, task.name!!)
+        } else {
+            DEFAULT_ROOT_ID
+        }
+
+        needHandleSubTask.forEach { subTask ->
+            val targetFile = convertSubTask(task, subTask, 3)
+            val uploadDTO = aliyundriveService.uploadFile(targetFile, 5, parentId)
+
+            subTask.aliyundriverFileId = uploadDTO.file_id
+            updateSubTask(subTask)
+            FileUtils.deleteQuietly(targetFile)
+
+        }
+
+        val shareFileIds: List<String> = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
+            listOf(parentId)
+        } else {
+            task.subTasks.map { it.aliyundriverFileId!! }
+        }
+
+
+        val share = aliyundriveService.share(shareFileIds, 5)
+
+        task.result = share.full_share_msg
+        if (task.type == BilibiliTaskSourceTypeEnum.FREE) {
+            task.name = share.share_name
+        }
+    }
+
+    private fun dirDownload(task: BilibiliTask) {
+        val audioFiles = task.subTasks.map { convertSubTask(task, it, 5) }
+
+        val targetFile: File
+        if (task.subTasks.size == 1) {
+            targetFile = audioFiles[0]
+        } else {
+            targetFile = zipFiles(task, audioFiles)
+        }
+
+        val objectName = targetFile.name
+        log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}M" }
+        storageService.upload(objectName, targetFile.absolutePath)
+        FileUtils.deleteQuietly(targetFile)
+        val downloadUrl = storageService.getDownloadUrl(objectName)
+
+        task.name = FilenameUtils.getBaseName(targetFile.name)
+        task.result = downloadUrl
+
+        audioFiles.forEach {
+            FileUtils.deleteQuietly(it)
+        }
     }
 
     private fun zipFiles(task: BilibiliTask, audioFiles: List<File>): File {

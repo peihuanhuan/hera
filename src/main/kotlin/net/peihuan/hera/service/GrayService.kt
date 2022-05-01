@@ -11,7 +11,7 @@ class GrayService(private val cacheManage: CacheManage) {
 
     companion object val MAX_PERCENTAGE = 100
 
-    fun isGrayUser(openid: String): Boolean {
+    fun isDirDownloadUser(openid: String): Boolean {
         val openidHash = openid.hashCode().absoluteValue % MAX_PERCENTAGE
 
         val grayPercentage = cacheManage.getBizValue(BizConfigEnum.GRAY_USER_PERCENTAGE, "0").toInt()

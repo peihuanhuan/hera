@@ -69,9 +69,6 @@ class AliyundriveService(
         return false
     }
 
-    fun share(fileId: String): ShareDTO {
-        return share(listOf(fileId), 5)
-    }
 
     fun share(fileIds: List<String>, retry: Int): ShareDTO {
         if (fileIds.size > 100) {
