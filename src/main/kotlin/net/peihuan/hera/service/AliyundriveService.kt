@@ -152,6 +152,7 @@ class AliyundriveService(
         var partNo = 0
         var length: Int
         while (fileInputStream.read(buf).also { length = it } != -1) {
+            log.info("分段上传 {} partNo: {}", file.name, partNo)
             upload(createWithFoldersDTO.part_info_list[partNo].upload_url, buf.copyOfRange(0, length))
             partNo++
         }
