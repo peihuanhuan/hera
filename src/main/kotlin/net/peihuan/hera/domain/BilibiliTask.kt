@@ -49,6 +49,10 @@ class BilibiliTask(
         if (totalDurationMinutes > allowMaxDurationMinutes) {
             throw BizException.buildBizException("视频总时长不能超过 $allowMaxDurationMinutes 分钟，如有需要请联系群主")
         }
+        val videoLimit = 45
+        if (isVideoOutputTask() && totalDurationMinutes > videoLimit) {
+            throw BizException.buildBizException("【提取完整视频】暂时限制总时长不能超过 $videoLimit 分钟")
+        }
         if (type == BilibiliTaskSourceTypeEnum.FREE) {
             if (subTasks.size > freeLimit) {
                 throw BizException.buildBizException("一次不能超过 $freeLimit 个视频，如有需要请联系群主")
@@ -58,5 +62,9 @@ class BilibiliTask(
                 throw BizException.buildBizException("不支持 P 数大于  $multiPLimit，如有需要请联系群主")
             }
         }
+    }
+
+    fun isVideoOutputTask(): Boolean {
+        return outputType == BilibiliTaskOutputTypeEnum.VIDEO
     }
 }
