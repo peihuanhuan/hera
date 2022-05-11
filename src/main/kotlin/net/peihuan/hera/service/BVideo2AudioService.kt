@@ -19,6 +19,7 @@ import net.peihuan.hera.service.AliyundriveService.Companion.DEFAULT_ROOT_ID
 import net.peihuan.hera.service.convert.BilibiliTaskConvertService
 import net.peihuan.hera.service.remote.ShortUrlRemoteServiceWrapper
 import net.peihuan.hera.service.storage.StorageService
+import net.peihuan.hera.util.blockWithTry
 import net.peihuan.hera.util.currentUserOpenid
 import net.peihuan.hera.util.doDownloadBilibiliVideo
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
@@ -214,7 +215,9 @@ class BVideo2AudioService(
             task.trimName()
             updateTaskStatus(task, TaskStatusEnum.SUCCESS)
             task.name = blackKeywordService.replaceBlackKeyword(task.name!!)
-            notifyService.notifyTaskResult(task)
+            blockWithTry(retryTime = 5) {
+                notifyService.notifyTaskResult(task)
+            }
 
             return task.result
         } catch (e: Exception) {

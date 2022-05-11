@@ -1,8 +1,10 @@
 package net.peihuan.hera.config
 
 import feign.Logger
+import feign.Retryer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+
 
 @Configuration
 class FeignConfig(
@@ -16,5 +18,10 @@ class FeignConfig(
     @Bean
     fun feginLoggerLevel(): Logger.Level {
         return Logger.Level.BASIC
+    }
+
+    @Bean
+    fun feignRetryer(): Retryer? {
+        return Retryer.Default(100, 1000, 5)
     }
 }
