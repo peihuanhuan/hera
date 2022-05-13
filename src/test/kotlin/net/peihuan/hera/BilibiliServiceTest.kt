@@ -134,13 +134,15 @@ class BilibiliServiceTest : HeraApplicationTests() {
     @Test
     fun test1() {
         val x = bilibiliService.resolve2BilibiliVideos("""
-            【开场一句就能俘获你芳心！《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W
+            短链接 == 【开场一句就能俘获你芳心！《金玉良缘》笛子/竹笛版-哔哩哔哩】 https://b23.tv/gF0xd6W
             
-            https://www.bilibili.com/audio/au2831765?xxx=1
+            音频 ==  https://m.bilibili.com/audio/au2831765?xxx=1
 
-            https://www.bilibili.com/festival/2022bnj?bvid=BV1Ga41127eH&spm_id_from=333.788.top_right_bar_window_custom_collection.content.click
+            在链接参数上 == https://www.bilibili.com/festival/2022bnj?bvid=BV1Ga41127eH&spm_id_from=333.788.top_right_bar_window_custom_collection.content.click
 
-            https://www.bilibili.com/video/BV1ua411872R
+            番剧 == https://www.bilibili.com/bangumi/play/ep395184
+
+            正常 == https://bilibili.com/video/BV1ua411872R
         """.trimIndent())
         println("====")
         println(x)

@@ -104,11 +104,11 @@ class BilibiliService(
     private fun resolveBvSimpleInfo(data: String): MutableList<BilibiliVideo> {
         val bvids = mutableListOf<BilibiliVideo>()
         val regex =
-            Pattern.compile("(http|https):\\/\\/www\\.bilibili\\.com\\/video\\/(BV\\w*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*")
+            Pattern.compile("\\S*bilibili\\.com\\/video\\/(BV\\w*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*")
                 .matcher(data)
         var matchStart = 0
         while (regex.find(matchStart)) {
-            bvids.add(BilibiliVideo(bvid = regex.group(2), page = regex.group(6)))
+            bvids.add(BilibiliVideo(bvid = regex.group(1), page = regex.group(5)))
             matchStart = regex.end()
         }
         return bvids
@@ -118,11 +118,11 @@ class BilibiliService(
     private fun resolveMusicFullInfo(data: String): MutableList<BilibiliVideo> {
         val videos = mutableListOf<BilibiliVideo>()
         val regex =
-            Pattern.compile("(m|www)\\.bilibili\\.com\\/audio\\/au(\\d*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*")
+            Pattern.compile("\\S*\\.bilibili\\.com\\/audio\\/au(\\d*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*")
                 .matcher(data)
         var matchStart = 0
         while (regex.find(matchStart)) {
-            val sid = regex.group(2)
+            val sid = regex.group(1)
             val musicInfoResp = wwwBilibiliFeignService.getMusicInfo(sid)
 
             val musicInfo = musicInfoResp.data
@@ -142,11 +142,11 @@ class BilibiliService(
     private fun getEpCompleteInfo(data: String): List<BilibiliVideo> {
         val epids = mutableListOf<Int>()
         val regex =
-            Pattern.compile("(http|https):\\/\\/www\\.bilibili\\.com\\/bangumi\\/play\\/ep(\\d*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*")
+            Pattern.compile("\\S*bilibili\\.com\\/bangumi\\/play\\/ep(\\d*)(\\?((.*&p=|p=|)(\\d+)\\S*|\\S*))?\\s*")
                 .matcher(data)
         var matchStart = 0
         while (regex.find(matchStart)) {
-            epids.add(regex.group(2).toInt())
+            epids.add(regex.group(1).toInt())
             matchStart = regex.end()
         }
         return epids.mapNotNull { epid -> getBangumiInfo(epid) }
