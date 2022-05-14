@@ -19,6 +19,7 @@ import net.peihuan.hera.util.currentUserOpenid
 import net.peihuan.hera.util.randomOutTradeNo
 import org.joda.time.format.DateTimeFormat
 import org.springframework.stereotype.Service
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 @Service
@@ -42,10 +43,10 @@ class OrderService(private val userPOService: UserPOService,
         val request = WxPayUnifiedOrderRequest()
         request.tradeType = WxPayConstants.TradeType.JSAPI
         request.deviceInfo = "WEB"
-        val title = "阿烫-虎年兑换码"
+        val title = "阿烫-积分购买"
         request.body = title
         request.outTradeNo = randomOutTradeNo()
-        request.totalFee = 1
+        request.totalFee = Random().nextInt(70) + 30
         request.openid = currentUserOpenid
         request.spbillCreateIp = httpServletRequest.remoteAddr
         request.notifyUrl =  "https://wx.peihuan.net/wx/portal/${payProperties.appId}/pay/callback"
