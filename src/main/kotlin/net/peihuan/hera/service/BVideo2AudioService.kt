@@ -15,6 +15,7 @@ import net.peihuan.hera.feign.dto.bilibili.Quality
 import net.peihuan.hera.persistent.po.BilibiliTaskPO
 import net.peihuan.hera.persistent.service.BilibiliAudioPOService
 import net.peihuan.hera.persistent.service.BilibiliAudioTaskPOService
+import net.peihuan.hera.persistent.service.PersistentLogService
 import net.peihuan.hera.service.AliyundriveService.Companion.DEFAULT_ROOT_ID
 import net.peihuan.hera.service.convert.BilibiliTaskConvertService
 import net.peihuan.hera.service.remote.ShortUrlRemoteServiceWrapper
@@ -41,6 +42,7 @@ class BVideo2AudioService(
     private val bilibiliService: BilibiliService,
     private val notifyService: NotifyService,
     private val cacheManage: CacheManage,
+    private val persistentLogService: PersistentLogService,
     private val aliyundriveService: AliyundriveService,
     private val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService,
     private val bilibiliAudioPOService: BilibiliAudioPOService,
@@ -81,7 +83,13 @@ class BVideo2AudioService(
         val multiPLimit = cacheManage.getBizValue(BizConfigEnum.MAX_P_LIMIT, "35").toInt()
         val maxDurationMinute = cacheManage.getBizValue(BizConfigEnum.MAX_DURATION_MINUTE, "300").toInt()
 
-        task.validTask(freeLimit = freeLimit, multiPLimit = multiPLimit, allowMaxDurationMinutes = maxDurationMinute)
+        try {
+            task.validTask(freeLimit = freeLimit, multiPLimit = multiPLimit, allowMaxDurationMinutes = maxDurationMinute)
+        } catch (e: Exception) {
+            persistentLogService.saveLog(e.message?:"")
+            throw e
+        }
+
 
         val taskPO: BilibiliTaskPO = bilibiliTaskConvertService.convert2BilibiliTaskPO(task)
         bilibiliAudioTaskPOService.save(taskPO)

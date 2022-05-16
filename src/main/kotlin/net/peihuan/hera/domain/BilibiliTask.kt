@@ -1,10 +1,13 @@
 package net.peihuan.hera.domain
 
+import mu.KotlinLogging
 import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
 import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.TaskStatusEnum
 import net.peihuan.hera.exception.BizException
+
+private val log = KotlinLogging.logger {}
 
 class BilibiliTask(
     var id: Long ?= null,
