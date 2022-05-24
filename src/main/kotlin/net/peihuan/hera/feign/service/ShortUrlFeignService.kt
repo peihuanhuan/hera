@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody
 
 @FeignClient(
     name = "shorturl",
-    url = "https://r.nsini.com/",
+    // url = "https://r.nsini.com/",
+    url = "http://u.dejavuu.cn/",
 )
 interface ShortUrlFeignService {
 
