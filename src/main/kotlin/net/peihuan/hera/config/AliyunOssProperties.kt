@@ -9,5 +9,6 @@ data class AliyunOssProperties(
         val endpoint: String,
         val accessKeyId: String,
         val accessKeySecret: String,
-        val bucketName: String
+        val bucketName: String,
+        val cdnHost: String
 )

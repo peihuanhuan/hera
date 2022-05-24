@@ -39,7 +39,8 @@ class AliStorageServiceImpl(private val aliyunOssProperties: AliyunOssProperties
     }
 
     override fun getDownloadUrl(objectName: String): String {
-        return "https://${aliyunOssProperties.bucketName}.${aliyunOssProperties.endpoint}/${URLEncoder.encode(objectName, "utf-8")}"
+        // return "https://${aliyunOssProperties.bucketName}.${aliyunOssProperties.endpoint}/${URLEncoder.encode(objectName, "utf-8")}"
+        return "${aliyunOssProperties.cdnHost}/${URLEncoder.encode(objectName, "utf-8")}"
     }
 
     override fun getUrl(objectName: String, expire: Date): URL {
