@@ -22,7 +22,7 @@ class DownloadBilibiliAudioHandler(
     }
 
     override fun canHandle(message: String): Boolean {
-        return message.contains("音频")
+        return message.contains("音频") || message.contains("音頻")
     }
 
     override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
