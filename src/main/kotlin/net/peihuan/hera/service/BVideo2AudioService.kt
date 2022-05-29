@@ -219,15 +219,9 @@ class BVideo2AudioService(
     fun handleTask(task: BilibiliTask): String {
         try {
 
-            val aliyunBlackFileName = cacheManage.getBizValueList(BizConfigEnum.ALI_DRIVER_BLACK_FILE_NAME)
-            var isAliynBlack = false
-            aliyunBlackFileName.forEach {
-                if ((task.name ?: "").lowercase().contains(it)) {
-                    isAliynBlack = true;
-                }
-            }
+            val canUseAliyun = checkCanUseAliyunPan(task)
 
-            if (!grayService.isDirDownloadUser(task.openid) && !isAliynBlack) {
+            if (!grayService.isDirDownloadUser(task.openid) && canUseAliyun) {
                 try {
                     aliyunShare(task)
                 } catch (e: Exception) {
@@ -252,6 +246,18 @@ class BVideo2AudioService(
             updateTaskStatus(task, TaskStatusEnum.FAIL)
         }
         return "处理失败"
+    }
+
+    private fun checkCanUseAliyunPan(task: BilibiliTask): Boolean {
+        val aliyunBlackFileName = cacheManage.getBizValueList(BizConfigEnum.ALI_DRIVER_BLACK_FILE_NAME)
+        aliyunBlackFileName.forEach { blackWord ->
+            task.subTasks.forEach { subTask ->
+                if (subTask.originalTitle.lowercase().contains(blackWord)) {
+                    return false
+                }
+            }
+        }
+        return true
     }
 
     private fun aliyunShare(task: BilibiliTask) {

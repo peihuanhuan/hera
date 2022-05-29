@@ -32,7 +32,7 @@ class AliyundriveService(
     private val log = KotlinLogging.logger {}
 
     var accassToken = ""
-    var refreshToken = "24aabfbc10ca42b0a87581269a35420b"
+    var refreshToken = ""
     var driveId = ""
     var tokeType = "Bearer"
 
