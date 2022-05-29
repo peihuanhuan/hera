@@ -63,9 +63,14 @@ class BVideo2AudioService(
 
 
     @Transactional
-    fun saveTask(data: String, type: BilibiliTaskSourceTypeEnum, outputTypeEnum: BilibiliTaskOutputTypeEnum, notifyType: NotifyTypeEnum): Int {
+    fun saveTask(
+        data: String,
+        type: BilibiliTaskSourceTypeEnum,
+        outputTypeEnum: BilibiliTaskOutputTypeEnum,
+        notifyType: NotifyTypeEnum
+    ): Int {
 
-        if(outputTypeEnum == BilibiliTaskOutputTypeEnum.VIDEO) {
+        if (outputTypeEnum == BilibiliTaskOutputTypeEnum.VIDEO) {
 
             if (!grayService.isGrayVideoUser(currentUserOpenid)) {
                 throw BizException.buildBizException("暂不是内测者，进群临时开通权限")
@@ -84,9 +89,13 @@ class BVideo2AudioService(
         val maxDurationMinute = cacheManage.getBizValue(BizConfigEnum.MAX_DURATION_MINUTE, "300").toInt()
 
         try {
-            task.validTask(freeLimit = freeLimit, multiPLimit = multiPLimit, allowMaxDurationMinutes = maxDurationMinute)
+            task.validTask(
+                freeLimit = freeLimit,
+                multiPLimit = multiPLimit,
+                allowMaxDurationMinutes = maxDurationMinute
+            )
         } catch (e: Exception) {
-            persistentLogService.saveLog(e.message?:"")
+            persistentLogService.saveLog(e.message ?: "")
             throw e
         }
 
@@ -126,7 +135,8 @@ class BVideo2AudioService(
             openid = currentUserOpenid,
             outputType = outputTypeEnum
         )
-        val subTasks = bilibiliVideos.map { BilibiliSubTask(parentTask = task, bilibiliVideo = it, openid = currentUserOpenid) }
+        val subTasks =
+            bilibiliVideos.map { BilibiliSubTask(parentTask = task, bilibiliVideo = it, openid = currentUserOpenid) }
         task.addSubTasks(subTasks)
         return task
     }
@@ -209,7 +219,15 @@ class BVideo2AudioService(
     fun handleTask(task: BilibiliTask): String {
         try {
 
-            if (!grayService.isDirDownloadUser(task.openid)) {
+            val aliyunBlackFileName = cacheManage.getBizValueList(BizConfigEnum.ALI_DRIVER_BLACK_FILE_NAME)
+            var isAliynBlack = false
+            aliyunBlackFileName.forEach {
+                if ((task.name ?: "").lowercase().contains(it)) {
+                    isAliynBlack = true;
+                }
+            }
+
+            if (!grayService.isDirDownloadUser(task.openid) && !isAliynBlack) {
                 try {
                     aliyunShare(task)
                 } catch (e: Exception) {
@@ -344,7 +362,7 @@ class BVideo2AudioService(
     }
 
     fun convertSubTask(task: BilibiliTask, subTask: BilibiliSubTask): File {
-        val extension = if (subTask.outputType == BilibiliTaskOutputTypeEnum.VIDEO ) "mp4" else "mp3"
+        val extension = if (subTask.outputType == BilibiliTaskOutputTypeEnum.VIDEO) "mp4" else "mp3"
 
         val destinationFile = File("${workDir}/${subTask.trimTitle}.$extension")
         if (destinationFile.exists()) {
@@ -354,7 +372,7 @@ class BVideo2AudioService(
 
         // 获取视频下载链接
         var downloadUrls: List<String>
-        if ((subTask.sid?:"").isNotBlank()) {
+        if ((subTask.sid ?: "").isNotBlank()) {
             downloadUrls = bilibiliService.getMusicUrl(subTask.sid!!)
         } else if (subTask.outputType == BilibiliTaskOutputTypeEnum.VIDEO) {
             downloadUrls = bilibiliService.getFlvPlayUrl(subTask.aid, subTask.cid, Quality.P_1080)
@@ -368,7 +386,7 @@ class BVideo2AudioService(
         // 下载视频到本地
         val source = "${workDir}/${subTask.cid}.m4s"
         val sourceFile = File(source)
-        run downloadFile@ {
+        run downloadFile@{
             downloadUrls.forEach {
                 doDownloadBilibiliVideo(it, sourceFile, subTask.bvid, 3)
                 if (sourceFile.exists()) {

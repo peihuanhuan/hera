@@ -41,7 +41,7 @@ class AliyundriveService(
 
     companion object {
         var ALIYUN_DRIVER_TOKEN = ""
-        const val DEFAULT_ROOT_ID = "61b5b695fa43037eca8d44cb85bb457b299b5005"
+        var DEFAULT_ROOT_ID = ""
     }
 
     private val part_max_size: Long = 10 * 1024 * 1024L
@@ -49,6 +49,7 @@ class AliyundriveService(
     @PostConstruct
     fun setToken() {
         refreshToken = cacheManage.getBizValue(BizConfigEnum.ALI_YUN_DRIVER_REFRESH_TOKEN)
+        DEFAULT_ROOT_ID = cacheManage.getBizValue(BizConfigEnum.ALI_YUN_DRIVER_DEFAULT_ROOT)
     }
 
     fun get(fileId: String): GetFileDTO? {

@@ -33,6 +33,7 @@ enum class BizConfigEnum(val key: String, val desc: String) {
 
 
     ALI_YUN_DRIVER_REFRESH_TOKEN("ali_yun_driver_refresh_token", "阿里云盘 refresh token"),
+    ALI_YUN_DRIVER_DEFAULT_ROOT("ali_yun_driver_default_root", "阿里云盘 上传的根目录"),
 
     GRAY_USER_PERCENTAGE("gray_user_percentage", "用户灰度比例 0-100"),
     GRAY_USER("gray_user", "指定灰度用户"),
@@ -40,6 +41,8 @@ enum class BizConfigEnum(val key: String, val desc: String) {
 
     VIDEO_GRAY_PERCENTAGE("video_gray_user", "视频指定灰度用户"),
     VIDEO_USERS("video_users", "是否能使用视频功能"),
+
+    ALI_DRIVER_BLACK_FILE_NAME("ali_driver_black_file_name", "阿里云盘黑名单 文件名"),
 
     ;
 }

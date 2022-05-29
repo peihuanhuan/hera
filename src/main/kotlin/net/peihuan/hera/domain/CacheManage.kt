@@ -22,6 +22,14 @@ class CacheManage(
         .expireAfterWrite(heraProperties.cacheExpireSeconds, TimeUnit.SECONDS)
         .build()
 
+    fun getBizValueList(config: BizConfigEnum): List<String> {
+        val bizValue = getBizValue(config, "")
+        if (bizValue.isBlank()) {
+            return listOf()
+        }
+        return bizValue.split("\n")
+    }
+
     fun getBizValue(config: BizConfigEnum, default: String? = null): String {
         return cache.get(config) {
             val configValue: String? = configService.getConfigValue(config)
