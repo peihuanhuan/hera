@@ -5,7 +5,7 @@ import me.chanjar.weixin.mp.bean.subscribe.WxMpSubscribeMessage
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateData
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage
 import mu.KotlinLogging
-import net.peihuan.hera.config.HeraProperties
+import net.peihuan.hera.config.property.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.YYYY_MM_DD_HH_MM_SS

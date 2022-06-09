@@ -6,7 +6,7 @@ import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderRequest
 import com.github.binarywang.wxpay.constant.WxPayConstants
 import com.github.binarywang.wxpay.service.WxPayService
 import mu.KotlinLogging
-import net.peihuan.hera.config.WxPayProperties
+import net.peihuan.hera.config.property.WxPayProperties
 import net.peihuan.hera.constants.OrderTypeEnum
 import net.peihuan.hera.constants.PayStatusEnum
 import net.peihuan.hera.constants.YYYYMMDDHHMMSS

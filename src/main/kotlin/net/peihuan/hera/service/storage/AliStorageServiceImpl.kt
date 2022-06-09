@@ -6,7 +6,7 @@ import com.aliyun.oss.model.GeneratePresignedUrlRequest
 import com.aliyun.oss.model.ObjectMetadata
 import com.aliyun.oss.model.PutObjectRequest
 import mu.KotlinLogging
-import net.peihuan.hera.config.AliyunOssProperties
+import net.peihuan.hera.config.property.AliyunOssProperties
 import org.springframework.stereotype.Service
 import java.io.FileInputStream
 import java.net.URL

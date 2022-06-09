@@ -5,7 +5,7 @@ import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.kefu.request.WxMpKfAccountRequest
 import me.chanjar.weixin.mp.bean.material.WxMpMaterial
 import mu.KotlinLogging
-import net.peihuan.hera.config.HeraProperties
+import net.peihuan.hera.config.property.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
 import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
 import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum

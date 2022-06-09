@@ -2,7 +2,7 @@ package net.peihuan.hera.handler.click.waimai
 
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
-import net.peihuan.hera.config.ZyProperties
+import net.peihuan.hera.config.property.ZyProperties
 import net.peihuan.hera.constants.MM_DD
 import net.peihuan.hera.constants.ZyOrderSourceEnum
 import net.peihuan.hera.domain.CacheManage
@@ -17,9 +17,9 @@ import org.springframework.stereotype.Component
 
 @Component
 class WaimaiHandler(
-        private val zyProperties: ZyProperties,
-        private val cacheManage: CacheManage,
-        private val channelService: ChannelService,
+    private val zyProperties: ZyProperties,
+    private val cacheManage: CacheManage,
+    private val channelService: ChannelService,
 ) : AbstractMenuHandler {
 
     override fun canHandleMenuClick(key: String): Boolean {

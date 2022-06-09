@@ -2,7 +2,7 @@
 //
 // import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 // import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
-// import net.peihuan.hera.config.ZyProperties
+// import net.peihuan.hera.config.property.ZyProperties
 // import net.peihuan.hera.constants.BizConfigEnum
 // import net.peihuan.hera.domain.CacheManage
 // import net.peihuan.hera.handler.click.AbstractMenuAndMessageHandler

@@ -5,6 +5,7 @@ import com.github.binarywang.wxpay.service.WxPayService
 import com.github.binarywang.wxpay.service.impl.WxPayServiceImpl
 import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.api.impl.WxMpServiceImpl
+import net.peihuan.hera.config.property.WxPayProperties
 import net.peihuan.hera.persistent.service.LockPOService
 import net.peihuan.hera.service.ConfigService
 import org.apache.commons.lang3.StringUtils

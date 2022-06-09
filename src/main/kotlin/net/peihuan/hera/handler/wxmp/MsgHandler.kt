@@ -6,7 +6,7 @@ import me.chanjar.weixin.common.session.WxSessionManager
 import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
-import net.peihuan.hera.config.HeraProperties
+import net.peihuan.hera.config.property.HeraProperties
 import net.peihuan.hera.handler.click.AbstractMessageHandler
 import net.peihuan.hera.service.NotifyService
 import net.peihuan.hera.util.buildSendToKf

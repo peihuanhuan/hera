@@ -1,6 +1,6 @@
 package net.peihuan.hera.service.convert
 
-import net.peihuan.hera.config.ZyProperties
+import net.peihuan.hera.config.property.ZyProperties
 import net.peihuan.hera.domain.Channel
 import net.peihuan.hera.persistent.po.ChannelPO
 import net.peihuan.hera.util.ZyUtil

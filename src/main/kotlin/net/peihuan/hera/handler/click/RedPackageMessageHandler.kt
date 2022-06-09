@@ -4,8 +4,8 @@ import me.chanjar.weixin.common.api.WxConsts
 import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
-import net.peihuan.hera.config.HeraProperties
-import net.peihuan.hera.config.ZyProperties
+import net.peihuan.hera.config.property.HeraProperties
+import net.peihuan.hera.config.property.ZyProperties
 import net.peihuan.hera.feign.service.FastposterService
 import net.peihuan.hera.persistent.service.ActivityPOService
 import net.peihuan.hera.persistent.service.UserPOService
@@ -26,7 +26,8 @@ class RedPackageMessageHandler(private val wxMpService: WxMpService,
                                private val notifyUserMessageHandler: NotifyUserMessageHandler,
                                private val activityService: ActivityPOService,
                                private val fastposterService: FastposterService,
-                               private val heraProperties: HeraProperties) : AbstractMessageHandler {
+                               private val heraProperties: HeraProperties
+) : AbstractMessageHandler {
 
     override fun receivedMessages(): List<String> {
         return listOf("封面")

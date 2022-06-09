@@ -2,7 +2,7 @@ package net.peihuan.hera.handler.click
 
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
-import net.peihuan.hera.config.ZyProperties
+import net.peihuan.hera.config.property.ZyProperties
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.service.ChannelService
@@ -13,9 +13,9 @@ import org.springframework.stereotype.Component
 
 @Component
 class HuafeiHandler(
-        private val zyProperties: ZyProperties,
-        private val channelService: ChannelService,
-        private val cacheManage: CacheManage,
+    private val zyProperties: ZyProperties,
+    private val channelService: ChannelService,
+    private val cacheManage: CacheManage,
 ) : AbstractMenuAndMessageHandler() {
 
     override fun receivedMessages(): List<String> {

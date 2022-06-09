@@ -2,7 +2,7 @@ package net.peihuan.hera.service
 
 import me.chanjar.weixin.mp.api.WxMpService
 import mu.KotlinLogging
-import net.peihuan.hera.config.ZyProperties
+import net.peihuan.hera.config.property.ZyProperties
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.handler.click.RedPackageMessageHandler

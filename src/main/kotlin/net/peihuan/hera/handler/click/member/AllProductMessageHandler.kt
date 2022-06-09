@@ -2,7 +2,7 @@ package net.peihuan.hera.handler.click.member
 
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
-import net.peihuan.hera.config.ZyProperties
+import net.peihuan.hera.config.property.ZyProperties
 import net.peihuan.hera.handler.click.AbstractMenuAndMessageHandler
 import net.peihuan.hera.service.ChannelService
 import net.peihuan.hera.util.ZyUtil.Companion.buildAllProductUrl

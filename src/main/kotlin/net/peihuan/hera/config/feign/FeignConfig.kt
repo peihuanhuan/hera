@@ -1,4 +1,4 @@
-package net.peihuan.hera.config
+package net.peihuan.hera.config.feign
 
 import feign.Logger
 import feign.Retryer

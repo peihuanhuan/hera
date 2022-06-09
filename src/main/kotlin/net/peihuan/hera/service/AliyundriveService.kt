@@ -76,7 +76,7 @@ class AliyundriveService(
             throw BizException.buildBizException("最大分享不能超过100个")
         }
         val shareRequest =
-            ShareRequest(drive_id = driveId, expiration = DateTime.now().plusDays(7).toString(), file_id_list = fileIds)
+            ShareRequest(drive_id = driveId, expiration = DateTime.now().plusDays(1).toString(), file_id_list = fileIds)
 
         var retryTime = 0
         while (retryTime++ < retry) {

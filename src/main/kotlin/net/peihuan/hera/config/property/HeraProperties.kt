@@ -1,4 +1,4 @@
-package net.peihuan.hera.config
+package net.peihuan.hera.config.property
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding

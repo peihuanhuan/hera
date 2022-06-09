@@ -3,8 +3,8 @@ package net.peihuan.hera.handler.click
 import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
-import net.peihuan.hera.config.HeraProperties
-import net.peihuan.hera.config.ZyProperties
+import net.peihuan.hera.config.property.HeraProperties
+import net.peihuan.hera.config.property.ZyProperties
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.service.ChannelService
@@ -19,7 +19,8 @@ class ExchangeMemberMessageHandler(private val wxMpService: WxMpService,
                                    private val zyProperties: ZyProperties,
                                    private val cacheManage: CacheManage,
                                    private val channelService: ChannelService,
-                                   private val heraProperties: HeraProperties) : AbstractMenuAndMessageHandler() {
+                                   private val heraProperties: HeraProperties
+) : AbstractMenuAndMessageHandler() {
 
     companion object {
         const val receivedMessage = "兑换会员"

@@ -3,7 +3,7 @@ package net.peihuan.hera.domain
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import mu.KotlinLogging
-import net.peihuan.hera.config.HeraProperties
+import net.peihuan.hera.config.property.HeraProperties
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.service.ConfigService
 import org.springframework.stereotype.Service
@@ -27,7 +27,9 @@ class CacheManage(
         if (bizValue.isBlank()) {
             return listOf()
         }
-        return bizValue.split("\n")
+        val toMutableList = bizValue.split("\n").toMutableList()
+        toMutableList.removeIf { x->x.isBlank() }
+        return toMutableList
     }
 
     fun getBizValue(config: BizConfigEnum, default: String? = null): String {

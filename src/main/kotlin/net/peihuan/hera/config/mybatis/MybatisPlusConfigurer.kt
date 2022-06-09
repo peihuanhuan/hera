@@ -1,4 +1,4 @@
-package net.peihuan.hera.config
+package net.peihuan.hera.config.mybatis
 
 import com.baomidou.mybatisplus.annotation.DbType
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor
