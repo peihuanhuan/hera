@@ -3,14 +3,20 @@ package net.peihuan.hera.service
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.persistent.po.ConfigPO
+import net.peihuan.hera.persistent.po.UserConfigPO
 import net.peihuan.hera.persistent.service.ConfigPOService
+import net.peihuan.hera.persistent.service.UserConfigPOService
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Service
-class ConfigService(private val configPOService: ConfigPOService) {
+class ConfigService(private val configPOService: ConfigPOService, private val userConfigPOService: UserConfigPOService) {
 
+
+    fun getUserFileStorageConfig(openid: String): UserConfigPO? {
+        return userConfigPOService.getUserConfigByKey(openid, "file_storage_platform")
+    }
 
     // 先查询专属配置，无则降级到通用配置
     fun getConfigWithCommon(appid: String, enum: BizConfigEnum): String? {

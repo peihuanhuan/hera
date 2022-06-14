@@ -20,6 +20,7 @@ data class BilibiliSubTaskPO (
     val title: String,
     val mid: String,
     var fileId: String? = null,   // 阿里云盘fileId
+    var baiduFileId: String? = null,
     val createTime: Date? = null,
     var updateTime: Date? = null,
 )

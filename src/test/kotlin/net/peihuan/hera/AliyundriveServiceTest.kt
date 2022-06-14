@@ -1,7 +1,7 @@
 package net.peihuan.hera
 
 import mu.KotlinLogging
-import net.peihuan.hera.service.AliyundriveService
+import net.peihuan.hera.service.share.AliyundriveService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File

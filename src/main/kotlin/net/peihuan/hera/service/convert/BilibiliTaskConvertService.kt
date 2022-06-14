@@ -28,6 +28,7 @@ class BilibiliTaskConvertService() {
             id = po.id,
             bilibiliVideo = bilibiliVideo,
             aliyundriverFileId = po.fileId,
+            baiduPanFileId = po.baiduFileId,
             parentTask = task
         )
     }
@@ -58,7 +59,8 @@ class BilibiliTaskConvertService() {
             cid = bilibiliSubTask.cid,
             duration = bilibiliSubTask.duration,
             mid = bilibiliSubTask.mid,
-            fileId = bilibiliSubTask.aliyundriverFileId
+            fileId = bilibiliSubTask.aliyundriverFileId,
+            baiduFileId = bilibiliSubTask.baiduPanFileId
         )
     }
 

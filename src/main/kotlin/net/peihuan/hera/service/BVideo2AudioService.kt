@@ -16,23 +16,19 @@ import net.peihuan.hera.persistent.po.BilibiliTaskPO
 import net.peihuan.hera.persistent.service.BilibiliAudioPOService
 import net.peihuan.hera.persistent.service.BilibiliAudioTaskPOService
 import net.peihuan.hera.persistent.service.PersistentLogService
-import net.peihuan.hera.service.AliyundriveService.Companion.DEFAULT_ROOT_ID
 import net.peihuan.hera.service.convert.BilibiliTaskConvertService
-import net.peihuan.hera.service.remote.ShortUrlRemoteServiceWrapper
-import net.peihuan.hera.service.storage.StorageService
+import net.peihuan.hera.service.share.AliyundriveService
+import net.peihuan.hera.service.share.FileShareService
+import net.peihuan.hera.service.share.UrlDirectDownloadService
 import net.peihuan.hera.util.blockWithTry
 import net.peihuan.hera.util.currentUserOpenid
 import net.peihuan.hera.util.doDownloadBilibiliVideo
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.apache.commons.io.FileUtils
-import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
-import java.io.FileInputStream
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -44,12 +40,12 @@ class BVideo2AudioService(
     private val cacheManage: CacheManage,
     private val persistentLogService: PersistentLogService,
     private val aliyundriveService: AliyundriveService,
+    private val urlDirectDownloadService: UrlDirectDownloadService,
+    private val configService: ConfigService,
     private val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService,
     private val bilibiliAudioPOService: BilibiliAudioPOService,
-    private val storageService: StorageService,
     private val bilibiliTaskConvertService: BilibiliTaskConvertService,
     private val grayService: GrayService,
-    private val shortUrlRemoteServiceWrapper: ShortUrlRemoteServiceWrapper,
     private val blackKeywordService: BlackKeywordService
 ) {
 
@@ -176,16 +172,6 @@ class BVideo2AudioService(
     }
 
 
-    private fun findAliyunDriverSuccessSubTask(task: BilibiliTask): List<BilibiliSubTask> {
-        return task.subTasks.filter {
-            if (it.aliyundriverFileId.isNullOrEmpty()) {
-                return@filter false
-            }
-            return@filter aliyundriveService.checkFileExisted(it.aliyundriverFileId!!)
-        }
-    }
-
-
     private fun updateSubTask(subTask: BilibiliSubTask) {
         val po = bilibiliTaskConvertService.convert2BilibiliSubTaskPO(subTask)
         bilibiliAudioPOService.updateById(po)
@@ -203,41 +189,61 @@ class BVideo2AudioService(
             // 先检查状态，已成功则返回
             return task.url
         }
-        // 失败状态，但有结果，有名字，是手工填写的结果，也需要返回
-        // if (task.url.isNotBlank() && task.name.isNotBlank()) {
-        //     task.status = TaskStatusEnum.SUCCESS.code
-        //     task.updateTime = null
-        //     // TODO: 2022/3/26 这里的要抽出来
-        //     bilibiliAudioTaskPOService.updateById(task)
-        //     notifyService.notifyTaskResult(task)
-        //     return task.url
-        // }
-
         return ""
     }
 
+    fun determineUserFileStorageOrder(task: BilibiliTask): List<FileShareService> {
+        val services: MutableList<FileShareService>
+
+        if (!grayService.isDirDownloadUser(task.openid)) {
+            // TODO: 2022/6/14
+        }
+
+
+        val userFileStorageConfig = configService.getUserFileStorageConfig(task.openid)
+        services = if (userFileStorageConfig == null) {
+            mutableListOf(aliyundriveService, urlDirectDownloadService)
+        } else if (userFileStorageConfig.value!! == "aliyun") {
+            mutableListOf(aliyundriveService, urlDirectDownloadService)
+        } else {
+            mutableListOf(aliyundriveService, urlDirectDownloadService) // todo 百度
+        }
+
+        if (!checkCanUseAliyunPan(task)) {
+            services.remove(aliyundriveService)
+        }
+
+        return services
+    }
+
+
     fun handleTask(task: BilibiliTask): String {
         try {
+            val fileShareServices: List<FileShareService> = determineUserFileStorageOrder(task)
 
-            val canUseAliyun = checkCanUseAliyunPan(task)
-
-            if (!grayService.isDirDownloadUser(task.openid) && canUseAliyun) {
-                try {
-                    aliyunShare(task)
-                } catch (e: Exception) {
-                    log.info { "===== 阿里云盘失败，降级为链接直下" }
-                    dirDownload(task)
+            run breaking@{
+                fileShareServices.forEach { service ->
+                    try {
+                        val needConvertFiles = service.needConvertFiles(task)
+                        needConvertFiles.forEach { convertSubTask(task, it, 3) }
+                        service.uploadAndAssembleTaskShare(task, needConvertFiles)
+                        return@breaking
+                    } catch (e: Exception) {
+                        log.error(e.message, e)
+                    }
                 }
-            } else {
-                dirDownload(task)
             }
+            if(task.result.isBlank()) {
+                throw BizException.buildBizException("全都处理失败了")
+            }
+
+            task.cleanFiles()
 
             task.trimName()
             updateTaskStatus(task, TaskStatusEnum.SUCCESS)
             task.name = blackKeywordService.replaceBlackKeyword(task.name!!)
-            blockWithTry(retryTime = 5) {
-                notifyService.notifyTaskResult(task)
-            }
+
+            blockWithTry(retryTime = 5) { notifyService.notifyTaskResult(task) }
 
             return task.result
         } catch (e: Exception) {
@@ -248,7 +254,7 @@ class BVideo2AudioService(
         return "处理失败"
     }
 
-    private fun checkCanUseAliyunPan(task: BilibiliTask): Boolean {
+    fun checkCanUseAliyunPan(task: BilibiliTask): Boolean {
         val aliyunBlackFileName = cacheManage.getBizValueList(BizConfigEnum.ALI_DRIVER_BLACK_FILE_NAME)
         aliyunBlackFileName.forEach { blackWord ->
             task.subTasks.forEach { subTask ->
@@ -260,98 +266,67 @@ class BVideo2AudioService(
         return true
     }
 
-    private fun aliyunShare(task: BilibiliTask) {
-        val successSubTask = findAliyunDriverSuccessSubTask(task)
+    // private fun aliyunShare(task: BilibiliTask) {
+    //     val successSubTask = findAliyunDriverSuccessSubTask(task)
+    //
+    //
+    //
+    //     val parentId = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
+    //         task.subTasks
+    //         val userRootFolder = aliyundriveService.getFolderOrCreate(DEFAULT_ROOT_ID, task.openid)
+    //         aliyundriveService.getFolderOrCreate(userRootFolder, task.name!!)
+    //     } else {
+    //         DEFAULT_ROOT_ID
+    //     }
+    //
+    //     needHandleSubTask.forEach { subTask ->
+    //         val targetFile = convertSubTask(task, subTask, 3)
+    //         val uploadDTO = aliyundriveService.uploadFile(targetFile, 5, parentId)
+    //
+    //         subTask.aliyundriverFileId = uploadDTO.file_id
+    //         updateSubTask(subTask)
+    //     }
+    //
+    //     val shareFileIds: List<String> = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
+    //         listOf(parentId)
+    //     } else {
+    //         task.subTasks.map { it.aliyundriverFileId!! }
+    //     }
+    //
+    //
+    //     val share = aliyundriveService.share(shareFileIds, 5)
+    //
+    //     task.result = share.full_share_msg
+    //     if (task.type == BilibiliTaskSourceTypeEnum.FREE) {
+    //         task.name = share.share_name
+    //     }
+    // }
 
-        val needHandleSubTask = task.subTasks.filter { !successSubTask.contains(it) }
-
-        val parentId = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
-            task.subTasks
-            val userRootFolder = aliyundriveService.getFolderOrCreate(DEFAULT_ROOT_ID, task.openid)
-            aliyundriveService.getFolderOrCreate(userRootFolder, task.name!!)
-        } else {
-            DEFAULT_ROOT_ID
-        }
-
-        needHandleSubTask.forEach { subTask ->
-            val targetFile = convertSubTask(task, subTask, 3)
-            val uploadDTO = aliyundriveService.uploadFile(targetFile, 5, parentId)
-
-            subTask.aliyundriverFileId = uploadDTO.file_id
-            updateSubTask(subTask)
-            FileUtils.deleteQuietly(targetFile)
-
-        }
-
-        val shareFileIds: List<String> = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
-            listOf(parentId)
-        } else {
-            task.subTasks.map { it.aliyundriverFileId!! }
-        }
-
-
-        val share = aliyundriveService.share(shareFileIds, 5)
-
-        task.result = share.full_share_msg
-        if (task.type == BilibiliTaskSourceTypeEnum.FREE) {
-            task.name = share.share_name
-        }
-    }
-
-    private fun dirDownload(task: BilibiliTask) {
-        val audioFiles = task.subTasks.map { convertSubTask(task, it, 5) }
-
-        val targetFile: File
-        if (task.subTasks.size == 1) {
-            targetFile = audioFiles[0]
-        } else {
-            targetFile = zipFiles(task, audioFiles)
-        }
-
-        val objectName = targetFile.name
-        log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}M" }
-        storageService.upload(objectName, targetFile.absolutePath)
-        FileUtils.deleteQuietly(targetFile)
-        var downloadUrl = storageService.getDownloadUrl(objectName)
-
-        val shortUrl = shortUrlRemoteServiceWrapper.getShortUrl(downloadUrl)
-        if (!shortUrl.isNullOrBlank()) {
-            // 尝试替换为短链
-            downloadUrl = shortUrl
-        }
-
-        task.name = FilenameUtils.getBaseName(targetFile.name)
-        task.result = downloadUrl
-
-        audioFiles.forEach {
-            FileUtils.deleteQuietly(it)
-        }
-    }
-
-    private fun zipFiles(task: BilibiliTask, audioFiles: List<File>): File {
-        val name = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
-            task.name!!
-        } else {
-            "「${audioFiles[0].name}」等${audioFiles.size}个文件"
-        }.replace("/", "")
-
-        val targetFile = File("${workDir}/$name.zip")
-        ZipArchiveOutputStream(targetFile).use { zipArchiveOutputStream ->
-            audioFiles.forEach { file ->
-                val zipArchiveEntry = ZipArchiveEntry(file, name + File.separator + file.name)
-                zipArchiveOutputStream.putArchiveEntry(zipArchiveEntry)
-                val inputStream = FileInputStream(file)
-                val buffer = ByteArray(1024 * 5)
-                var len: Int
-                while (inputStream.read(buffer).also { len = it } != -1) {
-                    zipArchiveOutputStream.write(buffer, 0, len)
-                }
-            }
-            zipArchiveOutputStream.closeArchiveEntry()
-            zipArchiveOutputStream.finish()
-        }
-        return targetFile
-    }
+    // private fun dirDownload(task: BilibiliTask) {
+    //     val audioFiles = task.subTasks.map { convertSubTask(task, it, 5) }
+    //
+    //     val targetFile: File
+    //     if (task.subTasks.size == 1) {
+    //         targetFile = audioFiles[0]
+    //     } else {
+    //         targetFile = zipFiles(task, audioFiles)
+    //     }
+    //
+    //     val objectName = targetFile.name
+    //     log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}M" }
+    //     storageService.upload(objectName, targetFile.absolutePath)
+    //     FileUtils.deleteQuietly(targetFile)
+    //     var downloadUrl = storageService.getDownloadUrl(objectName)
+    //
+    //     val shortUrl = shortUrlRemoteServiceWrapper.getShortUrl(downloadUrl)
+    //     if (!shortUrl.isNullOrBlank()) {
+    //         // 尝试替换为短链
+    //         downloadUrl = shortUrl
+    //     }
+    //
+    //     task.name = FilenameUtils.getBaseName(targetFile.name)
+    //     task.result = downloadUrl
+    // }
 
 
     fun convertSubTask(task: BilibiliTask, subTask: BilibiliSubTask, retry: Int): File {
@@ -368,11 +343,15 @@ class BVideo2AudioService(
     }
 
     fun convertSubTask(task: BilibiliTask, subTask: BilibiliSubTask): File {
+        if (subTask.outFile != null && subTask.outFile!!.exists()) {
+            return subTask.outFile!!
+        }
         val extension = if (subTask.outputType == BilibiliTaskOutputTypeEnum.VIDEO) "mp4" else "mp3"
 
         val destinationFile = File("${workDir}/${subTask.trimTitle}.$extension")
         if (destinationFile.exists()) {
             log.info { "已存在 ${destinationFile.absolutePath} 直接使用" }
+            subTask.outFile = destinationFile
             return destinationFile
         }
 
@@ -403,15 +382,15 @@ class BVideo2AudioService(
 
 
         // ffmpeg 文件如果是中文，可能会有些奇怪问题，使用 cid 作为唯一标识
-        val target = "${workDir}/${subTask.cid}.$extension"
-        FileUtils.deleteQuietly(File(target))
-        ffmpeg(source, target, subTask.byteRate)
+        val ffmpegTargetFile = "${workDir}/${subTask.cid}.$extension"
+        ffmpeg(source, ffmpegTargetFile, subTask.byteRate)
 
 
         // 最后恢复原本的文件名
-        File(target).renameTo(destinationFile)
-        FileUtils.deleteQuietly(File(target))
+        File(ffmpegTargetFile).renameTo(destinationFile)
+        FileUtils.deleteQuietly(File(ffmpegTargetFile))
         FileUtils.deleteQuietly(sourceFile)
+        subTask.outFile = destinationFile
         return destinationFile
     }
 

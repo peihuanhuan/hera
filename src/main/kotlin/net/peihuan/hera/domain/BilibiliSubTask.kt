@@ -2,6 +2,7 @@ package net.peihuan.hera.domain
 
 import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
 import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 class BilibiliSubTask(
@@ -10,7 +11,10 @@ class BilibiliSubTask(
     var id: Long? = null,
     var taskId: Long? = null,
     var openid: String,
-    var aliyundriverFileId: String? = null
+    var aliyundriverFileId: String? = null,
+    var baiduPanFileId: String? = null,
+    var originalFile: File? = null,
+    var outFile: File? = null
 ) {
 
     val outputType: BilibiliTaskOutputTypeEnum

@@ -2,7 +2,7 @@ package net.peihuan.hera.feign.config
 
 import feign.RequestInterceptor
 import feign.RequestTemplate
-import net.peihuan.hera.service.AliyundriveService
+import net.peihuan.hera.service.share.AliyundriveService
 
 class AliyundriveInterceptor() : RequestInterceptor {
 

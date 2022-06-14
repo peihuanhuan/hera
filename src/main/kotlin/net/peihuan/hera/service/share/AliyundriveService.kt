@@ -1,11 +1,17 @@
-package net.peihuan.hera.service
+package net.peihuan.hera.service.share
 
 import mu.KotlinLogging
+import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.BizConfigEnum
+import net.peihuan.hera.domain.BilibiliSubTask
+import net.peihuan.hera.domain.BilibiliTask
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.feign.dto.aliyundrive.*
 import net.peihuan.hera.feign.service.AliyundriveFeignService
+import net.peihuan.hera.persistent.service.BilibiliAudioPOService
+import net.peihuan.hera.service.BlackKeywordService
+import net.peihuan.hera.service.NotifyService
 import net.peihuan.hera.util.JsUtil
 import net.peihuan.hera.util.toJson
 import net.peihuan.hera.util.upload
@@ -27,7 +33,8 @@ class AliyundriveService(
     private val notifyService: NotifyService,
     private val blackKeywordService: BlackKeywordService,
     private val cacheManage: CacheManage,
-) {
+    private val bilibiliAudioPOService: BilibiliAudioPOService,
+) : FileShareService {
 
     private val log = KotlinLogging.logger {}
 
@@ -35,8 +42,6 @@ class AliyundriveService(
     var refreshToken = ""
     var driveId = ""
     var tokeType = "Bearer"
-
-    // 根目录
 
 
     companion object {
@@ -49,8 +54,51 @@ class AliyundriveService(
     @PostConstruct
     fun setToken() {
         refreshToken = cacheManage.getBizValue(BizConfigEnum.ALI_YUN_DRIVER_REFRESH_TOKEN)
-        DEFAULT_ROOT_ID = cacheManage.getBizValue(BizConfigEnum.ALI_YUN_DRIVER_DEFAULT_ROOT)
+        DEFAULT_ROOT_ID = cacheManage.getBizValue(BizConfigEnum.ALI_YUN_DRIVER_DEFAULT_ROOT, "")
     }
+
+    override fun needConvertFiles(task: BilibiliTask): List<BilibiliSubTask> {
+        val success =  task.subTasks.filter {
+            if (it.aliyundriverFileId.isNullOrEmpty()) {
+                return@filter false
+            }
+            return@filter checkFileExisted(it.aliyundriverFileId!!)
+        }
+
+        return task.subTasks.filter { !success.contains(it) }
+    }
+
+
+    override fun uploadAndAssembleTaskShare(task: BilibiliTask, needUpload: List<BilibiliSubTask>) {
+
+        val parentId = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
+            val userRootFolder = getFolderOrCreate(DEFAULT_ROOT_ID, task.openid)
+            getFolderOrCreate(userRootFolder, task.name!!)
+        } else {
+            DEFAULT_ROOT_ID
+        }
+
+        needUpload.forEach { subTask ->
+            val uploadDTO = uploadFile(subTask.outFile!!, 5, parentId)
+            subTask.aliyundriverFileId = uploadDTO.file_id
+            bilibiliAudioPOService.updateSubTask(subTask)
+        }
+
+        val shareFileIds: List<String> = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
+            listOf(parentId)
+        } else {
+            task.subTasks.map { it.aliyundriverFileId!! }
+        }
+
+        val share = share(shareFileIds, 5)
+
+        task.result = share.full_share_msg
+        if (task.type == BilibiliTaskSourceTypeEnum.FREE) {
+            task.name = share.share_name
+        }
+    }
+
+
 
     fun get(fileId: String): GetFileDTO? {
         return try {
@@ -259,5 +307,7 @@ class AliyundriveService(
         cacheManage.updateBizValue(BizConfigEnum.ALI_YUN_DRIVER_REFRESH_TOKEN, refreshToken)
         log.info { "刷新access_token完成 $accassToken" }
     }
+
+
 
 }

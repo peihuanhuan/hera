@@ -6,6 +6,7 @@ import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.TaskStatusEnum
 import net.peihuan.hera.exception.BizException
+import org.apache.commons.io.FileUtils
 
 private val log = KotlinLogging.logger {}
 
@@ -69,5 +70,11 @@ class BilibiliTask(
 
     fun isVideoOutputTask(): Boolean {
         return outputType == BilibiliTaskOutputTypeEnum.VIDEO
+    }
+
+    fun cleanFiles() {
+        subTasks.forEach {
+            FileUtils.deleteQuietly(it.outFile)
+        }
     }
 }

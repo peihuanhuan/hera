@@ -5,8 +5,8 @@ import me.chanjar.weixin.mp.bean.subscribe.WxMpSubscribeMessage
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateData
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage
 import mu.KotlinLogging
-import net.peihuan.hera.config.property.HeraProperties
 import net.peihuan.hera.config.WxMpProperties
+import net.peihuan.hera.config.property.HeraProperties
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.constants.YYYY_MM_DD_HH_MM_SS
 import net.peihuan.hera.constants.ZyOrderSourceEnum
@@ -143,7 +143,7 @@ class NotifyService(
                     mapOf(
                         "thing1" to task.name,
                         "phrase2" to "任务已完成",
-                        "thing3" to "公众号回复【音频】，复制链接浏览器下载"
+                        "thing3" to "公众号回复【音频】，获取提取结果"
                     )
                 )
                 .templateId(wxMpProperties.taskSubscribeId)

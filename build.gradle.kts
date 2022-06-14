@@ -13,11 +13,13 @@ noArg {
 }
 
 group = "net.peihuan"
-version = "0.22.2"
+version = "1.0.1"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
 	mavenCentral()
+	maven("https://jitpack.io")
+
 }
 
 extra["springCloudVersion"] = "2020.0.4"
@@ -33,6 +35,9 @@ dependencies {
 	implementation("org.apache.commons:commons-compress:1.21")
 
 	implementation("io.jsonwebtoken:jjwt:0.9.0")
+
+	// implementation("net.peihuan:baidu-pan-starter:0.0.2")
+
 
 	// implementation("org.bytedeco:ffmpeg:4.4-1.5.6")
 	// implementation("org.bytedeco:javacv-platform:1.5.6")
