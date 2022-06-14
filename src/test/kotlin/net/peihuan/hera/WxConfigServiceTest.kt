@@ -5,8 +5,9 @@ import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.bean.kefu.request.WxMpKfAccountRequest
 import me.chanjar.weixin.mp.bean.material.WxMpMaterial
 import mu.KotlinLogging
-import net.peihuan.hera.config.property.HeraProperties
+import net.peihuan.hera.component.JwtTokenComponent
 import net.peihuan.hera.config.WxMpProperties
+import net.peihuan.hera.config.property.HeraProperties
 import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
 import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
@@ -39,6 +40,15 @@ class WxConfigServiceTest : HeraApplicationTests() {
 
     @Autowired
     lateinit var notifyService: NotifyService
+
+    @Autowired
+    lateinit var jwtTokenComponent: JwtTokenComponent
+
+    @Test
+    fun login() {
+        val x = jwtTokenComponent.generateUserToken(1, "NORMAL_USER")
+        println(x)
+    }
 
     @Test
     fun uploadPic() {

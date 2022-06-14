@@ -12,7 +12,7 @@ class BilibiliSubTask(
     var taskId: Long? = null,
     var openid: String,
     var aliyundriverFileId: String? = null,
-    var baiduPanFileId: String? = null,
+    var baiduPanFileId: Long? = null,
     var originalFile: File? = null,
     var outFile: File? = null
 ) {

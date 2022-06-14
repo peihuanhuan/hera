@@ -18,6 +18,7 @@ import net.peihuan.hera.persistent.service.BilibiliAudioTaskPOService
 import net.peihuan.hera.persistent.service.PersistentLogService
 import net.peihuan.hera.service.convert.BilibiliTaskConvertService
 import net.peihuan.hera.service.share.AliyundriveService
+import net.peihuan.hera.service.share.BaiduPanService
 import net.peihuan.hera.service.share.FileShareService
 import net.peihuan.hera.service.share.UrlDirectDownloadService
 import net.peihuan.hera.util.blockWithTry
@@ -45,6 +46,7 @@ class BVideo2AudioService(
     private val bilibiliAudioTaskPOService: BilibiliAudioTaskPOService,
     private val bilibiliAudioPOService: BilibiliAudioPOService,
     private val bilibiliTaskConvertService: BilibiliTaskConvertService,
+    private val baiduPanService: BaiduPanService,
     private val grayService: GrayService,
     private val blackKeywordService: BlackKeywordService
 ) {
@@ -206,7 +208,7 @@ class BVideo2AudioService(
         } else if (userFileStorageConfig.value!! == "aliyun") {
             mutableListOf(aliyundriveService, urlDirectDownloadService)
         } else {
-            mutableListOf(aliyundriveService, urlDirectDownloadService) // todo 百度
+            mutableListOf(baiduPanService, aliyundriveService, urlDirectDownloadService)
         }
 
         if (!checkCanUseAliyunPan(task)) {

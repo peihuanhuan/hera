@@ -1,6 +1,7 @@
 package net.peihuan.hera.config
 
 import me.chanjar.weixin.common.redis.WxRedisOps
+import net.peihuan.baiduPanSDK.service.BaiduOps
 import net.peihuan.hera.persistent.service.LockPOService
 import net.peihuan.hera.service.ConfigService
 import org.springframework.stereotype.Service
@@ -9,7 +10,7 @@ import java.util.concurrent.locks.Lock
 
 @Service
 class WxMysqlOps(val configService: ConfigService,
-                 val lockPOService: LockPOService) : WxRedisOps {
+                 val lockPOService: LockPOService) : WxRedisOps, BaiduOps {
 
     override fun getValue(key: String): String? {
         val configPO = configService.getByKey(key) ?: return null

@@ -8,6 +8,7 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage
 import me.chanjar.weixin.mp.bean.result.WxMpUser
 import me.chanjar.weixin.mp.util.WxMpConfigStorageHolder
+import net.peihuan.baiduPanSDK.service.BaiduService
 import net.peihuan.hera.config.property.ZyProperties
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.constants.StatusEnum
@@ -51,7 +52,8 @@ class UserService(
     private val zyProperties: ZyProperties,
     private val activityMessageHandler: ActivityMessageHandler,
     private val scanService: ScanService,
-    private val subscribePOService: SubscribePOService
+    private val subscribePOService: SubscribePOService,
+    private val baiduService: BaiduService
 ) {
 
     fun getSimpleUser(openid: String): User? {
