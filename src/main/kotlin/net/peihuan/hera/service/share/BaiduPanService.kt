@@ -1,5 +1,6 @@
 package net.peihuan.hera.service.share
 
+import mu.KotlinLogging
 import net.peihuan.baiduPanSDK.service.BaiduService
 import net.peihuan.baiduPanSDK.service.impl.BaiduOAuthConfigServiceImpl
 import net.peihuan.hera.config.WxMysqlOps
@@ -7,11 +8,13 @@ import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.domain.BilibiliSubTask
 import net.peihuan.hera.domain.BilibiliTask
 import net.peihuan.hera.domain.CacheManage
+import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.persistent.service.BilibiliAudioPOService
 import net.peihuan.hera.persistent.service.LockPOService
 import net.peihuan.hera.service.BlackKeywordService
 import net.peihuan.hera.service.ConfigService
 import net.peihuan.hera.service.NotifyService
+import org.apache.commons.io.FilenameUtils
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
 
@@ -28,6 +31,8 @@ class BaiduPanService(
 
     ): FileShareService {
 
+
+    private val log = KotlinLogging.logger {}
 
     companion object val ROOT_USER_ID = "1"
 
@@ -60,7 +65,9 @@ class BaiduPanService(
         }
 
         needUpload.forEach { subTask ->
+            log.info("开始上传百度云盘 {}", rootPath + subTask.outFile!!.name)
             val resp = baiduService.getPanService().uploadFile(ROOT_USER_ID, rootPath + subTask.outFile!!.name, subTask.outFile!!)
+            log.info("上传结束 {}", resp)
             subTask.baiduPanFileId = resp.fs_id
             bilibiliAudioPOService.updateSubTask(subTask)
         }
@@ -68,8 +75,18 @@ class BaiduPanService(
         val shareFileIds: List<Long> = task.subTasks.map { it.baiduPanFileId!! }
 
         val shareResp = baiduService.getPanService().shareFiles(ROOT_USER_ID, shareFileIds, 1, "欢迎关注阿烫")
+
+        if (shareResp.errno != 0) {
+            log.error("分享失败 {}", shareResp)
+            throw BizException.buildBizException("百度云盘分享失败")
+        }
+
         task.result = "hi，这是我用百度网盘分享的内容~复制这段内容打开「百度网盘」APP即可获取 \n" +
                 "链接:${shareResp.link}\n\n提取码:${shareResp.pwd}"
+
+        if (task.type == BilibiliTaskSourceTypeEnum.FREE) {
+            task.name = "【" + FilenameUtils.getBaseName(task.subTasks.first().outFile!!.name) + "】等${task.subTaskSize}个文件"
+        }
     }
 
 

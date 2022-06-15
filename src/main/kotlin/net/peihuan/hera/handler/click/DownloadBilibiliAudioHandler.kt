@@ -35,9 +35,10 @@ class DownloadBilibiliAudioHandler(
                 | 
                 |<a>阿烫的粉丝群</a>，想及时了解此工具最新动态，或无法导出音频求助，请进群，回复及时！
                 |
-                |<a>Bilibili 音频提取</a>
+                |<a>Bilibili 音频提取工具</a>
             """.trimMargin()
                 .completeMsgMenu(bilibiliAudioQunHandler.receivedMessages().first())
+                .completeALable("http://wx.peihuan.net/bilibili-audio/")
             wxMpXmlMessage.replyKfMessage(content)
             return null
         }
