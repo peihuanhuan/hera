@@ -1,6 +1,7 @@
 package net.peihuan.hera.service
 
 import net.peihuan.hera.constants.BizConfigEnum
+import net.peihuan.hera.constants.FILE_STORAGE_PLATFORM
 import net.peihuan.hera.exception.BizException
 import net.peihuan.hera.persistent.po.ConfigPO
 import net.peihuan.hera.persistent.po.UserConfigPO
@@ -14,8 +15,23 @@ import java.util.concurrent.TimeUnit
 class ConfigService(private val configPOService: ConfigPOService, private val userConfigPOService: UserConfigPOService) {
 
 
+
     fun getUserFileStorageConfig(openid: String): UserConfigPO? {
-        return userConfigPOService.getUserConfigByKey(openid, "file_storage_platform")
+        return userConfigPOService.getUserConfigByKey(openid, FILE_STORAGE_PLATFORM)
+    }
+    fun updateUserConfig(openid: String, key: String, value: String) {
+
+        val userConfig = userConfigPOService.getUserConfigByKey(openid, key)
+        if(userConfig != null) {
+            userConfig.value = value
+            userConfigPOService.updateById(userConfig)
+        } else {
+            val po = UserConfigPO()
+            po.openid = openid
+            po.key = key
+            po.value = value
+            userConfigPOService.save(po)
+        }
     }
 
     // 先查询专属配置，无则降级到通用配置

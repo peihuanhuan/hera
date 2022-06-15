@@ -68,7 +68,8 @@ class BaiduPanService(
         val shareFileIds: List<Long> = task.subTasks.map { it.baiduPanFileId!! }
 
         val shareResp = baiduService.getPanService().shareFiles(ROOT_USER_ID, shareFileIds, 1, "欢迎关注阿烫")
-        task.result = "百度云盘链接 ${shareResp.link} 提取码 ${shareResp.pwd}"
+        task.result = "hi，这是我用百度网盘分享的内容~复制这段内容打开「百度网盘」APP即可获取 \n" +
+                "链接:${shareResp.link}\n\n提取码:${shareResp.pwd}"
     }
 
 

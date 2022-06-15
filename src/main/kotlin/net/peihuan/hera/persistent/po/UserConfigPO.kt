@@ -9,7 +9,7 @@ import java.util.*
 class UserConfigPO {
     @TableId
     val id: Long? = null
-    val openid: String? = null
+    var openid: String? = null
 
     @TableField("`key`")
     lateinit var key: String

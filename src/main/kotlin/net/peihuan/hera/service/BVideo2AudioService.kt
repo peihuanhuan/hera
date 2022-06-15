@@ -203,12 +203,17 @@ class BVideo2AudioService(
 
 
         val userFileStorageConfig = configService.getUserFileStorageConfig(task.openid)
+        val aliFirst = mutableListOf(aliyundriveService, baiduPanService, urlDirectDownloadService)
+        val baiduFirst = mutableListOf(baiduPanService, aliyundriveService, urlDirectDownloadService)
+
         services = if (userFileStorageConfig == null) {
-            mutableListOf(aliyundriveService, urlDirectDownloadService)
-        } else if (userFileStorageConfig.value!! == "aliyun") {
-            mutableListOf(aliyundriveService, urlDirectDownloadService)
+            aliFirst
+        } else if (userFileStorageConfig.value!! == FILE_STORAGE_PLATFORM_ALI) {
+            aliFirst
+        } else if (userFileStorageConfig.value!! == FILE_STORAGE_PLATFORM_BAIDU){
+            baiduFirst
         } else {
-            mutableListOf(baiduPanService, aliyundriveService, urlDirectDownloadService)
+            aliFirst
         }
 
         if (!checkCanUseAliyunPan(task)) {
