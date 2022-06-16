@@ -1,8 +1,10 @@
 package net.peihuan.hera
 
+import net.peihuan.hera.constants.YYYY_MM_DD_HH_MM_SS
 import net.peihuan.hera.util.buildALabel
 import net.peihuan.hera.util.completeMsgMenu
 import org.apache.commons.io.FilenameUtils
+import org.joda.time.DateTime
 import org.junit.jupiter.api.Test
 import java.io.File
 
@@ -37,7 +39,7 @@ class SimpleTest {
 
     @Test
     fun testFFmpge() {
-
+        println(DateTime(2022,6,16,21,0).toString(YYYY_MM_DD_HH_MM_SS))
     }
 
     @Test

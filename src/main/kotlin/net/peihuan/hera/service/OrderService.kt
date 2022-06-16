@@ -42,6 +42,35 @@ class OrderService(private val userPOService: UserPOService,
 
     private val log = KotlinLogging.logger {}
 
+    fun testBackMoney(openid: String, amount: Int, desc: String) {
+        val backFen = amount.coerceAtLeast(1).coerceAtMost(1000)
+        val randomOutTradeNo = randomOutTradeNo()
+
+        val po = EntPayOrderPO(
+            partnerTradeNo = randomOutTradeNo,
+            openid = openid,
+            amount = amount,
+            description = desc,
+            checkName = "NO_CHECK",
+            zyOrderId = 0
+        )
+        entPayOrderPOService.save(po)
+
+        val entPayRequest = EntPayRequest()
+        entPayRequest.partnerTradeNo = po.partnerTradeNo
+        entPayRequest.openid = openid
+        entPayRequest.amount = po.amount
+        entPayRequest.description = po.description
+        entPayRequest.checkName = po.checkName
+        entPayRequest.spbillCreateIp = httpServletRequest.remoteAddr
+        val resp = wxPayService.entPayService.entPay(entPayRequest)
+        log.info("企业支付响应 {}", resp)
+
+        po.payTime = resp.paymentTime
+        po.paymentNo = resp.paymentNo
+        entPayOrderPOService.updateById(po)
+    }
+
     fun orderBackMoney(orderPO: ZyOrderPO) {
         val backPercentStr = cacheManage.getBizValue(BizConfigEnum.ORDER_BACK_PERCENT, "30")
         val backPercent = backPercentStr.toInt().coerceAtLeast(0).coerceAtMost(90)
@@ -64,6 +93,7 @@ class OrderService(private val userPOService: UserPOService,
         entPayRequest.amount = po.amount
         entPayRequest.description = po.description
         entPayRequest.checkName = po.checkName
+        entPayRequest.spbillCreateIp = httpServletRequest.remoteAddr
         val resp = wxPayService.entPayService.entPay(entPayRequest)
         log.info("企业支付响应 {}", resp)
 

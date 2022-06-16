@@ -6,10 +6,12 @@ import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
 import net.peihuan.hera.service.BVideo2AudioService
 import net.peihuan.hera.service.BilibiliService
+import net.peihuan.hera.service.UserService
 import net.peihuan.hera.util.CmdUtil
 import net.peihuan.hera.util.doDownload
 import net.peihuan.hera.util.doDownloadBilibiliVideo
 import net.peihuan.hera.util.getLocationUrl
+import org.joda.time.DateTime
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.context.SecurityContextHolder
@@ -26,6 +28,17 @@ class BilibiliServiceTest : HeraApplicationTests() {
     lateinit var bilibiliService: BilibiliService
     @Autowired
     lateinit var bVideo2AudioService: BVideo2AudioService
+    @Autowired
+    lateinit var userService: UserService
+
+    @Test
+    fun x() {
+        val user = userService.getSimpleUser("oIWc_55ThUyDsA9Qx5DljzOGGC3o")!!
+        if (user.createTime.after(DateTime(2022,6,16,21,0).toDate())) {
+            // 新用户，优先用百度云盘
+            println()
+        }
+    }
 
     @Test
     fun xx() {

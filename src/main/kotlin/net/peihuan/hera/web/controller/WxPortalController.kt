@@ -34,6 +34,12 @@ class WxPortalController {
         return WxPayNotifyResponse.success("成功")
     }
 
+    @PostMapping("/back/test")
+    fun testBackMoney(@RequestParam openid: String, @RequestParam amount: Int, @RequestParam desc: String): String{
+        orderService.testBackMoney(openid, amount, desc)
+        return WxPayNotifyResponse.success("成功")
+    }
+
     @GetMapping(produces = ["text/plain;charset=utf-8"])
     fun authGet(@PathVariable appid: String?,
                 @RequestParam(name = "signature", required = false) signature: String?,

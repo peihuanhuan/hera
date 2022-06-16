@@ -3,8 +3,10 @@ package net.peihuan.hera.config
 import com.github.binarywang.wxpay.config.WxPayConfig
 import com.github.binarywang.wxpay.service.WxPayService
 import com.github.binarywang.wxpay.service.impl.WxPayServiceImpl
+import com.google.gson.Gson
 import me.chanjar.weixin.mp.api.WxMpService
 import me.chanjar.weixin.mp.api.impl.WxMpServiceImpl
+import mu.KotlinLogging
 import net.peihuan.hera.config.property.WxPayProperties
 import net.peihuan.hera.persistent.service.LockPOService
 import net.peihuan.hera.service.ConfigService
@@ -20,6 +22,10 @@ class WxMpServiceConfiguration(
     val configService: ConfigService,
     val lockPOService: LockPOService
 ) {
+
+    private val log = KotlinLogging.logger {}
+
+    private val gson = Gson()
 
     @Bean
     fun wxMpService(): WxMpService {
@@ -50,6 +56,8 @@ class WxMpServiceConfiguration(
 
         // 可以指定是否使用沙箱环境
         payConfig.isUseSandboxEnv = false
+
+        log.info("pay: {}", gson.toJson(payProperties))
 
         val wxPayService: WxPayService = WxPayServiceImpl()
         wxPayService.config = payConfig

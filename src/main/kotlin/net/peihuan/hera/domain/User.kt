@@ -24,7 +24,8 @@ data class User(
     var pointsRecords: List<PointsRecordPO>,
     var points: Int,
     var channels: List<Channel>,
-) {
+    // var createTime: Date,
+    ) {
     // 当前关注状态
     fun getSubscribeStatus(): Int {
         if (subscribes.isNullOrEmpty()) {

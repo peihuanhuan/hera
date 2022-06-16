@@ -13,7 +13,7 @@ noArg {
 }
 
 group = "net.peihuan"
-version = "1.1.10"
+version = "1.1.22"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
@@ -60,8 +60,8 @@ dependencies {
 	implementation("joda-time:joda-time:2.10.12")
 	implementation("org.apache.commons:commons-io:1.3.2")
 
-	implementation("com.github.binarywang:weixin-java-mp:4.1.9.B")
-	implementation("com.github.binarywang:weixin-java-pay:4.1.9.B")
+	implementation("com.github.binarywang:weixin-java-mp:4.3.5.B")
+	implementation("com.github.binarywang:weixin-java-pay:4.3.5.B")
 
 	implementation("mysql:mysql-connector-java")
 	implementation("p6spy:p6spy:3.9.1")

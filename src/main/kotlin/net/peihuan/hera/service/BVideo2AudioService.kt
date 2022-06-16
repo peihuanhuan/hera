@@ -39,6 +39,7 @@ class BVideo2AudioService(
     private val bilibiliService: BilibiliService,
     private val notifyService: NotifyService,
     private val cacheManage: CacheManage,
+    private val userService: UserService,
     private val persistentLogService: PersistentLogService,
     private val aliyundriveService: AliyundriveService,
     private val urlDirectDownloadService: UrlDirectDownloadService,
@@ -206,8 +207,16 @@ class BVideo2AudioService(
         val aliFirst = mutableListOf(aliyundriveService, baiduPanService, urlDirectDownloadService)
         val baiduFirst = mutableListOf(baiduPanService, aliyundriveService, urlDirectDownloadService)
 
+
+
         services = if (userFileStorageConfig == null) {
-            aliFirst
+            // val user = userService.getSimpleUser(task.openid) ?: return baiduFirst
+            // if (user.createTime.after(DateTime(2022,6,16,21,0).toDate())) {
+                // 新用户，优先用百度云盘
+                // baiduFirst
+            // } else {
+                aliFirst
+            // }
         } else if (userFileStorageConfig.value!! == FILE_STORAGE_PLATFORM_ALI) {
             aliFirst
         } else if (userFileStorageConfig.value!! == FILE_STORAGE_PLATFORM_BAIDU){
@@ -250,7 +259,7 @@ class BVideo2AudioService(
             updateTaskStatus(task, TaskStatusEnum.SUCCESS)
             task.name = blackKeywordService.replaceBlackKeyword(task.name!!)
 
-            blockWithTry(retryTime = 5) { notifyService.notifyTaskResult(task) }
+            blockWithTry(retryTime = 15) { notifyService.notifyTaskResult(task) }
 
             return task.result
         } catch (e: Exception) {
@@ -272,68 +281,6 @@ class BVideo2AudioService(
         }
         return true
     }
-
-    // private fun aliyunShare(task: BilibiliTask) {
-    //     val successSubTask = findAliyunDriverSuccessSubTask(task)
-    //
-    //
-    //
-    //     val parentId = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
-    //         task.subTasks
-    //         val userRootFolder = aliyundriveService.getFolderOrCreate(DEFAULT_ROOT_ID, task.openid)
-    //         aliyundriveService.getFolderOrCreate(userRootFolder, task.name!!)
-    //     } else {
-    //         DEFAULT_ROOT_ID
-    //     }
-    //
-    //     needHandleSubTask.forEach { subTask ->
-    //         val targetFile = convertSubTask(task, subTask, 3)
-    //         val uploadDTO = aliyundriveService.uploadFile(targetFile, 5, parentId)
-    //
-    //         subTask.aliyundriverFileId = uploadDTO.file_id
-    //         updateSubTask(subTask)
-    //     }
-    //
-    //     val shareFileIds: List<String> = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
-    //         listOf(parentId)
-    //     } else {
-    //         task.subTasks.map { it.aliyundriverFileId!! }
-    //     }
-    //
-    //
-    //     val share = aliyundriveService.share(shareFileIds, 5)
-    //
-    //     task.result = share.full_share_msg
-    //     if (task.type == BilibiliTaskSourceTypeEnum.FREE) {
-    //         task.name = share.share_name
-    //     }
-    // }
-
-    // private fun dirDownload(task: BilibiliTask) {
-    //     val audioFiles = task.subTasks.map { convertSubTask(task, it, 5) }
-    //
-    //     val targetFile: File
-    //     if (task.subTasks.size == 1) {
-    //         targetFile = audioFiles[0]
-    //     } else {
-    //         targetFile = zipFiles(task, audioFiles)
-    //     }
-    //
-    //     val objectName = targetFile.name
-    //     log.info { "开始上传文件 $objectName，大小：${FileUtils.sizeOf(targetFile) / (1024 * 1024)}M" }
-    //     storageService.upload(objectName, targetFile.absolutePath)
-    //     FileUtils.deleteQuietly(targetFile)
-    //     var downloadUrl = storageService.getDownloadUrl(objectName)
-    //
-    //     val shortUrl = shortUrlRemoteServiceWrapper.getShortUrl(downloadUrl)
-    //     if (!shortUrl.isNullOrBlank()) {
-    //         // 尝试替换为短链
-    //         downloadUrl = shortUrl
-    //     }
-    //
-    //     task.name = FilenameUtils.getBaseName(targetFile.name)
-    //     task.result = downloadUrl
-    // }
 
 
     fun convertSubTask(task: BilibiliTask, subTask: BilibiliSubTask, retry: Int): File {
