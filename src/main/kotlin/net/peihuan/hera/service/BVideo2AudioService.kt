@@ -255,7 +255,7 @@ class BVideo2AudioService(
 
             task.cleanFiles()
 
-            task.trimName()
+            task.shortName()
             updateTaskStatus(task, TaskStatusEnum.SUCCESS)
             task.name = blackKeywordService.replaceBlackKeyword(task.name!!)
 

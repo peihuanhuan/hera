@@ -1,6 +1,7 @@
 package net.peihuan.hera.service.share
 
 import mu.KotlinLogging
+import net.peihuan.baiduPanSDK.domain.dto.RtypeEnum
 import net.peihuan.baiduPanSDK.service.BaiduService
 import net.peihuan.baiduPanSDK.service.impl.BaiduOAuthConfigServiceImpl
 import net.peihuan.hera.config.WxMysqlOps
@@ -57,24 +58,32 @@ class BaiduPanService(
         return task.subTasks.filter { !success.contains(it) }
     }
 
+    fun String.trimName(): String {
+        return this.replace("/", "").replace("\"", "")
+    }
     override fun uploadAndAssembleTaskShare(task: BilibiliTask, needUpload: List<BilibiliSubTask>) {
         val rootPath = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
-            "${task.openid}/${task.name}/"
+            "${task.openid}/${task.name!!.trimName()}/"
         } else {
             "/"
         }
 
         needUpload.forEach { subTask ->
-            log.info("开始上传百度云盘 {}", rootPath + subTask.outFile!!.name)
-            val resp = baiduService.getPanService().uploadFile(ROOT_USER_ID, rootPath + subTask.outFile!!.name, subTask.outFile!!)
+            // 去除特殊字符
+            val path = subTask.outFile!!.name.trimName()
+
+            log.info("开始上传百度云盘 {}", rootPath + path)
+            val resp = baiduService.getPanService().uploadFile(ROOT_USER_ID, rootPath + path, subTask.outFile!!, rtype = RtypeEnum.OVERRIDE)
             log.info("上传结束 {}", resp)
             subTask.baiduPanFileId = resp.fs_id
             bilibiliAudioPOService.updateSubTask(subTask)
         }
 
-        val shareFileIds: List<Long> = task.subTasks.map { it.baiduPanFileId!! }
+        // 百度网盘禁止分享文件夹
+        val shareFiles = task.subTasks.map { it.baiduPanFileId!! }
 
-        val shareResp = baiduService.getPanService().shareFiles(ROOT_USER_ID, shareFileIds, 1, "欢迎关注阿烫")
+
+        val shareResp = baiduService.getPanService().shareFiles(ROOT_USER_ID, shareFiles, 1, "欢迎关注阿烫")
 
         if (shareResp.errno != 0) {
             log.error("分享失败 {}", shareResp)

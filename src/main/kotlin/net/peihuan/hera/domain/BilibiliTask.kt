@@ -32,7 +32,7 @@ class BilibiliTask(
         get() = subTasks.size
 
     // 消息模板最多20个字符
-    fun trimName() {
+    fun shortName() {
         if (name!!.length >= 20) {
             name = name!!.substring(0, 8) + "..." + name!!.substring(name!!.length - 8)
         }

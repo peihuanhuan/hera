@@ -13,7 +13,7 @@ noArg {
 }
 
 group = "net.peihuan"
-version = "1.1.22"
+version = "1.1.27"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
@@ -36,9 +36,7 @@ dependencies {
 
 	implementation("io.jsonwebtoken:jjwt:0.9.0")
 
-	implementation("net.peihuan:baidu-pan-starter:0.0.4") {
-		// exclude(group = "com.squareup.okio", module = "okio")
-	}
+	implementation("net.peihuan:baidu-pan-starter:0.0.5")
 	implementation("com.squareup.okhttp3:okhttp:4.10.0")
 
 
