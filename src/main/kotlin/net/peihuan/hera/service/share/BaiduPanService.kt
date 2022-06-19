@@ -59,7 +59,16 @@ class BaiduPanService(
     }
 
     fun String.trimName(): String {
-        return this.replace("/", "").replace("\"", "")
+        // 百度云盘上传时需要剔除的字符 ?|\"><:*
+        return this
+            .replace("/", "")
+            .replace("\"", "")
+            .replace("?", "")
+            .replace("|", "")
+            .replace(">", "")
+            .replace("<", "")
+            .replace(":", "")
+            .replace("*", "")
     }
     override fun uploadAndAssembleTaskShare(task: BilibiliTask, needUpload: List<BilibiliSubTask>) {
         val rootPath = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {

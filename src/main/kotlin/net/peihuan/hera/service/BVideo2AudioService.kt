@@ -215,7 +215,7 @@ class BVideo2AudioService(
                 // 新用户，优先用百度云盘
                 // baiduFirst
             // } else {
-                aliFirst
+                baiduFirst
             // }
         } else if (userFileStorageConfig.value!! == FILE_STORAGE_PLATFORM_ALI) {
             aliFirst
