@@ -36,7 +36,7 @@ class WxPortalController {
 
     @PostMapping("/back/test")
     fun testBackMoney(@RequestParam openid: String, @RequestParam amount: Int, @RequestParam desc: String): String{
-        orderService.testBackMoney(openid, amount, desc)
+        orderService.sendRedPackage(openid, amount)
         return WxPayNotifyResponse.success("成功")
     }
 

@@ -23,7 +23,7 @@ class BaiduUserController(
 
     @GetMapping("code")
     fun get(@RequestParam code: String, @RequestParam userId: String, @RequestParam redirectUri: String) : JsonResult {
-        return JsonResult.success(baiduService.getTokenByCode(userId, code, redirectUri))
+        return JsonResult.success(baiduService.getAccessToken(userId, code, redirectUri))
     }
 
 

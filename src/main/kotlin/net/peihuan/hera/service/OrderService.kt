@@ -3,6 +3,7 @@ package net.peihuan.hera.service
 import com.github.binarywang.wxpay.bean.entpay.EntPayRequest
 import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyResult
 import com.github.binarywang.wxpay.bean.order.WxPayMpOrderResult
+import com.github.binarywang.wxpay.bean.request.WxPaySendRedpackRequest
 import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderRequest
 import com.github.binarywang.wxpay.constant.WxPayConstants
 import com.github.binarywang.wxpay.service.WxPayService
@@ -41,6 +42,23 @@ class OrderService(private val userPOService: UserPOService,
                    private val subscribePOService: SubscribePOService) {
 
     private val log = KotlinLogging.logger {}
+
+
+    fun sendRedPackage(openid: String, amount: Int) {
+        val tradeNo = randomOutTradeNo()
+        val req = WxPaySendRedpackRequest()
+        req.mchBillNo = tradeNo
+        req.sendName = "阿烫"
+        req.reOpenid = openid
+        req.totalAmount = amount
+        req.totalNum = 1
+        req.wishing = "【xxxxxxx】返现感谢你的信任"
+        req.clientIp = httpServletRequest.remoteAddr
+        req.actName = "订单回馈"
+        req.remark = "是备注啊"
+        req.sceneId = "PRODUCT_5"
+        wxPayService.redpackService.sendRedpack(req)
+    }
 
     fun testBackMoney(openid: String, amount: Int, desc: String) {
         val backFen = amount.coerceAtLeast(1).coerceAtMost(1000)

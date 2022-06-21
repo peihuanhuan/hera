@@ -15,6 +15,7 @@ import net.peihuan.hera.persistent.service.LockPOService
 import net.peihuan.hera.service.BlackKeywordService
 import net.peihuan.hera.service.ConfigService
 import net.peihuan.hera.service.NotifyService
+import net.peihuan.hera.util.blockWithTry
 import org.apache.commons.io.FilenameUtils
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
@@ -30,12 +31,14 @@ class BaiduPanService(
     private val lockPOService: LockPOService,
     private val bilibiliAudioPOService: BilibiliAudioPOService,
 
-    ): FileShareService {
+    ) : FileShareService {
 
 
     private val log = KotlinLogging.logger {}
 
-    companion object val ROOT_USER_ID = "1"
+    companion object
+
+    val ROOT_USER_ID = "1"
 
     @PostConstruct
     fun setToken() {
@@ -45,7 +48,7 @@ class BaiduPanService(
     }
 
     override fun needConvertFiles(task: BilibiliTask): List<BilibiliSubTask> {
-        val success =  task.subTasks.filter {
+        val success = task.subTasks.filter {
             if (it.baiduPanFileId == null) {
                 return@filter false
             }
@@ -70,6 +73,7 @@ class BaiduPanService(
             .replace(":", "")
             .replace("*", "")
     }
+
     override fun uploadAndAssembleTaskShare(task: BilibiliTask, needUpload: List<BilibiliSubTask>) {
         val rootPath = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
             "${task.openid}/${task.name!!.trimName()}/"
@@ -80,9 +84,11 @@ class BaiduPanService(
         needUpload.forEach { subTask ->
             // 去除特殊字符
             val path = subTask.outFile!!.name.trimName()
-
-            log.info("开始上传百度云盘 {}", rootPath + path)
-            val resp = baiduService.getPanService().uploadFile(ROOT_USER_ID, rootPath + path, subTask.outFile!!, rtype = RtypeEnum.OVERRIDE)
+            val resp = blockWithTry(retryTime = 5) {
+                log.info("开始上传百度云盘 {}", rootPath + path)
+                baiduService.getPanService()
+                    .uploadFile(ROOT_USER_ID, rootPath + path, subTask.outFile!!, rtype = RtypeEnum.OVERRIDE)
+            }
             log.info("上传结束 {}", resp)
             subTask.baiduPanFileId = resp.fs_id
             bilibiliAudioPOService.updateSubTask(subTask)
@@ -92,7 +98,7 @@ class BaiduPanService(
         val shareFiles = task.subTasks.map { it.baiduPanFileId!! }
 
 
-        val shareResp = baiduService.getPanService().shareFiles(ROOT_USER_ID, shareFiles, 1, "欢迎关注阿烫")
+        val shareResp = blockWithTry(5) {  baiduService.getPanService().shareFiles(ROOT_USER_ID, shareFiles, 1, "欢迎关注阿烫")  }
 
         if (shareResp.errno != 0) {
             log.error("分享失败 {}", shareResp)
@@ -103,7 +109,8 @@ class BaiduPanService(
                 "链接:${shareResp.link}\n\n提取码:${shareResp.pwd}"
 
         if (task.type == BilibiliTaskSourceTypeEnum.FREE) {
-            task.name = "【" + FilenameUtils.getBaseName(task.subTasks.first().outFile!!.name) + "】等${task.subTaskSize}个文件"
+            task.name =
+                "【" + FilenameUtils.getBaseName(task.subTasks.first().outFile!!.name) + "】等${task.subTaskSize}个文件"
         }
     }
 
