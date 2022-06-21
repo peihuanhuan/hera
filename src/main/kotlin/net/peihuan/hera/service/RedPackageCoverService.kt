@@ -6,9 +6,9 @@ import net.peihuan.hera.config.property.ZyProperties
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.handler.click.RedPackageMessageHandler
-import net.peihuan.hera.persistent.po.RedPackagePO
+import net.peihuan.hera.persistent.po.RedPackageCoverPO
 import net.peihuan.hera.persistent.service.PointsRecordPOService
-import net.peihuan.hera.persistent.service.RedPackagePOService
+import net.peihuan.hera.persistent.service.RedPackageCoverPOService
 import net.peihuan.hera.persistent.service.UserPointsPOService
 import net.peihuan.hera.util.completeALable
 import net.peihuan.hera.util.currentUserOpenid
@@ -19,11 +19,11 @@ import java.io.File
 import java.nio.charset.Charset
 
 @Service
-class RedPackageService(
+class RedPackageCoverService(
     private val redPackageMessageHandler: RedPackageMessageHandler,
     private val userPointsPOService: UserPointsPOService,
     private val wxMpService: WxMpService,
-    private val redPackagePOService: RedPackagePOService,
+    private val redPackageCoverPOService: RedPackageCoverPOService,
     private val notifyService: NotifyService,
     private val cacheManage: CacheManage,
     private val channelService: ChannelService,
@@ -50,14 +50,14 @@ class RedPackageService(
         openid.replyKfMessage(content)
     }
 
-    private fun giveUpPackage(openid: String, style: Int): RedPackagePO? {
-        val notGiveupPackages = redPackagePOService.findNotGiveupPackages(style)
+    private fun giveUpPackage(openid: String, style: Int): RedPackageCoverPO? {
+        val notGiveupPackages = redPackageCoverPOService.findNotGiveupPackages(style)
         val alarmCount = cacheManage.getBizValue(BizConfigEnum.RED_PACKAGE_NOT_ENOUGH, "20").toInt()
         if (notGiveupPackages.size < alarmCount) {
             notifyService.notifyAdmin("红包数量不足了，还剩 ${notGiveupPackages.size} 个，style: $style")
         }
         notGiveupPackages.forEach {
-            val success = redPackagePOService.giveUp(it.id!!, openid)
+            val success = redPackageCoverPOService.giveUp(it.id!!, openid)
             if (success) {
                 return it
             }
@@ -72,14 +72,14 @@ class RedPackageService(
             logger.error { "文件不存在 ${file.absolutePath}" }
             return 0
         }
-        val existUrls = redPackagePOService.list().map { it.url }.toSet()
+        val existUrls = redPackageCoverPOService.list().map { it.url }.toSet()
         val urls = FileUtils.readLines(file, Charset.forName("utf-8"))
         urls.removeAll(existUrls)
         val pos = urls.map { url ->
-            RedPackagePO(url = url, giveUp = false, style = style)
+            RedPackageCoverPO(url = url, giveUp = false, style = style)
         }
         if (pos.isNotEmpty()) {
-            redPackagePOService.saveBatch(pos)
+            redPackageCoverPOService.saveBatch(pos)
             notifyService.notifyAdmin("添加 ${pos.size} 个红包， style 为 $style")
         }
         return pos.size

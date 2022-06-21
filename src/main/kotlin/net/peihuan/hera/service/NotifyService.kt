@@ -32,14 +32,14 @@ class NotifyService(
 
     val pushPlustoken = "a7643cc0de74425e8d8ce69e885100bb"
 
-    fun notifyOrderStatusToUser(order: ZyOrderPO, presentPoints: Int? = null) {
+    fun notifyOrderStatusToUser(order: ZyOrderPO) {
         val templateMessage = WxMpTemplateMessage.builder()
             .toUser(order.openid)
             .templateId(wxMpProperties.orderStatusTemplateid)
             .build()
 
         val remark = when (order.source) {
-            ZyOrderSourceEnum.BUY.code -> "小主，您的订单已完成，赠送您 $presentPoints 积分，可兑换其它会员"
+            ZyOrderSourceEnum.BUY.code -> "小主，您的订单已完成，感谢支持~"
             ZyOrderSourceEnum.EXCHANGE.code -> "小主，您兑换的权益已送达，连续签到更有惊喜哦~"
             ZyOrderSourceEnum.PRESENT.code -> "小主，赠送您的权益已送达，请查收哦~"
             else -> ""

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="net.peihuan.hera.persistent.mapper.RedPackageMapper">
+<mapper namespace="net.peihuan.hera.persistent.mapper.RedPackageCoverMapper">
 
 
-    <update id="tryGiveup" parameterType="net.peihuan.hera.persistent.po.RedPackagePO">
+    <update id="tryGiveup" parameterType="net.peihuan.hera.persistent.po.RedPackageCoverPO">
         UPDATE red_package set give_up = 1, openid = #{openid} where id = #{id} and give_up = 0
     </update>
 

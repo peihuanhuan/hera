@@ -5,12 +5,12 @@ import net.peihuan.hera.HeraApplicationTests
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
-class RedPackageServiceTest : HeraApplicationTests() {
+class RedPackageCoverServiceTest : HeraApplicationTests() {
 
     private val log = KotlinLogging.logger {}
 
     @Autowired
-    lateinit var redPackageService: RedPackageService
+    lateinit var redPackageCoverService: RedPackageCoverService
 
     @Test
     fun redPackage() {

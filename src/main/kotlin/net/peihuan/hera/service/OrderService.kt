@@ -15,12 +15,9 @@ import net.peihuan.hera.constants.PayStatusEnum
 import net.peihuan.hera.constants.YYYYMMDDHHMMSS
 import net.peihuan.hera.domain.CacheManage
 import net.peihuan.hera.persistent.po.EntPayOrderPO
+import net.peihuan.hera.persistent.po.RedPackagePO
 import net.peihuan.hera.persistent.po.WxOrderPO
-import net.peihuan.hera.persistent.po.ZyOrderPO
-import net.peihuan.hera.persistent.service.EntPayOrderPOService
-import net.peihuan.hera.persistent.service.SubscribePOService
-import net.peihuan.hera.persistent.service.UserPOService
-import net.peihuan.hera.persistent.service.WxOrderPOService
+import net.peihuan.hera.persistent.service.*
 import net.peihuan.hera.util.currentUserOpenid
 import net.peihuan.hera.util.randomOutTradeNo
 import org.joda.time.format.DateTimeFormat
@@ -35,29 +32,57 @@ class OrderService(private val userPOService: UserPOService,
                    private val configService: ConfigService,
                    private val wxOrderPOService: WxOrderPOService,
                    private val cacheManage: CacheManage,
+                   private val redPackagePOService: RedPackagePOService,
                    private val notifyService: NotifyService,
                    private val entPayOrderPOService: EntPayOrderPOService,
-                   private val redPackageService: RedPackageService,
+                   private val redPackageCoverService: RedPackageCoverService,
                    private val httpServletRequest: HttpServletRequest,
                    private val subscribePOService: SubscribePOService) {
 
     private val log = KotlinLogging.logger {}
 
-
-    fun sendRedPackage(openid: String, amount: Int) {
+    fun sendRedPackage(openid: String, amount: Int, zyOrderId :Long? = null) {
         val tradeNo = randomOutTradeNo()
+
+        val redPackagePO = RedPackagePO(
+            tradeNo = tradeNo,
+            sendName = "阿烫",
+            openid = openid,
+            totalAmount = amount,
+            wishing = "订单回馈，感谢您的支持。",
+            actName = "订单回馈",
+            remark = "无",
+            zyOrderId = zyOrderId,
+            sceneId = "PRODUCT_5"
+        )
+        redPackagePOService.save(redPackagePO)
+
         val req = WxPaySendRedpackRequest()
-        req.mchBillNo = tradeNo
-        req.sendName = "阿烫"
-        req.reOpenid = openid
-        req.totalAmount = amount
+        req.mchBillNo = redPackagePO.tradeNo
+        req.sendName = redPackagePO.sendName
+        req.reOpenid = redPackagePO.openid
+        req.totalAmount = redPackagePO.totalAmount
         req.totalNum = 1
-        req.wishing = "【xxxxxxx】返现感谢你的信任"
+        req.wishing = redPackagePO.wishing
         req.clientIp = httpServletRequest.remoteAddr
-        req.actName = "订单回馈"
-        req.remark = "是备注啊"
-        req.sceneId = "PRODUCT_5"
-        wxPayService.redpackService.sendRedpack(req)
+        req.actName = redPackagePO.actName
+        req.remark = redPackagePO.remark
+        req.sceneId = redPackagePO.sceneId
+
+        val resp = wxPayService.redpackService.sendRedpack(req)
+        redPackagePO.payTime = resp.sendTime
+        redPackagePO.paymentNo = resp.sendListId
+        redPackagePOService.updateById(redPackagePO)
+
+    }
+
+    fun determineBackAmount(profit: Int): Int {
+        if (profit <= 30) {
+            return 0
+        }
+        val backPercentStr = cacheManage.getBizValue(BizConfigEnum.ORDER_BACK_PERCENT, "30")
+        val backPercent = backPercentStr.toInt().coerceAtLeast(0).coerceAtMost(90)
+        return (profit * backPercent / 100).coerceAtLeast(30)
     }
 
     fun testBackMoney(openid: String, amount: Int, desc: String) {
@@ -89,36 +114,33 @@ class OrderService(private val userPOService: UserPOService,
         entPayOrderPOService.updateById(po)
     }
 
-    fun orderBackMoney(orderPO: ZyOrderPO) {
-        val backPercentStr = cacheManage.getBizValue(BizConfigEnum.ORDER_BACK_PERCENT, "30")
-        val backPercent = backPercentStr.toInt().coerceAtLeast(0).coerceAtMost(90)
-        val backFen = ((orderPO.incomeMoney?:0) * backPercent / 100).coerceAtLeast(1)
-        val randomOutTradeNo = randomOutTradeNo()
-
-        val po = EntPayOrderPO(
-            partnerTradeNo = randomOutTradeNo,
-            openid = orderPO.openid!!,
-            amount = backFen,
-            description = "【${orderPO.name}】订单回馈",
-            checkName = "NO_CHECK",
-            zyOrderId = orderPO.id!!
-        )
-        entPayOrderPOService.save(po)
-
-        val entPayRequest = EntPayRequest()
-        entPayRequest.partnerTradeNo = po.partnerTradeNo
-        entPayRequest.openid = orderPO.openid
-        entPayRequest.amount = po.amount
-        entPayRequest.description = po.description
-        entPayRequest.checkName = po.checkName
-        entPayRequest.spbillCreateIp = httpServletRequest.remoteAddr
-        val resp = wxPayService.entPayService.entPay(entPayRequest)
-        log.info("企业支付响应 {}", resp)
-
-        po.payTime = resp.paymentTime
-        po.paymentNo = resp.paymentNo
-        entPayOrderPOService.updateById(po)
-    }
+    // fun orderBackMoney(orderPO: ZyOrderPO) {
+    //     val randomOutTradeNo = randomOutTradeNo()
+    //
+    //     val po = EntPayOrderPO(
+    //         partnerTradeNo = randomOutTradeNo,
+    //         openid = orderPO.openid!!,
+    //         amount = backFen,
+    //         description = "【${orderPO.name}】订单回馈",
+    //         checkName = "NO_CHECK",
+    //         zyOrderId = orderPO.id!!
+    //     )
+    //     entPayOrderPOService.save(po)
+    //
+    //     val entPayRequest = EntPayRequest()
+    //     entPayRequest.partnerTradeNo = po.partnerTradeNo
+    //     entPayRequest.openid = orderPO.openid
+    //     entPayRequest.amount = po.amount
+    //     entPayRequest.description = po.description
+    //     entPayRequest.checkName = po.checkName
+    //     entPayRequest.spbillCreateIp = httpServletRequest.remoteAddr
+    //     val resp = wxPayService.entPayService.entPay(entPayRequest)
+    //     log.info("企业支付响应 {}", resp)
+    //
+    //     po.payTime = resp.paymentTime
+    //     po.paymentNo = resp.paymentNo
+    //     entPayOrderPOService.updateById(po)
+    // }
 
     fun order(type: Int): WxPayMpOrderResult {
         val typeEnum = OrderTypeEnum.getTypeEnum(type)!!
@@ -171,7 +193,7 @@ class OrderService(private val userPOService: UserPOService,
         wxOrderPOService.updateById(wxOrderPO)
 
         if (wxOrderPO.type == OrderTypeEnum.RED_PACKAGE) {
-            redPackageService.sendPackage(wxOrderPO.openid)
+            redPackageCoverService.sendPackage(wxOrderPO.openid)
         }
 
 

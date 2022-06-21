@@ -10,10 +10,17 @@ import java.util.*
 data class RedPackagePO (
     @TableId
     var id: Long? = null,
-    val url: String,
-    val style: Int,
-    val openid: String? = null,
-    var giveUp: Boolean,
+    val tradeNo: String,
+    val sendName: String,
+    val openid: String,
+    val totalAmount: Int,
+    val wishing: String,
+    val actName: String,
+    val remark: String,
+    val sceneId: String,
+    val zyOrderId: Long? = null,
+    var payTime: String? = null,
+    var paymentNo: String? = null,
     val createTime: Date? = null,
     val updateTime: Date? = null,
 )

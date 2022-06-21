@@ -39,7 +39,7 @@ class UserService(
     private val wxMpService: WxMpService,
     private val userInvitationShipService: UserInvitationShipService,
     private val userTagPOService: UserTagPOService,
-    private val redPackageService: RedPackageService,
+    private val redPackageCoverService: RedPackageCoverService,
     private val userConvertService: UserConvertService,
     private val configService: ConfigService,
     private val channelService: ChannelService,
@@ -148,7 +148,7 @@ class UserService(
         val findInviteUsers = userInvitationShipService.findInviteUsers(inviterInfo.openid)
         val aim = 3
         if (findInviteUsers.size == aim) {
-            redPackageService.sendPackage(inviterInfo.openid)
+            redPackageCoverService.sendPackage(inviterInfo.openid)
         } else {
             inviterInfo.openid.replyKfMessage("成功邀请一位用户关注(${findInviteUsers.size}/$aim)")
         }

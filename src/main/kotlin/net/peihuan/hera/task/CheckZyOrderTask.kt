@@ -11,11 +11,9 @@ import net.peihuan.hera.feign.service.ZyService
 import net.peihuan.hera.persistent.po.ChannelPO
 import net.peihuan.hera.persistent.po.ZyOrderPO
 import net.peihuan.hera.persistent.service.ZyOrderPOService
-import net.peihuan.hera.service.ChannelService
-import net.peihuan.hera.service.NotifyService
-import net.peihuan.hera.service.UserPointsService
-import net.peihuan.hera.service.UserService
+import net.peihuan.hera.service.*
 import net.peihuan.hera.util.ZyUtil
+import net.peihuan.hera.util.blockWithTry
 import net.peihuan.hera.util.toJson
 import org.joda.time.DateTime
 import org.springframework.beans.BeanUtils
@@ -32,6 +30,7 @@ class CheckZyOrderTask(
     val channelService: ChannelService,
     val notifyService: NotifyService,
     val wxMpProperties: WxMpProperties,
+    val orderService: OrderService,
     val zyOrderPOService: ZyOrderPOService
 ) {
 
@@ -73,8 +72,12 @@ class CheckZyOrderTask(
         newOrderPOs.forEach {
             if (it.source == ZyOrderSourceEnum.BUY.code) {
                 val presentPoints = (it.incomeMoney ?: 1).coerceAtMost(1000)
-                userPointsService.addUserPoints(it.openid ?: "null", presentPoints, "订单返现【${it.name}】")
-                notifyService.notifyOrderStatusToUser(it, presentPoints)
+                // userPointsService.addUserPoints(it.openid ?: "null", presentPoints, "订单返现【${it.name}】")
+                blockWithTry { notifyService.notifyOrderStatusToUser(it) }
+
+                // 赠送红包
+                Thread.sleep(1000)
+                orderService.sendRedPackage(it.openid!!, it.incomeMoney?:0, it.id)
             } else if (it.source == ZyOrderSourceEnum.EXCHANGE.code) {
                 notifyService.notifyOrderStatusToUser(it)
                 // 扣除积分
