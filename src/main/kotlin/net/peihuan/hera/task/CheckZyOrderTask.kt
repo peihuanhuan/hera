@@ -77,7 +77,8 @@ class CheckZyOrderTask(
 
                 // 赠送红包
                 Thread.sleep(1000)
-                orderService.sendRedPackage(it.openid!!, it.incomeMoney?:0, it.id)
+                val determineBackAmount = orderService.determineBackAmount(it.incomeMoney ?: 0)
+                orderService.sendRedPackage(it.openid!!, determineBackAmount, it.id)
             } else if (it.source == ZyOrderSourceEnum.EXCHANGE.code) {
                 notifyService.notifyOrderStatusToUser(it)
                 // 扣除积分

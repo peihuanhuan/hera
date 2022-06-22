@@ -80,7 +80,7 @@ class OrderService(private val userPOService: UserPOService,
         if (profit <= 30) {
             return 0
         }
-        val backPercentStr = cacheManage.getBizValue(BizConfigEnum.ORDER_BACK_PERCENT, "30")
+        val backPercentStr = cacheManage.getBizValue(BizConfigEnum.ORDER_BACK_PERCENT, "35")
         val backPercent = backPercentStr.toInt().coerceAtLeast(0).coerceAtMost(90)
         return (profit * backPercent / 100).coerceAtLeast(30)
     }
