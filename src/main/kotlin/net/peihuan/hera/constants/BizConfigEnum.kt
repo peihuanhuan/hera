@@ -24,6 +24,7 @@ enum class BizConfigEnum(val key: String, val desc: String) {
 
     MAX_P_LIMIT("max_multiple_p_size", "多p投稿的最大数量限制"),
     MAX_FREE_LIMIT("max_free_size", "自由模式的最大数量限制"),
+    VIDEO_LIMIT("video_limit", "提取视频的最大时间限制"),
     MAX_DURATION_MINUTE("max_duration_minute", "允许的最大时长（分钟）"),
     ALARM_TIME("alarm_minutes", "一个视频多久没处理完就报警 - 分钟"),
 

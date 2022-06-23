@@ -84,12 +84,14 @@ class BVideo2AudioService(
         val task: BilibiliTask = generateBilibiliTask(data, type, outputTypeEnum, notifyType)
 
         val freeLimit = cacheManage.getBizValue(BizConfigEnum.MAX_FREE_LIMIT, "10").toInt()
+        val videoLimit = cacheManage.getBizValue(BizConfigEnum.VIDEO_LIMIT, "45").toInt()
         val multiPLimit = cacheManage.getBizValue(BizConfigEnum.MAX_P_LIMIT, "35").toInt()
         val maxDurationMinute = cacheManage.getBizValue(BizConfigEnum.MAX_DURATION_MINUTE, "300").toInt()
 
         try {
             task.validTask(
                 freeLimit = freeLimit,
+                videoLimit = videoLimit,
                 multiPLimit = multiPLimit,
                 allowMaxDurationMinutes = maxDurationMinute
             )

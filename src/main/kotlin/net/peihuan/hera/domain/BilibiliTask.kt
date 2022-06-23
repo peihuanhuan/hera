@@ -49,11 +49,10 @@ class BilibiliTask(
         }
     }
 
-    fun validTask(freeLimit: Int, multiPLimit: Int, allowMaxDurationMinutes: Int) {
+    fun validTask(freeLimit: Int, videoLimit: Int, multiPLimit: Int, allowMaxDurationMinutes: Int) {
         if (totalDurationMinutes > allowMaxDurationMinutes) {
             throw BizException.buildBizException("视频总时长不能超过 $allowMaxDurationMinutes 分钟，如有需要请联系群主")
         }
-        val videoLimit = 45
         if (isVideoOutputTask() && totalDurationMinutes > videoLimit) {
             throw BizException.buildBizException("【提取完整视频】暂时限制总时长不能超过 $videoLimit 分钟")
         }
