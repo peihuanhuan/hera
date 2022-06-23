@@ -242,9 +242,9 @@ class BVideo2AudioService(
             run breaking@{
                 fileShareServices.forEach { service ->
                     try {
-                        val needConvertFiles = service.needConvertFiles(task)
-                        needConvertFiles.forEach { convertSubTask(task, it, 3) }
-                        service.uploadAndAssembleTaskShare(task, needConvertFiles)
+                        service.uploadAndAssembleTaskShare(task) {
+                            convertSubTask(task, it, 3)
+                        }
                         return@breaking
                     } catch (e: Exception) {
                         log.error(e.message, e)

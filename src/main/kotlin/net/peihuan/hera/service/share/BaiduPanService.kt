@@ -47,18 +47,15 @@ class BaiduPanService(
         baiduService.setConfigStorage(storage)
     }
 
-    override fun needConvertFiles(task: BilibiliTask): List<BilibiliSubTask> {
-        val success = task.subTasks.filter {
-            if (it.baiduPanFileId == null) {
-                return@filter false
-            }
-            val filemetas = baiduService.getPanService().filemetas(ROOT_USER_ID, listOf(it.baiduPanFileId!!))
-            if (filemetas.isEmpty()) {
-                return@filter false
-            }
-            return@filter true
+    override fun needReConvert(it: BilibiliSubTask): Boolean {
+        if (it.baiduPanFileId == null) {
+            return true
         }
-        return task.subTasks.filter { !success.contains(it) }
+        val filemetas = baiduService.getPanService().filemetas(ROOT_USER_ID, listOf(it.baiduPanFileId!!))
+        if (filemetas.isEmpty()) {
+            return true
+        }
+        return false
     }
 
     fun String.trimName(): String {
@@ -74,31 +71,39 @@ class BaiduPanService(
             .replace("*", "")
     }
 
-    override fun uploadAndAssembleTaskShare(task: BilibiliTask, needUpload: List<BilibiliSubTask>) {
+    override fun uploadAndAssembleTaskShare(
+        task: BilibiliTask,
+        convert: (subTask: BilibiliSubTask) -> Unit
+    ) {
         val rootPath = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
             "${task.openid}/${task.name!!.trimName()}/"
         } else {
             "/"
         }
 
-        needUpload.forEach { subTask ->
-            // 去除特殊字符
-            val path = subTask.outFile!!.name.trimName()
-            val resp = blockWithTry(retryTime = 5) {
-                log.info("开始上传百度云盘 {}", rootPath + path)
-                baiduService.getPanService()
-                    .uploadFile(ROOT_USER_ID, rootPath + path, subTask.outFile!!, rtype = RtypeEnum.OVERRIDE)
+        task.subTasks.forEach { subTask ->
+            if (needReConvert(subTask))  {
+                convert(subTask)
+                // 去除特殊字符
+                val path = subTask.outFile!!.name.trimName()
+                val resp = blockWithTry(retryTime = 5) {
+                    log.info("开始上传百度云盘 {}", rootPath + path)
+                    baiduService.getPanService()
+                        .uploadFile(ROOT_USER_ID, rootPath + path, subTask.outFile!!, rtype = RtypeEnum.OVERRIDE)
+                }
+                log.info("上传结束 {}", resp)
+                subTask.baiduPanFileId = resp.fs_id
+                bilibiliAudioPOService.updateSubTask(subTask)
             }
-            log.info("上传结束 {}", resp)
-            subTask.baiduPanFileId = resp.fs_id
-            bilibiliAudioPOService.updateSubTask(subTask)
+
         }
 
         // 百度网盘禁止分享文件夹
         val shareFiles = task.subTasks.map { it.baiduPanFileId!! }
 
 
-        val shareResp = blockWithTry(5) {  baiduService.getPanService().shareFiles(ROOT_USER_ID, shareFiles, 1, "欢迎关注阿烫")  }
+        val shareResp =
+            blockWithTry(5) { baiduService.getPanService().shareFiles(ROOT_USER_ID, shareFiles, 1, "欢迎关注阿烫") }
 
         if (shareResp.errno != 0) {
             log.error("分享失败 {}", shareResp)

@@ -42,6 +42,9 @@ class OrderService(private val userPOService: UserPOService,
     private val log = KotlinLogging.logger {}
 
     fun sendRedPackage(openid: String, amount: Int, zyOrderId :Long? = null) {
+        if (amount < 30) {
+            return
+        }
         val tradeNo = randomOutTradeNo()
 
         val redPackagePO = RedPackagePO(
@@ -64,7 +67,7 @@ class OrderService(private val userPOService: UserPOService,
         req.totalAmount = redPackagePO.totalAmount
         req.totalNum = 1
         req.wishing = redPackagePO.wishing
-        req.clientIp = httpServletRequest.remoteAddr
+        req.clientIp = "81.68.119.197"
         req.actName = redPackagePO.actName
         req.remark = redPackagePO.remark
         req.sceneId = redPackagePO.sceneId

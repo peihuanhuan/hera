@@ -4,6 +4,9 @@ import net.peihuan.hera.domain.BilibiliSubTask
 import net.peihuan.hera.domain.BilibiliTask
 
 interface FileShareService {
-    fun needConvertFiles(task: BilibiliTask): List<BilibiliSubTask>
-    fun uploadAndAssembleTaskShare(task: BilibiliTask, needUpload: List<BilibiliSubTask>)
+    fun needReConvert(subTask: BilibiliSubTask): Boolean
+    fun uploadAndAssembleTaskShare(
+        task: BilibiliTask,
+        convert: (subTask: BilibiliSubTask) -> Unit
+    )
 }

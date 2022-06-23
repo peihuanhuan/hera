@@ -76,4 +76,16 @@ class BilibiliTask(
             FileUtils.deleteQuietly(it.outFile)
         }
     }
+
+    // 获取进度描述
+    fun getProcess(): String {
+        if (status == TaskStatusEnum.FAIL) {
+            return "【$name】已失败，请重试，多次仍失败可联系群主。"
+        }
+        if (status == TaskStatusEnum.SUCCESS) {
+            return "【$name】已完成\n\n$result"
+        }
+        val success = subTasks.count { it.baiduPanFileId != null || !it.aliyundriverFileId.isNullOrEmpty() }
+        return "【$name】正在处理：$success/$subTaskSize"
+    }
 }

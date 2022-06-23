@@ -28,15 +28,24 @@ class UrlDirectDownloadService(
     @Value("\${bilibili.workdir}")
     private val workDir: String? = null
 
-    override fun needConvertFiles(task: BilibiliTask): List<BilibiliSubTask> {
-       return task.subTasks
+
+
+    override fun needReConvert(subTask: BilibiliSubTask): Boolean {
+        return true
     }
 
 
-    override fun uploadAndAssembleTaskShare(task: BilibiliTask, needUpload: List<BilibiliSubTask>) {
+    override fun uploadAndAssembleTaskShare(task: BilibiliTask, convert: (subTask: BilibiliSubTask) -> Unit) {
+
+        task.subTasks.forEach {
+            if (needReConvert(it)) {
+                convert(it)
+            }
+        }
+
         val targetFile: File
         if (task.subTasks.size == 1) {
-            targetFile = needUpload[0].outFile!!
+            targetFile = task.subTasks[0].outFile!!
         } else {
             targetFile = zipFiles(task, task.subTasks.map { it.outFile!! })
         }
@@ -82,7 +91,6 @@ class UrlDirectDownloadService(
         }
         return targetFile
     }
-
 
 
 }

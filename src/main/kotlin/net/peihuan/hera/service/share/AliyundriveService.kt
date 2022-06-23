@@ -57,19 +57,16 @@ class AliyundriveService(
         DEFAULT_ROOT_ID = cacheManage.getBizValue(BizConfigEnum.ALI_YUN_DRIVER_DEFAULT_ROOT, "")
     }
 
-    override fun needConvertFiles(task: BilibiliTask): List<BilibiliSubTask> {
-        val success =  task.subTasks.filter {
-            if (it.aliyundriverFileId.isNullOrEmpty()) {
-                return@filter false
-            }
-            return@filter checkFileExisted(it.aliyundriverFileId!!)
+    override fun needReConvert(it: BilibiliSubTask): Boolean {
+        if (it.aliyundriverFileId.isNullOrEmpty()) {
+            return true
         }
+        return !checkFileExisted(it.aliyundriverFileId!!)
 
-        return task.subTasks.filter { !success.contains(it) }
     }
 
 
-    override fun uploadAndAssembleTaskShare(task: BilibiliTask, needUpload: List<BilibiliSubTask>) {
+    override fun uploadAndAssembleTaskShare(task: BilibiliTask, convert: (subTask: BilibiliSubTask) -> Unit) {
 
         val parentId = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
             val userRootFolder = getFolderOrCreate(DEFAULT_ROOT_ID, task.openid)
@@ -78,10 +75,13 @@ class AliyundriveService(
             DEFAULT_ROOT_ID
         }
 
-        needUpload.forEach { subTask ->
-            val uploadDTO = uploadFile(subTask.outFile!!, 5, parentId)
-            subTask.aliyundriverFileId = uploadDTO.file_id
-            bilibiliAudioPOService.updateSubTask(subTask)
+        task.subTasks.forEach { subTask ->
+            if (needReConvert(subTask)) {
+                convert(subTask)
+                val uploadDTO = uploadFile(subTask.outFile!!, 5, parentId)
+                subTask.aliyundriverFileId = uploadDTO.file_id
+                bilibiliAudioPOService.updateSubTask(subTask)
+            }
         }
 
         val shareFileIds: List<String> = if (task.type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
@@ -97,7 +97,6 @@ class AliyundriveService(
             task.name = share.share_name
         }
     }
-
 
 
     fun get(fileId: String): GetFileDTO? {
@@ -137,7 +136,7 @@ class AliyundriveService(
         throw BizException.buildBizException("阿里云盘分享失败")
     }
 
-    fun uploadFile(file: File , retry: Int, parentId: String = DEFAULT_ROOT_ID): CreateWithFoldersDTO {
+    fun uploadFile(file: File, retry: Int, parentId: String = DEFAULT_ROOT_ID): CreateWithFoldersDTO {
         var time = 0
         while (time++ < retry) {
             try {
@@ -148,6 +147,7 @@ class AliyundriveService(
         }
         throw BizException.buildBizException("阿里云盘上传失败")
     }
+
     fun uploadFile(file: File, parentId: String = DEFAULT_ROOT_ID): CreateWithFoldersDTO {
 
         var uploadFile = file
@@ -307,7 +307,6 @@ class AliyundriveService(
         cacheManage.updateBizValue(BizConfigEnum.ALI_YUN_DRIVER_REFRESH_TOKEN, refreshToken)
         log.info { "刷新access_token完成 $accassToken" }
     }
-
 
 
 }
