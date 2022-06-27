@@ -46,5 +46,7 @@ enum class BizConfigEnum(val key: String, val desc: String) {
     ALI_DRIVER_BLACK_FILE_NAME("ali_driver_black_file_name", "阿里云盘黑名单 文件名"),
 
     ORDER_BACK_PERCENT("order_back_percent", "订单返现比例"),
+
+    AUTO_REPLY("auto_reply", "自动回复配置"),
     ;
 }
