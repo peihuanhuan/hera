@@ -337,7 +337,7 @@ class BVideo2AudioService(
         }
 
 
-        if (extension == "mp3") {
+        // if (extension == "mp3") {
             // ffmpeg 文件如果是中文，可能会有些奇怪问题，使用 cid 作为唯一标识
             val ffmpegTargetFile = "${workDir}/${subTask.cid}.$extension"
             ffmpeg(source, ffmpegTargetFile, subTask.byteRate)
@@ -345,9 +345,9 @@ class BVideo2AudioService(
             FileUtils.deleteQuietly(File(ffmpegTargetFile))
             // 最后恢复原本的文件名
             FileUtils.deleteQuietly(sourceFile)
-        } else if (extension == "mp4") {
-            sourceFile.renameTo(destinationFile)
-        }
+        // } else if (extension == "mp4") {
+            // sourceFile.renameTo(destinationFile)
+        // }
 
 
         subTask.outFile = destinationFile
