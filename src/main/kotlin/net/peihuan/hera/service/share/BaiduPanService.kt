@@ -85,7 +85,9 @@ class BaiduPanService(
             if (needReConvert(subTask))  {
                 convert(subTask)
                 // 去除特殊字符
-                val path = subTask.outFile!!.name.trimName()
+                var path = subTask.outFile!!.name.trimName()
+                // 去除敏感词
+                path = blackKeywordService.replaceBlackKeyword(path)
                 val resp = blockWithTry(retryTime = 5) {
                     log.info("开始上传百度云盘 {}", rootPath + path)
                     baiduService.getPanService()

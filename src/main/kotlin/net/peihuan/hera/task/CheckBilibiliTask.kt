@@ -3,6 +3,7 @@ package net.peihuan.hera.task
 import me.chanjar.weixin.mp.api.WxMpService
 import mu.KotlinLogging
 import net.peihuan.hera.config.WxMpProperties
+import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
 import net.peihuan.hera.constants.BizConfigEnum
 import net.peihuan.hera.constants.TaskStatusEnum
 import net.peihuan.hera.domain.CacheManage
@@ -36,10 +37,16 @@ class CheckBilibiliTask(
 
     @Scheduled(fixedDelay = 180_000)
     fun scheduled() {
-        val singleMinutes = cacheManage.getBizValue(BizConfigEnum.ALARM_TIME, "1").toInt()
+        val singleAudioMinutes = cacheManage.getBizValue(BizConfigEnum.ALARM_AUDIO_TIME, "1").toInt()
+        val singleVideoMinutes = cacheManage.getBizValue(BizConfigEnum.ALARM_VIDEO_TIME, "10").toInt()
         val tasks = bilibiliAudioTaskPOService.findByStatus(TaskStatusEnum.DEFAULT)
         tasks.forEach { task ->
-            val limitMinutes = singleMinutes * task.size + 1
+            val limitMinutes = if (task.outputType == BilibiliTaskOutputTypeEnum.VIDEO) {
+                singleVideoMinutes
+            } else {
+                singleAudioMinutes * task.size + 1
+            }
+
             if (task.createTime!!.before(DateTime.now().minusMinutes(limitMinutes).toDate())) {
                 notifyService.notifyTaskTooLong(task)
             }
