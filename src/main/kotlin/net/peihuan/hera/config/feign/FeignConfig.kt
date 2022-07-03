@@ -22,6 +22,6 @@ class FeignConfig(
 
     @Bean
     fun feignRetryer(): Retryer? {
-        return Retryer.Default(100, 1000, 5)
+        return Retryer.Default(200, 1000, 5)
     }
 }

@@ -106,7 +106,7 @@ class WxConfigServiceTest : HeraApplicationTests() {
         order.outTradeNo = "111111"
         order.pay_at = "今天"
         order.actualOrderAmountStr = "100"
-        notifyService.notifyOrderStatusToUser(order ,100)
+        notifyService.notifyOrderStatusToUser(order)
         notifyService.notifyLeaveMessage("11", "aaaaaaaaaaaaaaaaaaaaaaaaaaabbbbddasdasd")
 
         println()

@@ -18,14 +18,19 @@ class AutoReplyHandler(
 ) : AbstractMessageHandler {
 
     override fun receivedMessages(): List<String> {
+        return emptyList()
+    }
+
+    override fun canHandle(message: String): Boolean {
         val bizValueList = cacheManage.getBizValueList(BizConfigEnum.AUTO_REPLY)
-        val allow = mutableListOf<String>()
         bizValueList.map {
             it.split("|")[0].split(",").forEach { q->
-                allow.add(q.trim())
+                if (message.contains(q.trim())) {
+                    return true
+                }
             }
         }
-        return allow
+        return false
     }
 
     override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
@@ -34,7 +39,7 @@ class AutoReplyHandler(
         bizValueList.forEach {
             val split = it.split("|")
             split[0].trim().split(",").forEach { q ->
-                if (q == wxMpXmlMessage.content) {
+                if (wxMpXmlMessage.content.contains(q.trim())) {
                     wxMpXmlMessage.replyKfMessage(split[1].trim())
                     return null
                 }

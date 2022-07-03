@@ -13,7 +13,7 @@ noArg {
 }
 
 group = "net.peihuan"
-version = "1.7.1"
+version = "1.7.6"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
@@ -21,8 +21,7 @@ repositories {
 	maven("https://jitpack.io")
 
 }
-
-extra["springCloudVersion"] = "2020.0.4"
+extra["springCloudVersion"] = "2020.0.6"
 
 
 dependencies {
@@ -30,6 +29,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	// implementation("org.springframework.cloud:spring-cloud-starter-feign:1.4.7.RELEASE")
 	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+
 
 	implementation("commons-codec:commons-codec:1.15")
 	implementation("org.apache.commons:commons-compress:1.21")

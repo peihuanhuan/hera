@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import net.peihuan.hera.constants.BilibiliTaskOutputTypeEnum
 import net.peihuan.hera.constants.BilibiliTaskSourceTypeEnum
 import net.peihuan.hera.constants.NotifyTypeEnum
+import net.peihuan.hera.feign.service.WwwBilibiliFeignService
 import net.peihuan.hera.service.BVideo2AudioService
 import net.peihuan.hera.service.BilibiliService
 import net.peihuan.hera.service.UserService
@@ -29,6 +30,15 @@ class BilibiliServiceTest : HeraApplicationTests() {
     lateinit var bVideo2AudioService: BVideo2AudioService
     @Autowired
     lateinit var userService: UserService
+    @Autowired
+    lateinit var wwwBilibiliFeignService: WwwBilibiliFeignService
+
+    @Test
+    fun xxaaa() {
+        val a = bilibiliService.getMusicUrl("2518758")
+        val b = wwwBilibiliFeignService.getMusicInfo("2518758")
+        println()
+    }
 
     @Test
     fun x() {
