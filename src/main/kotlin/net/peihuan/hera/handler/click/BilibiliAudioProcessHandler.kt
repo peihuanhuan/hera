@@ -20,6 +20,10 @@ class BilibiliAudioProcessHandler(
         return listOf("进度", "进展")
     }
 
+    override fun canHandle(message: String): Boolean {
+        return message.contains("进度") || message.contains("进展")
+    }
+
     override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage? {
 
         val lastTask =

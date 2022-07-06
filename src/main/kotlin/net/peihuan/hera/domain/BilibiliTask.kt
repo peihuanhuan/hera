@@ -86,6 +86,11 @@ class BilibiliTask(
             return "【$name】已完成\n\n$result"
         }
         val success = subTasks.count { it.baiduPanFileId != null || !it.aliyundriverFileId.isNullOrEmpty() }
-        return "【$name】正在处理：$success/$subTaskSize"
+        return if (name.isNullOrEmpty()) {
+            "正在处理：$success/$subTaskSize"
+        } else {
+            "【$name】\n\n正在处理：$success/$subTaskSize"
+        }
+
     }
 }
