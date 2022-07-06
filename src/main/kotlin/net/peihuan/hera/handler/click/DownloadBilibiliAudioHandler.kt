@@ -56,6 +56,10 @@ class DownloadBilibiliAudioHandler(
 
         wxMpXmlMessage.replyKfMessage(content)
         wxMpXmlMessage.replyKfMessage(successTasks.first().url)
+        // 第一次且使用百度云盘
+        if (successTasks.size == 1 && successTasks.first().url.contains("百度网盘")) {
+            wxMpXmlMessage.replyKfMessage("新手提示：微信内无法访问百度云盘，需要复制链接后到百度云盘APP内打开  （仅提示一次）")
+        }
         return null
     }
 
