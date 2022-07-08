@@ -13,6 +13,7 @@ import net.peihuan.hera.persistent.service.BilibiliAudioPOService
 import net.peihuan.hera.service.BlackKeywordService
 import net.peihuan.hera.service.NotifyService
 import net.peihuan.hera.util.JsUtil
+import net.peihuan.hera.util.forEachParallel
 import net.peihuan.hera.util.toJson
 import net.peihuan.hera.util.upload
 import org.apache.commons.codec.digest.DigestUtils
@@ -75,7 +76,7 @@ class AliyundriveService(
             DEFAULT_ROOT_ID
         }
 
-        task.subTasks.forEach { subTask ->
+        task.subTasks.forEachParallel(2) { subTask ->
             if (needReConvert(subTask)) {
                 convert(subTask)
                 val uploadDTO = uploadFile(subTask.outFile!!, 5, parentId)

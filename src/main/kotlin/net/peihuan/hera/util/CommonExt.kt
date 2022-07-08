@@ -1,5 +1,9 @@
 package net.peihuan.hera.util
 
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import net.peihuan.hera.constants.YYYYMMDDHHMMSS
 import org.joda.time.DateTime
@@ -8,9 +12,36 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import java.net.URL
 import java.util.*
+import java.util.concurrent.Executors
 import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
+
+
+@OptIn(ObsoleteCoroutinesApi::class)
+fun <A> Collection<A>.forEachParallel2(nThread: Int, f: () -> Unit): Unit {
+    val newScheduledThreadPool = Executors.newScheduledThreadPool(nThread)
+    newScheduledThreadPool.submit(Runnable {
+        try {
+            f()
+        } catch (e: Exception) {
+            // 其余任务全部停止
+            newScheduledThreadPool.shutdownNow()
+            log.error(e.message, e)
+        }
+    })
+}
+
+@OptIn(ObsoleteCoroutinesApi::class)
+fun <A> Collection<A>.forEachParallel(nThread: Int, f: suspend (A) -> Unit): Unit {
+    val context = newFixedThreadPoolContext(nThreads = nThread, name = "my fixed thread pool ")
+    runBlocking {
+        map {
+            async(context) { f(it) }
+        }.forEach { it.await() }
+    }
+
+}
 
 fun <T> T?.tolist(): List<T> {
     return if (this == null) {
@@ -42,7 +73,7 @@ fun randomOutTradeNo(): String {
     return DateTime.now().toString(YYYYMMDDHHMMSS) + UUID.randomUUID().toString().replace("-", "").substring(0, 10)
 }
 
-fun getUrlParams(url: String) :Map<String, String> {
+fun getUrlParams(url: String): Map<String, String> {
     var u = url
     if (!url.startsWith("https://") && !url.startsWith("http://")) {
         u = "http://" + url

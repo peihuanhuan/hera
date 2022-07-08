@@ -16,6 +16,7 @@ import net.peihuan.hera.service.BlackKeywordService
 import net.peihuan.hera.service.ConfigService
 import net.peihuan.hera.service.NotifyService
 import net.peihuan.hera.util.blockWithTry
+import net.peihuan.hera.util.forEachParallel
 import org.apache.commons.io.FilenameUtils
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
@@ -81,7 +82,7 @@ class BaiduPanService(
             "/"
         }
 
-        task.subTasks.forEach { subTask ->
+        task.subTasks.forEachParallel(2) { subTask ->
             if (needReConvert(subTask))  {
                 convert(subTask)
                 // 去除敏感词

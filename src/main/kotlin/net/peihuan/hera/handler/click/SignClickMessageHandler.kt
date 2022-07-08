@@ -19,7 +19,7 @@ class SignClickMessageHandler(val signService: SignService) : AbstractMenuAndMes
     }
 
     override fun handle(wxMpXmlMessage: WxMpXmlMessage): WxMpXmlOutMessage {
-        wxMpXmlMessage.replyKfMessage("由于成本压力，未来将逐渐降低签到得到的积分，请老用户尽快兑换积分。\n目前购买会员已支持即时返现，返现金额不低于0.3元，根据订单金额计算。金额过小订单不会返现。")
+        wxMpXmlMessage.replyKfMessage("由于成本压力，正在逐渐降低签到得到的积分，请老用户尽快兑换积分。\n目前购买会员已支持即时返现，返现金额不低于0.3元，根据订单金额计算。金额过小订单不会返现。")
         return buildText(signService.sign(wxMpXmlMessage.fromUser), wxMpXmlMessage)
     }
 
