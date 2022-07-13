@@ -8,7 +8,7 @@ data class BangumiInfo(
     val cover: String,
     val episodes: List<Episode>?,
     val evaluate: String,
-    val freya: Freya,
+    // val freya: Freya?,
     val jp_title: String,
     val link: String,
     val media_id: Int,
