@@ -39,14 +39,20 @@ class BilibiliService(
         videos.addAll(resolveBvSimpleInfoFromPram(newData))
         videos.addAll(resolveMusicFullInfo(newData))
 
+        val needRemove  = mutableListOf<BilibiliVideo>()
         videos.forEach { bilibiliVideo ->
             if (bilibiliVideo.epid != null || bilibiliVideo.sid != null) {
                 // 音频、ep 已经填充过属性
                 return@forEach
             }
             val view = getViewByBvid(bilibiliVideo.bvid)
-            assembleBilibiliVideo(bilibiliVideo, view)
+            if (view != null) {
+                assembleBilibiliVideo(bilibiliVideo, view)
+            } else {
+                needRemove.add(bilibiliVideo)
+            }
         }
+        videos.removeAll(needRemove)
         return videos.distinct()
     }
 
@@ -55,6 +61,9 @@ class BilibiliService(
             return getAllBangumiInfos(bilibiliVideo.epid)
         }
         val view = getViewByBvid(bilibiliVideo.bvid)
+        if (view == null) {
+            return emptyList()
+        }
         return view.pages.map { page -> convert2BilibiliVideo(view, page) }
     }
 
@@ -173,18 +182,18 @@ class BilibiliService(
     }
 
 
-    fun getViewByAid(aid: String): View {
+    fun getViewByAid(aid: String): View? {
         return apiBilibiliFeignService.getView(aid = aid).data
     }
 
-    fun getViewByBvid(bvid: String): View {
+    fun getViewByBvid(bvid: String): View? {
         return apiBilibiliFeignService.getView(bvid = bvid).data
     }
 
     fun getDashAudioPlayUrl(avid: String, cid: String): List<String> {
         val dashPlayurl =
             apiBilibiliFeignService.dashPlayurl(avid = avid, cid = cid, Quality.P_360.code)
-        var audios = dashPlayurl.data.dash?.audio
+        var audios = dashPlayurl.data!!.dash?.audio
         if (audios.isNullOrEmpty()) {
             return emptyList()
         }
@@ -199,11 +208,11 @@ class BilibiliService(
 
     fun getFlvPlayUrl(avid: String, cid: String, quality: Quality): List<String> {
         val response = apiBilibiliFeignService.flvPlayurl(avid = avid, cid = cid, quality = quality.code)
-        if (response.data.durl == null) {
+        if (response.data!!.durl == null) {
             return emptyList()
         }
         val urls = mutableListOf<String>()
-        response.data.durl.forEach {
+        response.data?.durl?.forEach {
             urls.add(it.url)
             urls.addAll(it.backup_url ?: emptyList())
         }

@@ -1,6 +1,8 @@
 package net.peihuan.hera.feign.service
 
-import net.peihuan.hera.feign.dto.bilibili.*
+import net.peihuan.hera.feign.dto.bilibili.BangumiInfo
+import net.peihuan.hera.feign.dto.bilibili.DashPlayUrl
+import net.peihuan.hera.feign.dto.bilibili.View
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -15,7 +17,7 @@ interface ApiBilibiliFeignService {
     data class Response<T>(
         val code: Int,
         val message: String,
-        val data: T
+        val data: T?
     )
 
     data class Result<T>(

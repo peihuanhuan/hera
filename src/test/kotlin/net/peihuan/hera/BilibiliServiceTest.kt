@@ -70,7 +70,7 @@ class BilibiliServiceTest : HeraApplicationTests() {
     @Test
     fun orderService() {
 
-        val viewByBvid = bilibiliService.getViewByBvid("BV17g411N7L9")
+        val viewByBvid = bilibiliService.getViewByBvid("BV1va4y1E7gY")
         val view = bilibiliService.getViewByAid("506850749")
         log.info { view }
 

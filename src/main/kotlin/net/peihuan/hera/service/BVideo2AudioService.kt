@@ -125,7 +125,7 @@ class BVideo2AudioService(
         if (type == BilibiliTaskSourceTypeEnum.MULTIPLE) {
             val firstVideo = bilibiliVideos.first()
             bilibiliVideos = bilibiliService.findAllBilibiliVideos(firstVideo)
-            taskName = bilibiliService.getViewByBvid(firstVideo.bvid).title
+            taskName = bilibiliService.getViewByBvid(firstVideo.bvid)?.title ?: "lost name"
         }
 
         val task = BilibiliTask(
